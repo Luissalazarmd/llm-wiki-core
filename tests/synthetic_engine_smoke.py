@@ -20,6 +20,8 @@ def main():
     p.add_argument('--engine-root', type=Path, required=True)
     p.add_argument('--output-parent', type=Path, required=True)
     p.add_argument('--synthetic-only', action='store_true', required=True)
+    p.add_argument('--unified', action='store_true',
+                   help='install engine into the same synthetic core folder')
     args = p.parse_args()
     engine = args.engine_root.resolve(strict=True)
     baseline = Path(__file__).resolve().parents[1]
@@ -43,16 +45,33 @@ def main():
         'approval': 'SIMULATED TEST EVENT, NOT AUTHENTICATED HUMAN APPROVAL'}))
     for directory in ('Raw','Wiki','Review'):
         (root/directory).mkdir()
-    shutil.copytree(engine/'Schema', root/'Schema')
-    shutil.copytree(engine/'_templates', root/'_templates')
-    shutil.copy2(engine/'LICENSE', root/'LICENSE')
-    policy_path = root/'Schema/librarian-policy.json'
-    policy = json.loads(policy_path.read_text())
-    policy['git']['enabled'] = False
-    policy['memory']['enabled'] = False
-    policy['privacy']['external_model_processing'] = 'forbid'
-    policy['mode'] = 'review-first'
-    policy_path.write_text(json.dumps(policy, indent=2)+'\n')
+    if args.unified:
+        for relative in ('scripts/install_private_engine.py','adapters/review_chat.py',
+                         'config/private-engine-files.json','.gitignore'):
+            dest=root/relative
+            dest.parent.mkdir(parents=True,exist_ok=True)
+            shutil.copy2(baseline/relative,dest)
+        installer = root/'scripts/install_private_engine.py'
+        result = subprocess.run([sys.executable,str(installer),'--source',str(engine),
+            '--root',str(root)],capture_output=True,text=True,check=True)
+        install_report=json.loads(result.stdout)
+        assert install_report['verified_files']==90
+        repeated = subprocess.run([sys.executable,str(installer),'--source',str(engine),
+            '--root',str(root)],capture_output=True,text=True,check=True)
+        assert json.loads(repeated.stdout)['files_copied']==0
+        (evidence/'install-report.json').write_text(result.stdout)
+        engine = root
+    else:
+        shutil.copytree(engine/'Schema', root/'Schema')
+        shutil.copytree(engine/'_templates', root/'_templates')
+        shutil.copy2(engine/'LICENSE', root/'LICENSE')
+        policy_path = root/'Schema/librarian-policy.json'
+        policy = json.loads(policy_path.read_text())
+        policy['git']['enabled'] = False
+        policy['memory']['enabled'] = False
+        policy['privacy']['external_model_processing'] = 'forbid'
+        policy['mode'] = 'review-first'
+        policy_path.write_text(json.dumps(policy, indent=2)+'\n')
     sys.path.insert(0, str(engine/'scripts'))
     from librarian.apply import apply_held_proposal, apply_source_scan
     from librarian.contracts import content_sha256
@@ -149,8 +168,9 @@ Todavía no hay otras páginas compiladas en esta instancia de prueba.
     check('proposal_held_no_page', held_receipt['verdict']=='held' and not (root/target).exists())
     check('one_review_case', len(list_cases(root))==1)
     save('held-receipt.json',held_receipt)
-    adapter = Path(__file__).resolve().parents[1]/'adapters/review_chat.py'
-    cmd = [sys.executable, str(adapter),'--engine-root',str(engine),'--instance-root',str(root)]
+    adapter = (root if args.unified else baseline)/'adapters/review_chat.py'
+    cmd = ([sys.executable,str(adapter),'--root',str(root)] if args.unified else
+           [sys.executable,str(adapter),'--engine-root',str(engine),'--instance-root',str(root)])
     before = snapshot()
     outputs = {}
     for op in ('list','show','packet'):
@@ -291,6 +311,7 @@ else:
         raise AssertionError('Recovery overwrote concurrent edit')
     save('recovery.json',recovery)
     report={'status':'passed','synthetic_only':True,'approval':'simulated, not authenticated',
+        'layout':'single_core_folder' if args.unified else 'legacy_separate_engine',
         'output':str(output),'engine_revision':json.loads((engine/'SOURCE_MANIFEST.json').read_text())['source_revision'],
         'network_namespace':current_ns,'host_network_namespace':host_ns,
         'git':'disabled in test instance; no authenticated Git checkout or startup claimed',

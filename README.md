@@ -1,51 +1,44 @@
 # llm-wiki-core
 
-Private, agent-first baseline for an Obsidian-readable Markdown knowledge system.
+One private project for the Bibliotecario, Orquestador and your Markdown Wiki. Open this same core folder in Obsidian; you do not need a second template or instance repository.
 
-For humans: this repository defines the contracts and setup decisions for two agents. It does not yet automate your vault. For agents: start with [AGENTS.md](AGENTS.md), then run the [operational preflight](docs/agent-preflight.md) before proposing work.
+**Current status:** a local licensed-engine installer, read-only review CLI and tested synthetic canonical flow are implemented. The private engine is installed into this folder from authorized local files; its code is not redistributed by this repository. Authenticated chat approval and autonomous semantic synthesis are not connected yet.
 
-**Status: v0.1 baseline with an original read-only review adapter and synthetic engine integration test.** The private engine itself is not bundled. No approval service, connectors, synchronization service, or replacement canonical apply implementation is included. See [local integration](docs/local-integration.md) for verified commands and test boundaries. The empty content directories contain only Git placeholders, not compiled notes. No personal vault, source collection, identities, chat history, or credentials are included.
+## Install into this same folder
 
-## v0.1 scope
+From the cloned core project, with the authorized engine files already available locally:
 
-- **Bibliotecario**: evidence intake, provenance, synthesis proposals, and maintenance proposals.
-- **Orquestador**: explicit user intent, planning, routing, review presentation, and authorized coordination.
-- Pipeline: **Raw → Review → Wiki**. Agents propose; an authenticated human approves an exact proposal revision; a single canonical writer applies it.
-- Obsidian is the reading/editing interface, not the authority that authenticates approvals or runs the engine.
-- Personal memory and bibliography remain separate information classes.
+```bash
+python3 scripts/install_private_engine.py --source /path/to/authorized-engine --root .
+python3 adapters/review_chat.py --root . list
+python3 adapters/review_chat.py --root . show CASE_ID
+python3 adapters/review_chat.py --root . packet CASE_ID
+```
 
-No additional specialist roles are included in v0.1. Task and calendar applications are onboarding choices, not required dependencies.
+The installer verifies the pinned source hashes and preserves existing differing files instead of overwriting them. It never downloads, runs the source, migrates another vault, pushes or uploads anything. Use `--check` for a read-only preview. A source folder is a one-time installation input, not a second project you must maintain.
 
-## Start here
+The generated local settings start review-first, with automatic Git checkpoints, memory providers and external model processing disabled. Existing local settings are preserved. This is an engine/API installation, not the complete upstream graphical/bootstrap kit.
 
-1. Read [onboarding](docs/onboarding.md) and select an isolated private instance and one sync method.
-2. Review the [architecture](docs/architecture.md), [agent contracts](Agents/README.md), and [review contract](docs/review-contract.md).
-3. Use [config/example.json](config/example.json) as an inert questionnaire. There is currently no config loader.
-4. Follow the [implementation milestones](docs/implementation.md) before expecting executable behavior.
+## One folder, explicit Git policy
 
-The current repository may be opened as an Obsidian vault to read these documents. Do not import personal information into the template repository. Provision a distinct private instance before actual use.
+- `Raw/`: your captured sources and their provenance
+- `Review/`: proposals and readable review material
+- `Wiki/`: approved canonical Markdown
+- `Agents/` and `Librarian Profile.md`: the two role contracts and canonical librarian profile
+- `adapters/`, `scripts/install_private_engine.py`, `tests/`, `config/`, `docs/`: original project code and contracts
+- `scripts/librarian/`, support packages, `_templates/`, selected `Schema/` files and `LICENSE`: licensed engine installed locally into this same core folder
+- `.wanderloots-llm-wiki/`: private operational state, requiring deliberate backup
 
-## Layout
+Original code is versionable in the core repository. Vendor files, local settings and operational state are excluded from publication by default. Raw/Review/Wiki are **not** blanket-ignored: selected knowledge can be versioned in this same private GitHub repository when you choose what to publish. A private repository does not remove source-license, personal-data or credential constraints. No upload is automatic; review staged files before every publication. Secrets always belong in a secret store.
 
-- `Raw/`: immutable or versioned intake in a future private instance.
-- `Review/`: proposed changes and human-readable review packets in that instance.
-- `Wiki/`: approved canonical Markdown in that instance.
-- `Librarian Profile.md`: the single canonical Bibliotecario profile.
-- `Agents/`: role contracts, Orquestador profile, and Bibliotecario profile pointer; not an executable runtime.
-- `adapters/`: original read-only review projection over a separately installed private engine.
-- `tests/`: synthetic-only engine integration harness; outputs belong outside the baseline.
-- `config/`: sanitized configuration example.
-- `docs/`: onboarding, architecture, review, sync, runtime, and acceptance design.
-- `AGENTS.md`: contributor and automation boundaries.
+## Workflow
 
-Retain these root names and casing. The upstream root layout also reserves `Schema/`, `scripts/`, `rail/`, `automation/`, `_templates/`, `.agents/`, and `.wanderloots-llm-wiki/` (including bootstrap and durable internals). These engine-owned paths are documented, not populated with fake runtime files. Their exact contents and compatibility still require licensed integration review.
+Raw → Review → Wiki. Bibliotecario prepares source-grounded proposals; Orquestador presents them. An authenticated human decision is required before enabling real-content canonical apply. The read-only CLI provides list/show/packet now and never approves anything.
 
-## Engine and rights boundary
+The isolated single-folder smoke test passes 35 checks, including canonical simulated apply, stale blocking, receipts, replay and recovery. Nine installer tests cover integrity, conflicts, repeat installation and Git exclusions. These are synthetic results, not a claim that the authenticated chat host is ready.
 
-The intended upstream is the private Wanderloots 2.0.5 engine. It is **not bundled**. No upstream source, scripts, vault content, or LICENSE text has been copied. Integration requires an authorized source review, an exact revision, compatibility verification, and preservation of the upstream private-use license and notices. See [upstream boundary](docs/upstream.md). Do not publish this baseline or imported dependencies as open source without a separate rights review.
+See [local integration](docs/local-integration.md) for commands and limits, [onboarding](docs/onboarding.md) for setup choices, [review contract](docs/review-contract.md) for authority, and [acceptance](docs/acceptance.md) for the broader unfinished gates. Agents start with [AGENTS.md](AGENTS.md).
 
-See [acceptance specification](docs/acceptance.md) for required synthetic tests. Those remain requirements; the separate [local integration report](docs/local-integration.md) describes the bounded passing smoke test, not full acceptance.
+## Language
 
-## Language defaults
-
-Agent instructions are in English. User-facing replies follow the user’s language. Generated Wiki notes default to Spanish (`wiki_language: es`) unless the user selects another language. Source titles, citations, and original quotations retain their original wording; translations are labeled.
+Internal agent instructions are English. Replies follow the user's language. Wiki prose defaults to Spanish; original titles, citations and quotations retain their wording. Current upstream structural headings are preserved.

@@ -23,7 +23,7 @@ Use a temporary instance containing a synthetic source, one canonical note, and 
 13. **Revocation/expiry:** under the chosen host policy, revoked or expired approvals are rejected; an unavailable policy service does not bypass checks.
 14. **Separation:** personal-memory inputs cannot silently enter bibliographic evidence; a DOI does not make a synthetic low-quality source trustworthy.
 15. **Adapter boundary:** Wiki approval does not permit task/calendar writes, messages, or third-party uploads. Unconfigured adapters fail closed.
-16. **Clean template:** all committed files are generic; stage directories have only placeholders; no real identifiers, credentials, source texts, owner paths, runtime databases, or old history are present.
+16. **Publication boundary:** the original-code delivery contains generic code and synthetic fixtures only. Licensed engine files, credentials, local settings and operational state are excluded from publication. Selected real Raw/Review/Wiki content may be versioned in this same private repository only within approved scope; local presence is not upload approval.
 17. **Recovery and bootstrap:** a fresh host installs the pinned licensed runtime separately from note sync, then restores canonical content and required durable state consistently. Missing replay state blocks apply.
 
 18. **Language policy:** internal instructions remain English; replies follow the user’s language; new Wiki notes default to Spanish when no preference is supplied and use an explicitly configured alternative when present. Source titles, citations, identifiers, and original quotations remain exact; translations are labeled and never misrepresented as original text. An unanswered optional language question does not block work.

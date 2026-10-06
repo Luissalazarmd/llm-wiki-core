@@ -6,7 +6,7 @@
 - **Review:** proposed Wiki changes, source references, base revision, and review packet. A proposal is not canonical knowledge and a synced edit is not approval.
 - **Wiki:** approved derived Markdown. Only the canonical apply engine changes its machine-managed content after validating authenticated approval.
 
-The root layout remains stable and human-readable. The template has empty placeholders; a private instance contains actual content. Engine-specific paths, exact APIs, and upstream compatibility are unverified until integration review.
+The root layout remains stable and human-readable. A fresh clone has empty placeholders; the same folder becomes the private Wiki after local engine installation and authorized capture. The tested API boundary is documented in local integration.
 
 ## Control plane
 
@@ -22,6 +22,6 @@ Bibliography contains source identity and evidence. Personal memory contains pri
 
 Offline readers can read and capture Raw drafts. Missing authoritative state, conflicts, stale proposals, ambiguous approval, or unavailable writer locks block apply. Do not resolve these conditions using last-write-wins. Canonical files, approval records, and replay/audit state must recover consistently.
 
-## Template versus instance
+## One project, deliberate publication
 
-Keep reusable contracts and sanitized configuration in Git. Operate real vault data in a distinct private instance with explicit retention, access, backup, and sync rules. A private Git repository is not permission to include personal data or redistribute upstream source.
+Keep the engine, agents and private Wiki in the same core folder. Original code and selected authorized knowledge may use the same private Git repository. Licensed engine files, local configuration and operational state remain excluded by default. A private repository is not permission to disclose personal data or redistribute upstream source. Keep explicit retention, backup and sync rules; exclusion from Git does not make durable state disposable.

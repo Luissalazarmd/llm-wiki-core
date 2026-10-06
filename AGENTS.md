@@ -1,10 +1,10 @@
 # Contributor and automation boundaries
 
-This repository is a private baseline with an original read-only adapter and synthetic integration test, not an installed engine. Read [local integration](docs/local-integration.md) for the verified boundary.
+This is the single private core project. Its original installer provisions the licensed engine into this same folder; inspect installation evidence rather than assuming it is present. Read [local integration](docs/local-integration.md) for the verified boundary.
 
 Start every task with the [operational preflight](docs/agent-preflight.md). Verify capabilities using observed evidence; never infer installed tools, authority, or completed setup from a document.
 
-1. Keep the baseline generic. Never commit personal data, account identifiers, real source archives, conversation history, secrets, instance state, or private configuration.
+1. Use this same core folder for code and the authorized private Wiki. Keep original reusable files generic. Version Raw/Review/Wiki in this same private repository only within explicitly approved publication scope. Never auto-upload private data, credentials, local settings, engine state or licensed vendor files. Do not create a second instance repository.
 2. Retain root names and casing, including the upstream-reserved paths documented in [upstream boundary](docs/upstream.md). Keep `Librarian Profile.md` as the single canonical Bibliotecario profile. Do not add fake engine/bootstrap files; inspect the licensed upstream before installing engine paths or entry points.
 3. Implement only Bibliotecario and Orquestador in v0.1. Avoid adding frameworks or new specialist roles without explicit scope approval.
 4. Read [agent contracts](Agents/README.md) and the [review contract](docs/review-contract.md). Neither role may approve its own proposals or directly apply canonical Wiki edits.
@@ -14,7 +14,7 @@ Start every task with the [operational preflight](docs/agent-preflight.md). Veri
 8. Read-only review operations must not mutate durable state. Require exact revision and etag checks, single-writer locking, durable replay protection, provenance, and fail-closed recovery before implementing mutations.
 9. Do not invent working commands. Label design interfaces and examples as unimplemented until a verified engine provides them.
 10. Preserve licensed notices when importing authorized upstream material. Stop if license scope or clean extraction is uncertain.
-11. Validate links, JSON, template privacy, and the applicable synthetic acceptance suite. Report passed, failed, and not-run checks separately.
+11. Validate links, JSON, publication scope, and the applicable synthetic acceptance suite. Report passed, failed, and not-run checks separately.
 12. Review every staged file. `.gitignore` is a convenience, not a privacy boundary or a durable-state design.
 
 ## Language contract

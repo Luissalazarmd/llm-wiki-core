@@ -10,7 +10,7 @@ Inspect authorized upstream source and license. Pin revision; document root layo
 
 ## M2: isolated synthetic instance
 
-Install the reviewed runtime on one canonical host using a verified procedure. Provision an empty private instance outside the template, with synthetic input only. Gate: read-only list/show/packet demonstrably leave state unchanged.
+Install the reviewed runtime on one canonical host using a verified procedure. Test a disposable copy of the same core layout, installing engine and synthetic Wiki in one folder. Real use keeps that same layout in the core project; no second repository is required. Gate: read-only list/show/packet demonstrably leave state unchanged.
 
 ## M3: authenticated review and canonical apply
 
@@ -28,4 +28,4 @@ Choose providers during onboarding. Start read-only; test permissions and explic
 
 Only after the prior gates, admit authorized real sources under retention/privacy rules. Observe audit and recovery behavior. Additional specialist roles and broad automation are out of v0.1 scope.
 
-Local progress: authorized source/license mapping and an isolated synthetic API integration have been exercised; see [local integration](local-integration.md). The baseline contains only original adapter/test code. This is bounded M1/M2 progress, not a complete bootstrap installation, authenticated M3 review bridge, or production activation.
+Local progress: authorized source/license mapping and an isolated synthetic API integration have been exercised; see [local integration](local-integration.md). The tracked project contains original installer, adapter and test code; licensed engine files are installed locally into that same folder. This is bounded M1/M2 progress, not a complete bootstrap installation, authenticated M3 review bridge, or production activation.

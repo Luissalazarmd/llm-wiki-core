@@ -40,8 +40,6 @@ def read_review(engine_root: Path, instance_root: Path, operation: str,
     instance_root = instance_root.resolve(strict=True)
     if not (engine_root / "LICENSE").is_file():
         raise ValueError("private engine LICENSE is missing")
-    if engine_root == instance_root:
-        raise ValueError("engine and private instance must be separate")
     if operation not in {"list", "show", "packet"}:
         raise ValueError("only list, show and packet are supported")
     if operation != "list" and not re.fullmatch(r"case_[A-Za-z0-9_-]+", case_id or ""):
@@ -77,14 +75,22 @@ def read_review(engine_root: Path, instance_root: Path, operation: str,
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--engine-root", type=Path, required=True)
-    parser.add_argument("--instance-root", type=Path, required=True)
+    parser.add_argument("--root", type=Path,
+                        help="single core folder containing installed engine and Wiki")
+    parser.add_argument("--engine-root", type=Path,
+                        help="legacy separate-engine layout")
+    parser.add_argument("--instance-root", type=Path,
+                        help="legacy separate-instance layout")
     parser.add_argument("operation", choices=("list", "show", "packet"))
     parser.add_argument("case_id", nargs="?")
     args = parser.parse_args()
+    if args.root and (args.engine_root or args.instance_root):
+        parser.error("use --root, or the legacy pair, not both")
+    if not args.root and not (args.engine_root and args.instance_root):
+        parser.error("provide --root for the single core project")
     sys.addaudithook(_deny_mutation)
     try:
-        result = read_review(args.engine_root, args.instance_root,
+        result = read_review(args.root or args.engine_root, args.root or args.instance_root,
                              args.operation, args.case_id)
     except (OSError, ValueError, KeyError) as exc:
         print(json.dumps({"error": str(exc)}, ensure_ascii=False), file=sys.stderr)

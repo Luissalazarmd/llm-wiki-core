@@ -1,22 +1,31 @@
 # Local private-engine integration
 
-## Implemented boundary
+## One project, local licensed dependency
 
-The baseline now contains original, read-only adapter code and a synthetic integration test. It still does **not** distribute or install the private Wanderloots engine. Install that dependency separately only from an authorized source, preserving its LICENSE and notices. Keep both dependency and instance outside this baseline.
+The original installer provisions the reviewed engine into the same core folder as the agents, Raw, Review and Wiki. There is no second user-managed repository. The authorized source folder is an installation input only; the installed runtime does not depend on it.
 
-The tested dependency is engine 2.0.5, pinned by a private `SOURCE_MANIFEST.json` containing the source commit, exact Git blob hashes, SHA-256 values and an explicit file allowlist. The local extraction contains Python runtime modules, four generic schema/policy files, templates and notices. It excludes the old vault's Raw, Review, Wiki, Agents, preferences, durable history, credentials and Git history. No dependency files were uploaded.
+```bash
+python3 scripts/install_private_engine.py --source /path/to/authorized-engine --root . --check
+python3 scripts/install_private_engine.py --source /path/to/authorized-engine --root .
+```
 
-The canonical apply path invokes `wiki_tool.py`, which imports the wider CLI. Its import dependencies therefore include optional support packages even though this test does not activate updates, expansions, browser servers, memory providers or network access. This is not a complete upstream kit/bootstrap installation.
+The pinned manifest in `config/private-engine-files.json` verifies 90 source files by SHA-256 and exact Git blob hashes. The installer copies only those files plus local provenance metadata, preserving LICENSE and notices. Existing differing files block installation before writes; matching repeated installation leaves files unchanged. Existing local settings are preserved. No old Raw/Review/Wiki, identity, history or preference files are copied.
+
+The engine lives at its canonical `scripts/`, `Schema/` and `_templates/` paths. The tracked original installer remains `scripts/install_private_engine.py`. Licensed files, generated local settings and `.wanderloots-llm-wiki/` operational state are excluded from Git publication. Raw/Review/Wiki are deliberately not blanket-ignored: the owner can select knowledge for this same private GitHub repository after reviewing publication scope. No remote writes or vendor uploads are performed by installation or these tests. Back up operational state explicitly; ignored does not mean disposable.
+
+The tested engine is 2.0.5. Canonical apply calls `wiki_tool.py`, whose broad imports require support modules even though this test never activates updates, expansions, servers or network services. This is an API installation, not the complete upstream graphical/bootstrap kit.
 
 ## Read-only review CLI
 
-Set ENGINE_ROOT to the separately provisioned private engine directory and INSTANCE_ROOT to the separate private instance. After reviewing and authorizing the engine's execution:
+After installation and authorized runtime execution, use this same project root:
 
 ```bash
-python3 adapters/review_chat.py --engine-root "$ENGINE_ROOT" --instance-root "$INSTANCE_ROOT" list
-python3 adapters/review_chat.py --engine-root "$ENGINE_ROOT" --instance-root "$INSTANCE_ROOT" show "$CASE_ID"
-python3 adapters/review_chat.py --engine-root "$ENGINE_ROOT" --instance-root "$INSTANCE_ROOT" packet "$CASE_ID"
+python3 adapters/review_chat.py --root . list
+python3 adapters/review_chat.py --root . show "$CASE_ID"
+python3 adapters/review_chat.py --root . packet "$CASE_ID"
 ```
+
+The earlier `--engine-root` / `--instance-root` pair remains supported for compatibility; it is not the recommended user layout.
 
 - `list` delegates to upstream `review.list_cases`.
 - `show` delegates to upstream `rail.case_detail`, preserving evidence, proposed contents and full diffs.
@@ -37,10 +46,10 @@ LIBRARIAN_HOST_NETNS="$(readlink /proc/self/ns/net)" \
   unshare --user --map-root-user --net -- \
   env PYTHONDONTWRITEBYTECODE=1 python3 tests/synthetic_engine_smoke.py \
     --engine-root "$ENGINE_ROOT" \
-    --output-parent "$OUTSIDE_BASELINE" --synthetic-only
+    --output-parent "$OUTSIDE_BASELINE" --synthetic-only --unified
 ```
 
-The harness creates fresh, visibly marked synthetic instances. It supplies invented Spanish source text and a typed draft, calls the upstream validator and receipt-backed hold path, exports read-only review packets, then **simulates** one reviewer decision against invented content. Only the existing upstream canonical apply path creates the resulting concept page. Held proposals can already update the engine's Wiki log; the proposed concept page remains absent until simulated approval.
+ENGINE_ROOT supplies the authorized installation files. The harness creates a fresh, visibly marked synthetic copy of the core layout, installs its engine into that same folder and uses its copied adapter with `--root`. These disposable test fixtures are not extra repositories for normal use. It supplies invented Spanish source text and a typed draft, calls the upstream validator and receipt-backed hold path, exports read-only review packets, then **simulates** one reviewer decision against invented content. Only the existing upstream canonical apply path creates the resulting concept page. Held proposals can already update the engine's Wiki log; the proposed concept page remains absent until simulated approval.
 
 The main instance disables Git and memory and forbids external model processing. No authenticated Git checkout, real vault startup, semantic model synthesis or real human approval is claimed. The source body is verified unchanged after apply. Recovery fixtures are invented files in the same disposable test area; a separate instance deliberately preserves an unresolved recovery conflict.
 
@@ -48,7 +57,7 @@ The harness retains JSON evidence outside the baseline: read-only outputs, held/
 
 ## Observed result
 
-35 checks passed on the local pinned extraction:
+35 integration checks passed in the unified single-folder fixture:
 
 - Source capture detection, receipt-backed scan and no-work rescan
 - Valid review-first proposal held without creating its concept page
@@ -63,6 +72,14 @@ The harness retains JSON evidence outside the baseline: read-only outputs, held/
 - Recovery after prepared/files_applied/backup_recorded and safe repeated recovery
 - Terminal-receipt recovery preserves committed state
 - Concurrent recovery edit preserved and reported as a conflict
+
+Nine additional installer tests passed: read-only preview, idempotent reinstall, collision preservation, corrupted-source rejection, symlink rejection, required-folder and parent-path conflict rejection, existing-setting preservation, and Git exclusion checks showing vendor files excluded while original code and Raw/Review/Wiki remain trackable. Run them with:
+
+```bash
+unshare --user --map-root-user --net -- env PYTHONDONTWRITEBYTECODE=1 \
+  LIBRARIAN_ENGINE_SOURCE="$ENGINE_ROOT" \
+  python3 -m unittest discover -s tests -p test_private_engine_install.py -v
+```
 
 This is a bounded smoke test, not the complete [acceptance specification](acceptance.md). Production bootstrap/preflight, model-driven semantic submission, authenticated user-event binding, expiry/revocation, multi-writer fencing and device sync remain untested or unimplemented. The upstream actor field is a heuristic and its ETag argument is optional. Upstream replay currently raises a stale-decision error rather than returning the prior receipt. Do not label the authenticated review/apply milestone complete.
 

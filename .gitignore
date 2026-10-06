@@ -1,4 +1,4 @@
-# Private instance content belongs outside this reusable template.
+# Local configuration and temporary artifacts stay private within the core project.
 /instances/
 /private/
 /config/local.json
@@ -26,6 +26,27 @@ __pycache__/
 .obsidian/workspace.json
 .obsidian/workspace-mobile.json
 
-# Intentionally no blanket exclusion for .agents, .durable, *.db,
-# or all runtime state. Canonical durable-state/Git policy is TBD.
 # Review staged files; ignore rules do not prevent secret/data leakage.
+
+# Licensed engine: installed locally INTO this core folder, never auto-published.
+# Original scripts/install_private_engine.py remains tracked.
+/scripts/librarian/
+/scripts/wanderloots_expansions/
+/scripts/wanderloots_release_bridge/
+/scripts/wiki_tool.py
+/scripts/librarian_tool.py
+/Schema/librarian-knowledge-registry.json
+/Schema/librarian-policy.json
+/Schema/librarian-reason-codes.json
+/Schema/librarian-settings.schema.json
+/_templates/
+/LICENSE
+/SOURCE_MANIFEST.json
+/.private-engine-install.json
+/LLM Wiki Settings.md
+/.wanderloots-llm-wiki/
+
+# Raw/Review/Wiki are deliberately NOT blanket-ignored: the owner may choose
+# to version selected private knowledge in this SAME private repository.
+# No content upload is automatic. Review rights, sensitive data and staging.
+# Hidden operational state needs an explicit backup plan; ignore != disposable.

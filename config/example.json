@@ -1,6 +1,6 @@
 {
   "schema_status": "design-example-not-loaded-by-runtime",
-  "baseline_version": "0.1-scaffold",
+  "baseline_version": "0.1-single-core",
   "roles": [
     "Bibliotecario",
     "Orquestador"
@@ -12,7 +12,7 @@
     "agents": "Agents"
   },
   "instance": {
-    "vault_path": null,
+    "vault_path": ".",
     "personal_memory_path": null
   },
   "integrations": {
@@ -31,10 +31,10 @@
     "headless": false
   },
   "runtime": {
-    "engine": "unbundled",
+    "engine": "local-install-in-core",
     "pinned_revision": null,
     "canonical_writer": "unconfigured",
-    "durable_state_path": null,
+    "durable_state_path": ".wanderloots-llm-wiki/durable",
     "apply_enabled": false
   },
   "review": {
