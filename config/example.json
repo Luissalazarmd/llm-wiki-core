@@ -1,0 +1,52 @@
+{
+  "schema_status": "design-example-not-loaded-by-runtime",
+  "baseline_version": "0.1-scaffold",
+  "roles": [
+    "Bibliotecario",
+    "Orquestador"
+  ],
+  "paths": {
+    "raw": "Raw",
+    "review": "Review",
+    "wiki": "Wiki",
+    "agents": "Agents"
+  },
+  "instance": {
+    "vault_path": null,
+    "personal_memory_path": null
+  },
+  "integrations": {
+    "tasks": {
+      "provider": "unselected",
+      "mode": "disabled"
+    },
+    "calendar": {
+      "provider": "unselected",
+      "mode": "disabled",
+      "timezone": null
+    }
+  },
+  "sync": {
+    "provider": "unselected",
+    "headless": false
+  },
+  "runtime": {
+    "engine": "unbundled",
+    "pinned_revision": null,
+    "canonical_writer": "unconfigured",
+    "durable_state_path": null,
+    "apply_enabled": false
+  },
+  "review": {
+    "approval_host": "unconfigured",
+    "require_authenticated_human": true,
+    "require_exact_revision": true,
+    "require_packet_etag": true,
+    "allow_agent_approval": false
+  },
+  "language": {
+    "internal_instructions": "en",
+    "response_language": "follow_user",
+    "wiki_language": "es"
+  }
+}

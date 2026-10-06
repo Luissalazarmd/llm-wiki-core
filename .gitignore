@@ -1,0 +1,31 @@
+# Private instance content belongs outside this reusable template.
+/instances/
+/private/
+/config/local.json
+/config/*.local.json
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Disposable local artifacts; never store required durable state here.
+/.local/
+/.cache/
+/tmp/
+/backups/
+*.tmp
+*.swp
+.DS_Store
+__pycache__/
+*.pyc
+
+# Local Obsidian session/UI files, not all shared vault settings.
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+
+# Intentionally no blanket exclusion for .agents, .durable, *.db,
+# or all runtime state. Canonical durable-state/Git policy is TBD.
+# Review staged files; ignore rules do not prevent secret/data leakage.
