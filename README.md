@@ -4,7 +4,7 @@ Private, agent-first baseline for an Obsidian-readable Markdown knowledge system
 
 For humans: this repository defines the contracts and setup decisions for two agents. It does not yet automate your vault. For agents: start with [AGENTS.md](AGENTS.md), then run the [operational preflight](docs/agent-preflight.md) before proposing work.
 
-**Status: v0.1 documentation scaffold. This is not a runnable engine.** No ingestion, review CLI, approval service, connectors, synchronization service, or canonical apply implementation is bundled. The empty content directories contain only Git placeholders, not compiled notes. No personal vault, source collection, identities, chat history, or credentials are included.
+**Status: v0.1 baseline with an original read-only review adapter and synthetic engine integration test.** The private engine itself is not bundled. No approval service, connectors, synchronization service, or replacement canonical apply implementation is included. See [local integration](docs/local-integration.md) for verified commands and test boundaries. The empty content directories contain only Git placeholders, not compiled notes. No personal vault, source collection, identities, chat history, or credentials are included.
 
 ## v0.1 scope
 
@@ -32,6 +32,8 @@ The current repository may be opened as an Obsidian vault to read these document
 - `Wiki/`: approved canonical Markdown in that instance.
 - `Librarian Profile.md`: the single canonical Bibliotecario profile.
 - `Agents/`: role contracts, Orquestador profile, and Bibliotecario profile pointer; not an executable runtime.
+- `adapters/`: original read-only review projection over a separately installed private engine.
+- `tests/`: synthetic-only engine integration harness; outputs belong outside the baseline.
 - `config/`: sanitized configuration example.
 - `docs/`: onboarding, architecture, review, sync, runtime, and acceptance design.
 - `AGENTS.md`: contributor and automation boundaries.
@@ -42,7 +44,7 @@ Retain these root names and casing. The upstream root layout also reserves `Sche
 
 The intended upstream is the private Wanderloots 2.0.5 engine. It is **not bundled**. No upstream source, scripts, vault content, or LICENSE text has been copied. Integration requires an authorized source review, an exact revision, compatibility verification, and preservation of the upstream private-use license and notices. See [upstream boundary](docs/upstream.md). Do not publish this baseline or imported dependencies as open source without a separate rights review.
 
-See [acceptance specification](docs/acceptance.md) for required synthetic tests. Those are requirements, **not passing test results**.
+See [acceptance specification](docs/acceptance.md) for required synthetic tests. Those remain requirements; the separate [local integration report](docs/local-integration.md) describes the bounded passing smoke test, not full acceptance.
 
 ## Language defaults
 

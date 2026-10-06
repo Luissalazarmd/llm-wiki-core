@@ -1,6 +1,6 @@
 # Review and canonical apply contract
 
-**Design specification only. No endpoint or command below is implemented.** Preserve the engine's reviewed API rather than adding a parallel apply mechanism.
+**Mutation and authenticated-host design specification.** The separate [local integration](local-integration.md) implements read-only list/show/packet display over the private engine; it does not implement the approval guarantees below. Preserve the engine's reviewed API rather than adding a parallel apply mechanism.
 
 ## Read-only surface
 

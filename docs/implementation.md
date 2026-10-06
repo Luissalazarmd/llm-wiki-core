@@ -28,4 +28,4 @@ Choose providers during onboarding. Start read-only; test permissions and explic
 
 Only after the prior gates, admit authorized real sources under retention/privacy rules. Observe audit and recovery behavior. Additional specialist roles and broad automation are out of v0.1 scope.
 
-No milestone after M0 is claimed complete by this repository.
+Local progress: authorized source/license mapping and an isolated synthetic API integration have been exercised; see [local integration](local-integration.md). The baseline contains only original adapter/test code. This is bounded M1/M2 progress, not a complete bootstrap installation, authenticated M3 review bridge, or production activation.

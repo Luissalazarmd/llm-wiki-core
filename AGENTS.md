@@ -1,6 +1,6 @@
 # Contributor and automation boundaries
 
-This repository is a private documentation scaffold, not an installed engine.
+This repository is a private baseline with an original read-only adapter and synthetic integration test, not an installed engine. Read [local integration](docs/local-integration.md) for the verified boundary.
 
 Start every task with the [operational preflight](docs/agent-preflight.md). Verify capabilities using observed evidence; never infer installed tools, authority, or completed setup from a document.
 

@@ -1,6 +1,6 @@
 # Upstream and license integration boundary
 
-Target dependency: the private Wanderloots 2.0.5 engine, currently **unbundled and unverified in this scaffold**.
+Target dependency: the private Wanderloots 2.0.5 engine, still **unbundled in this scaffold**. A separately pinned local extraction has passed the bounded [synthetic integration](local-integration.md); it is not a complete bootstrap installation.
 
 This baseline uses original documentation and placeholders. It does not copy upstream code, license text, runtime instructions, personal vault data, source history, identities, or secrets. No open-source license is granted or implied by this repository.
 
@@ -13,4 +13,4 @@ Before an authorized integration:
 5. Reconcile this design contract with actual APIs. Do not implement a competing approval/apply path to make an example appear functional.
 6. Verify synthetic acceptance and recovery before labeling the private instance operational.
 
-Actual engine integration, license copying, migration of an existing vault, and production activation are deferred. A repository scaffold commit does not satisfy those milestones.
+A separate local extraction preserves the license and notices and supports the tested read-only adapter and synthetic canonical flow. No vendor files are copied into this baseline. Migration of an existing vault and production activation remain deferred. A repository scaffold commit does not satisfy those milestones.
