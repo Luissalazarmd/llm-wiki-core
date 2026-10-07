@@ -15,3 +15,7 @@ This checklist collects decisions. It does not activate integrations.
 11. **Recovery rehearsal:** verify backup restore, stale approval rejection, conflict handling, and restart/replay behavior on synthetic fixtures.
 
 Use [the example configuration](../config/example.json) as an inert record of choices. `null`, `unselected`, and `unconfigured` mean setup is incomplete; they are not permissive defaults. Put actual configuration in local ignored files in this same folder, and credentials in a secret store. Never paste credentials into review packets or commit them.
+
+## Optional Daily Focus context
+
+If the user wants [Daily Focus](../Agents/daily-focus.md), choose or reuse a separately authorized personal-memory location for stable Principles and dated current Priorities. The [generic templates](../Agents/templates/principles.md) contain no personal data. Record only user-confirmed criteria and up to three current priorities with confirmation sources and review dates. Keep private records outside Raw/Review/Wiki and outside published reusable files; agree on private backup/sync. Unknown context does not block a limited, clearly labeled answer. This choice does not enable scheduling or task/calendar writes.

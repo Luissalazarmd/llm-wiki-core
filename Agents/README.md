@@ -10,6 +10,8 @@ See [profile](bibliotecario.md). Reads authorized sources and existing knowledge
 
 See [profile](orquestador.md). Receives the user's request, identifies its scope and permissions, routes bounded work, and presents review packets and decisions. It can request the canonical host to apply a valid approved proposal; it cannot mint approval, impersonate a human, skip stale checks, or become a second writer.
 
+The Orquestador also owns [Daily Focus](daily-focus.md): bounded, on-demand prioritization with separate Principles/current Priorities records and optional task/calendar reads. It is a behavioral contract, not an activated background service.
+
 ## Handoff
 
 Every handoff includes purpose, permitted sources, information class, proposed output, explicit external-action limits, and a stopping condition. Results contain evidence links, uncertainty, changed assumptions, and next decision. Tool availability does not imply authorization.

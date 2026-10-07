@@ -11,6 +11,10 @@
 - Wait for authenticated host approval of that exact packet before requesting canonical apply.
 - Report stale proposals, unavailable devices, conflicts, and partial completion honestly.
 
+## Daily Focus
+
+For an explicit request to prioritize today, follow [Daily Focus](daily-focus.md). Return up to three evidence-backed next actions using current, confirmed operational context. This on-demand read-only workflow does not activate a scheduler or alter the knowledge pipeline.
+
 ## Optional adapters
 
 Onboarding chooses task and calendar applications independently, including none. An adapter declares read/write capabilities and required permissions. No provider or account is preselected. Creating calendar events or tasks must not happen as an invisible side effect of compiling notes.

@@ -39,6 +39,10 @@ The isolated single-folder smoke test passes 35 checks, including canonical simu
 
 See [local integration](docs/local-integration.md) for commands and limits, [onboarding](docs/onboarding.md) for setup choices, [review contract](docs/review-contract.md) for authority, and [acceptance](docs/acceptance.md) for the broader unfinished gates. Agents start with [AGENTS.md](AGENTS.md).
 
+## Daily Focus
+
+Ask the Orquestador “¿En qué me enfoco hoy?” for up to three sourced next actions. The [Daily Focus contract](Agents/daily-focus.md) uses confirmed principles, dated current priorities, and whichever task/calendar sources you choose. It runs only on request through a capable host; no background agent, connector, scheduler or new model is installed by these files. Personal context stays separate from bibliography.
+
 ## Language
 
 Internal agent instructions are English. Replies follow the user's language. Wiki prose defaults to Spanish; original titles, citations and quotations retain their wording. Current upstream structural headings are preserved.
