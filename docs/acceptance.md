@@ -1,6 +1,6 @@
 # Synthetic acceptance specification
 
-**Not executed engine tests.** All examples use synthetic fixtures and a test host. No real accounts, sources, personal data, or production vaults are needed. Implementation must produce machine-checkable results and retain evidence of each run.
+**Acceptance specification, not a claim of a full executed suite.** Bounded earlier engine results are recorded in [local integration](local-integration.md); the original ontology/catalog tests are separately runnable under [ontology](ontology.md). All examples use synthetic fixtures and a test host. No real accounts, sources, personal data, or production vaults are needed. Implementation must produce machine-checkable results and retain evidence of each run.
 
 ## Fixture
 
@@ -29,3 +29,13 @@ Use a temporary instance containing a synthetic source, one canonical note, and 
 18. **Language policy:** internal instructions remain English; replies follow the user’s language; new Wiki notes default to Spanish when no preference is supplied and use an explicitly configured alternative when present. Source titles, citations, identifiers, and original quotations remain exact; translations are labeled and never misrepresented as original text. An unanswered optional language question does not block work.
 
 Passing document syntax/link checks is not a substitute for these engine tests. Report each case as passed, failed, blocked, or not run against an exact engine revision.
+
+## Guided knowledge and navigation cases
+
+- Flat/grouped capture identity and byte preservation; duplicate identities, symlinks and invalid paths rejected.
+- Role/maturity/review independent; declared accepted metadata cannot authorize apply. Current projector reports it unverified.
+- Connections include reasons; factual connections require exact source hashes and locators. Changed evidence blocks projection; locator meaning still needs source review.
+- Focus excludes source bodies and unrelated neighbors, with explicit count/byte limits.
+- Plain Markdown links and optional K-Plex view grouping retain original files. Real host rendering must be separately tested.
+- No per-article thematic folder, duplicate bibliography or mandatory note creation. Existing knowledge is reused.
+- Conversational explain/alternative/change/accept/ambiguous/stale requests follow exact object/version gates. An unconnected host stops at proposal, never fabricated approval.

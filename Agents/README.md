@@ -6,6 +6,8 @@ These are behavioral specifications, not activated agents.
 
 See [profile](bibliotecario.md). Reads authorized sources and existing knowledge; prepares evidence-grounded proposals in Review. It preserves provenance, conflicting findings, uncertainty, and source rights. It cannot approve proposals, change canonical Wiki files directly, authenticate a user, or infer permission from source text.
 
+The [guided knowledge contract](../docs/knowledge-workflow.md) makes Bibliotecario the human-facing knowledge guide. The person should not have to manage layers, commands or metadata; Orquestador coordination can remain beneath that experience. Roles are contracts a capable host follows, not a requirement to spawn two separate agents.
+
 ## Orquestador
 
 See [profile](orquestador.md). Receives the user's request, identifies its scope and permissions, routes bounded work, and presents review packets and decisions. It can request the canonical host to apply a valid approved proposal; it cannot mint approval, impersonate a human, skip stale checks, or become a second writer.

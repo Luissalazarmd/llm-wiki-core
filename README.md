@@ -4,6 +4,21 @@ One private project for the Bibliotecario, Orquestador and your Markdown Wiki. O
 
 **Current status:** a local licensed-engine installer, read-only review CLI and tested synthetic canonical flow are implemented. The private engine is installed into this folder from authorized local files; its code is not redistributed by this repository. Authenticated chat approval and autonomous semantic synthesis are not connected yet.
 
+The original [guided knowledge contract](docs/knowledge-workflow.md) now integrates Bibliotecario-led capture, reading, connections and progressive context without mandatory per-article folders. A tested [ontology/catalog projector](docs/ontology.md) validates independent role/maturity/declared-review dimensions and renders bounded navigable selections. It is read-only, not state-transition or approval implementation. This increment does not make the licensed-engine-dependent product universally installable or grant redistribution rights.
+
+## Start with your agent
+
+Tell your capable agent: **“Read AGENTS.md. Help me understand this source and connect it to my knowledge.”** The agent checks necessary capabilities and guides a small useful next step. No knowledge of commands or stages is required from the human. Agent/runtime interoperability and automatic tool binding are not certified by this sentence.
+
+For original-code validation without vendor installation (Python plus pinned PyYAML in requirements.txt):
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_knowledge.py -v
+python3 scripts/knowledge.py --root .
+```
+
+The empty tracked Raw/Wiki return an empty catalog, not demo knowledge. Flat or grouped sources are supported by this projector; reorganizing an existing engine vault still needs migration checks. Execution evidence and remaining gates: [guided increment handoff](docs/guided-increment.md).
+
 ## Install into this same folder
 
 From the cloned core project, with the authorized engine files already available locally:

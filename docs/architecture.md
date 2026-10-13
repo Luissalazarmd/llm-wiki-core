@@ -8,6 +8,8 @@
 
 The root layout remains stable and human-readable. A fresh clone has empty placeholders; the same folder becomes the private Wiki after local engine installation and authorized capture. The tested API boundary is documented in local integration.
 
+Original [ontology](ontology.md) separates note role, maturity and declared review from physical stage. Its executable read-only catalog supports flat/grouped Raw and bounded navigation; it does not migrate the licensed engine schema, authenticate metadata or advance states. [Guided knowledge](knowledge-workflow.md) governs the progressive human experience without another library, queue or canonical graph store.
+
 ## Control plane
 
 Authenticated user → host-generated approval bound to a packet → canonical apply validation → transactional update and durable audit.

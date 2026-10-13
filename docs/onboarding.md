@@ -2,6 +2,8 @@
 
 This checklist collects decisions. It does not activate integrations.
 
+The agent conducts it selectively under the [guided knowledge contract](knowledge-workflow.md). Start with the person's question and one authorized source. Preserve an existing physical organization; use a flat default when unspecified. Do not require every optional integration decision before reading or preparing a proposal, or create folders/maps merely to complete onboarding. Keep missing required writer/approval capabilities explicit.
+
 1. **Purpose and boundaries:** what knowledge belongs in the instance, what must stay out, and whether personal memory is needed. Keep personal memory separate from bibliography.
 2. **Single core folder:** use this repository as the private vault. Install the licensed engine into it from authorized local files. Do not migrate an old vault or history implicitly. Choose whether selected Raw/Review/Wiki content will later be versioned in this same private GitHub repository.
 3. **Devices:** list operating systems and which device will be the canonical writer. Mobile devices may read and capture; they do not automatically become engine hosts.

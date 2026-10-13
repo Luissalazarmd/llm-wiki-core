@@ -1,0 +1,9 @@
+{
+  "version": "1.0",
+  "roles": ["source", "concept", "entity", "map", "project", "diagram"],
+  "maturity": ["seed", "developing", "evergreen"],
+  "review": ["unreviewed", "pending", "changes_requested", "accepted", "stale"],
+  "relations": ["groups", "related", "supported_by", "contradicts", "extends"],
+  "approval_authority": "verified-host-and-canonical-engine-only",
+  "projection_mode": "read_only"
+}

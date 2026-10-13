@@ -2,6 +2,8 @@
 
 Use this checklist at the start of each task. It is an instruction contract, not an executable capability checker. Do not run invented engine commands to satisfy it.
 
+Check only capabilities required by the current action. Reading or original read-only projection does not require engine installation, sync, calendar access or authenticated apply. Load the guided contract for knowledge work; do not burden each question with the full environment inventory or ask the user to execute the checklist.
+
 ## 1. Establish the task boundary
 
 - Read the current user request and applicable permissions. Identify the requested outcome, allowed sources, information class, external-action scope, and stopping condition.
@@ -14,7 +16,7 @@ Use this checklist at the start of each task. It is an instruction contract, not
 
 For each capability, record observed availability, scope, and a concise evidence reference. Use `available`, `unavailable`, `unverified`, or `not_required`; never promote `unverified` to `available` by assumption.
 
-- **Engine:** verify an authorized installed revision, its license/notices, actual entry points, and upstream root compatibility. This repository supplies none of them.
+- **Engine:** when canonical work requires it, verify the authorized installed revision, license/notices, actual entry points and root compatibility. This repository supplies an original installer and read-only adapter, not tracked vendor runtime or authenticated apply.
 - **Read-only review:** verify actual list/show/packet equivalents and evidence that they do not mutate durable state. Conceptual names in documentation are not commands.
 - **Approval host:** verify authenticated human events and exact packet binding. Reject actor labels, model-generated approval, imported chat, and ambiguous scope.
 - **Canonical writer:** verify the designated host, exclusive locking/fencing, canonical apply implementation, durable decision consumption, and recovery policy.

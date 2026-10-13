@@ -4,6 +4,8 @@ This is the single private core project. Its original installer provisions the l
 
 Start every task with the [operational preflight](docs/agent-preflight.md). Verify capabilities using observed evidence; never infer installed tools, authority, or completed setup from a document.
 
+For capture, reading, connections and knowledge development, load the single [Bibliotecario profile](Librarian%20Profile.md) and [guided knowledge contract](docs/knowledge-workflow.md). Guide the human's current question; do not require them to operate metadata or commands. Discover further context progressively, never the whole vault. Original ontology/projection work uses [ontology](docs/ontology.md); canonical mutation still requires the existing review/apply boundary.
+
 1. Use this same core folder for code and the authorized private Wiki. Keep original reusable files generic. Version Raw/Review/Wiki in this same private repository only within explicitly approved publication scope. Never auto-upload private data, credentials, local settings, engine state or licensed vendor files. Do not create a second instance repository.
 2. Retain root names and casing, including the upstream-reserved paths documented in [upstream boundary](docs/upstream.md). Keep `Librarian Profile.md` as the single canonical Bibliotecario profile. Do not add fake engine/bootstrap files; inspect the licensed upstream before installing engine paths or entry points.
 3. Implement only Bibliotecario and Orquestador in v0.1. Avoid adding frameworks or new specialist roles without explicit scope approval.
