@@ -36,6 +36,57 @@ class KnowledgeTests(unittest.TestCase):
         target.write_text('---\n' + yaml.safe_dump(metadata, allow_unicode=True) + '---\n' + body)
         return target
 
+    def test_symlink_root_and_parent_are_rejected_on_every_knowledge_entry(self):
+        self.note('Raw/a.md', {'id': 's1'})
+        link = self.root / 'alias'
+        link.symlink_to(self.root, target_is_directory=True)
+        api = load_module()
+        for root in (link, link / 'alias'):
+            for operation in (lambda: api.catalog(root), lambda: api.discover(root, ['Raw']),
+                              lambda: api.new_target_path(root, 'Wiki/new.md'),
+                              lambda: api.prepare_proposal(root, 'Raw/a.md', 'draft', [])):
+                with self.assertRaisesRegex(ValueError, 'Symlink library root'):
+                    operation()
+
+    def test_crlf_metadata_is_parsed_without_changing_original_hashes(self):
+        raw = b'---\r\nid: crlf\r\ntitle: Shade method\r\nmaturity: developing\r\n---\r\nSynthetic.\r\n'
+        target = self.root / 'Wiki/shade.md'
+        target.write_bytes(raw)
+        api = load_module()
+        for data in (api.catalog(self.root), api.discover(self.root, ['Wiki'])):
+            self.assertEqual(data['notes'][0]['title'], 'Shade method')
+            self.assertEqual(data['notes'][0]['sha256'], hashlib.sha256(raw).hexdigest())
+        self.assertEqual(target.read_bytes(), raw)
+        with self.assertRaisesRegex(ValueError, 'Duplicate'):
+            api.metadata_from('---\r\ntitle: one\r\ntitle: two\r\n---\r\n')
+
+    def test_missing_strict_maturity_stays_unknown_while_declared_values_are_validated(self):
+        self.note('Wiki/bare.md', {'id': 'bare'})
+        api = load_module()
+        data = api.catalog(self.root)
+        self.assertEqual(data['notes'][0]['maturity'], 'unknown')
+        self.assertIn('; Desconocida;', api.markdown(data))
+        self.note('Wiki/bare.md', {'id': 'bare', 'maturity': 'unknown'})
+        with self.assertRaisesRegex(ValueError, 'maturity'):
+            api.catalog(self.root)
+
+    def test_empty_strict_scope_requires_explicit_opt_in_and_never_scans_elsewhere(self):
+        api = load_module()
+        (self.root / 'Reading').mkdir()
+        (self.root / 'Reading/foreign.md').write_text('Synthetic outside stage')
+        with self.assertRaisesRegex(ValueError, '--mode existing'):
+            api.catalog(self.root)
+        permitted = api.catalog(self.root, allow_empty=True)
+        self.assertEqual(permitted['notes'], [])
+        result = subprocess.run([sys.executable, str(MODULE), '--root', str(self.root),
+                                 '--mode', 'strict', '--allow-empty-strict'], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout)['notes'], [])
+        invalid = subprocess.run([sys.executable, str(MODULE), '--root', str(self.root),
+                                  '--mode', 'existing', '--scope', 'Reading', '--allow-empty-strict'],
+                                 capture_output=True, text=True)
+        self.assertEqual(invalid.returncode, 2)
+
     def test_grouped_raw_preserves_identity_and_readonly(self):
         self.assertTrue(MODULE.is_file(), 'Original executable knowledge projection is missing')
         api = load_module()
@@ -259,6 +310,32 @@ class KnowledgeTests(unittest.TestCase):
         selected = api.focus(api.catalog(self.root), 's1')
         self.assertIn('# Selección de lectura', api.markdown(selected))
         self.assertIn('# Reading selection', api.markdown(selected, language='en'))
+
+    def test_maturity_labels_are_localized_without_changing_identifiers_or_review(self):
+        for state in ('seed', 'developing', 'evergreen'):
+            self.note('Wiki/' + state + '.md', {'id': state, 'maturity': state, 'review': 'accepted'})
+        before = {str(p): p.read_bytes() for p in self.root.rglob('*.md')}
+        api = load_module()
+        data = api.catalog(self.root)
+        original = json.dumps(data, sort_keys=True)
+        spanish = api.markdown(data)
+        english = api.markdown(data, 'en')
+        for path, label in (('seed', 'Semilla'), ('developing', 'Síntesis'), ('evergreen', 'Evergreen')):
+            self.assertIn(f'[[Wiki/{path}]] — concept; {label}; unverified', spanish)
+        self.assertIn('[[Wiki/developing]] — concept; Synthesis; unverified', english)
+        self.assertEqual(json.dumps(data, sort_keys=True), original)
+        self.assertEqual({n['maturity'] for n in data['notes']}, {'seed', 'developing', 'evergreen'})
+        self.assertTrue(all(not n['approval_available'] for n in data['notes']))
+        self.assertEqual(before, {str(p): p.read_bytes() for p in self.root.rglob('*.md')})
+
+    def test_foreign_note_unknown_maturity_is_not_presented_as_seed(self):
+        (self.root / 'Reading').mkdir()
+        (self.root / 'Reading/foreign.md').write_text('# Synthetic foreign note')
+        api = load_module()
+        data = api.discover(self.root, ['Reading'])
+        self.assertIn('; Desconocida; unverified', api.markdown(data))
+        self.assertIn('; Unknown; unverified', api.markdown(data, 'en'))
+        self.assertEqual(data['notes'][0]['maturity'], 'unknown')
 
     def test_projection_does_not_inject_metadata_markup(self):
         self.note('Raw/a.md', {'id': 's1'})

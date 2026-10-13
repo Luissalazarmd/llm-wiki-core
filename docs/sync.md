@@ -1,12 +1,12 @@
-# Vault synchronization and installation
+# Optional vault synchronization
 
-Choose one vault sync provider. Configure and test it per device before importing real data; take independent backups. Runtime installation and durable-state recovery are separate from note synchronization.
+Preserve the library's existing sync setup. Only if setup/change is requested, choose one provider and test it per device before importing real data; take independent backups. Core requires no sync provider or runtime bootstrap. Agent tools and any managed writer come from the actual authorized host/library, independently of note synchronization. Keep private recovery/state backup explicit.
 
 ## Obsidian Sync
 
 Obsidian documents support across Windows, macOS, Linux, iOS, and Android. Sync transports notes, not the approval authority. [Official overview](https://obsidian.md/help/sync-notes).
 
-Hidden paths such as `.agents/`, `.git/`, and `.durable/` are excluded; the vault configuration folder has special handling. Sync preferences and conflict behavior must be checked on each device. Install runtime code separately through the reviewed Git/bootstrap flow, and design durable-state backup explicitly. [Selective syncing](https://obsidian.md/help/sync/settings).
+Hidden paths such as `.agents/`, `.git/`, and `.durable/` are excluded; the vault configuration folder has special handling. Sync preferences and conflict behavior must be checked on each device. Sync does not provision agent tools, authenticate decisions or supply a managed writer. If the library requires a writer, verify its own documented tools; missing availability means proposal-only, not installing a Core engine. Plan private recovery/state backup separately. [Selective syncing](https://obsidian.md/help/sync/settings).
 
 ## Other providers
 

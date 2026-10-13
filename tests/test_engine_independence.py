@@ -16,10 +16,10 @@ class EngineIndependenceTests(unittest.TestCase):
 
     def test_active_startup_does_not_request_specific_engine_installation(self):
         for path in ('AGENTS.md', 'README.md', 'docs/onboarding.md', 'docs/runtime.md',
-                     'docs/implementation.md', 'docs/acceptance.md', 'docs/review-contract.md'):
+                     'docs/implementation.md', 'docs/acceptance.md', 'docs/review-contract.md', 'docs/sync.md'):
             text = (ROOT / path).read_text()
             for token in ('LIBRARIAN_ENGINE_SOURCE', 'install_private_engine.py',
-                          'private-engine-files.json', 'local-integration.md', 'upstream.md'):
+                          'private-engine-files.json', 'local-integration.md', 'upstream.md', 'Git/bootstrap flow'):
                 self.assertNotIn(token, text, path)
 
     def test_guided_entry_does_not_require_retired_or_future_writer(self):

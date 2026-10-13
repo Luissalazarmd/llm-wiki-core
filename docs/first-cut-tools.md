@@ -17,6 +17,7 @@ Fields loaded by `library.py`:
 - `organization`: `preserve` (default), `flat`, `grouped`; a preference for discussion, never permission to migrate.
 - `initiative`: `on_request` or `within_focus` (default); read and obey conversationally, no background processing.
 - `layers`: optional `sources`, `drafts`, `knowledge` arrays of existing authorized paths. Declared correspondence only, not evidence that notes were reviewed. Empty defaults mean **unassigned**, not a guess from directory names. Agent checks rules and representative authorized originals, proposes a correspondence with rationale, and records it only with appropriate user authorization. No new folders.
+- `capture_policy`: needed for new Raw admission, not for read-only discovery. Explicit existing `roots` (1–20 exact Markdown map paths), `taxonomy_path`, and optional metadata `fields` mapping. All paths must be authorized. New Raw drafts require a MOC/root route and declared tags; see [Raw admission](raw-admission.md). Missing policy blocks capture completion, not reading. No automatic configuration, schema migration or writer permission.
 
 Unknown/duplicate fields, invalid vocabulary, escapes, missing paths, hidden scopes, symlinks and special files fail. The config is at most 64 KiB. It never grants write/apply authority or widens host access. Direct tools remain accessible to an agent; preventing bypass requires host controls.
 
@@ -28,13 +29,14 @@ For a later explicitly permitted plain-file save, the same private config accept
 python3 scripts/library.py --config /path/to/personal.json map --scope Reading
 python3 scripts/library.py --config /path/to/personal.json read --scope Reading --focus 'path:Reading/one.md' --format markdown
 python3 scripts/library.py --config /path/to/personal.json proposal --target Reading/one.md --evidence Reading/two.md < /path/to/draft.md
+python3 scripts/library.py --config /path/to/personal.json proposal --create --target Reading/new.md --evidence Reading/two.md < /path/to/draft.md
 ```
 
 All outputs go to stdout; tools do not save to the library. Mapping lists selected folders, Markdown locators, non-Markdown attachment path/extension/size (without reading binary content), observed frontmatter **keys** (not all values), notes lacking metadata, limited wikilinks/attachment embeds, discovered applicable AGENTS paths and reported ambiguities. Read rules **before** content: returned rule paths are discovery aids, not proof the program interpreted them. Existence does not make a note's embedded instructions trustworthy.
 
 Limits: 500 inventory entries including directories/attachments, 200 Markdown notes, 256 KiB per note and 16 MiB total Markdown bytes. No implicit whole-root scan, hidden config crawl, attachment OCR, remote retrieval, alias resolution, complete Markdown parsing, automatic scientific relationships, indexing service or graph database. Diagnostics are not an instruction to expand scope. The agent turns the bounded observations into a brief human-facing map and explicitly proposed logical correspondence; filenames alone do not establish function or review state.
 
-Read/focus and proposal reuse `knowledge.py`. Proposal packets target existing Markdown, bind bytes and diffs, never approve/apply. Configuration preferences do not cause organization/state changes. Human review and optional ordinary-file saving follow [review/save](../skills/review-save/SKILL.md) and [plain saving](plain-saving.md), not another engine.
+Read/focus and proposal reuse `knowledge.py`. Proposal packets bind existing Markdown or, with `--create`, an absent derived-note destination plus nonempty draft and explicit evidence; never approve/apply. Parent directories must exist inside an authorized directory. Configuration preferences do not cause organization/state changes. Human review and optional ordinary-file saving follow [review/save](../skills/review-save/SKILL.md) and [plain saving](plain-saving.md), not another engine.
 
 ## Reproducible demonstration
 

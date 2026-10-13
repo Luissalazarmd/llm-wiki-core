@@ -20,6 +20,7 @@ ONTOLOGY = json.loads((Path(__file__).resolve().parents[1] / 'config/ontology.js
 
 def metadata_from(text: str) -> dict:
     """Parse bounded safe YAML, rejecting ambiguous or duplicate top-level fields."""
+    text = text.replace('\r\n', '\n')  # Parsing only; hashes/writes retain original bytes.
     if not text.startswith('---\n'):
         return {}
     match = re.match(r'\A---\n(.*?)\n---(?:\n|$)', text, re.S)
@@ -81,9 +82,20 @@ def note_paths(root: Path, max_notes: int = 2000):
                     yield stage, Path(current) / name
 
 
-def catalog(root: Path, max_file_bytes: int = 262144, max_notes: int = 2000) -> dict:
-    """Project source identities and versions without editing captured files."""
+def library_root(root: Path) -> Path:
+    """Reject linked root/ancestors before resolving, consistently across helpers."""
+    root = root.absolute()
+    if any(path.is_symlink() for path in (root, *root.parents)):
+        raise ValueError('Symlink library root rejected')
     root = root.resolve(strict=True)
+    if not root.is_dir():
+        raise ValueError('Library root must be a directory')
+    return root
+
+
+def catalog(root: Path, max_file_bytes: int = 262144, max_notes: int = 2000, allow_empty: bool = False) -> dict:
+    """Project source identities and versions without editing captured files."""
+    root = library_root(root)
     if not any(os.path.lexists(root / stage) for stage in ('Raw', 'Wiki')):
         raise ValueError('Strict mode requires Raw/ or Wiki/; use --mode existing with an explicit --scope for this library')
     notes = []
@@ -115,9 +127,11 @@ def catalog(root: Path, max_file_bytes: int = 262144, max_notes: int = 2000) -> 
             raise ValueError('Note requires stable identity: id or Reference')
 
         role = metadata.get('role', 'source' if stage == 'Raw' else 'concept')
-        maturity = metadata.get('maturity', 'seed')
+        maturity = metadata.get('maturity', 'unknown')
         declared = metadata.get('review', 'unreviewed')
         for key, value in [('roles', role), ('maturity', maturity), ('review', declared)]:
+            if key == 'maturity' and 'maturity' not in metadata:
+                continue
             if value not in ONTOLOGY[key]:
                 raise ValueError('Invalid ' + key)
         if stage == 'Raw' and role != 'source':
@@ -155,6 +169,8 @@ def catalog(root: Path, max_file_bytes: int = 262144, max_notes: int = 2000) -> 
                 'approval_available': False,
                 'sha256': hashlib.sha256(raw).hexdigest(),
         })
+    if not notes and not allow_empty:
+        raise ValueError('No notes in strict Raw/Wiki scope; use --mode existing with explicit --scope, or --allow-empty-strict only for an intentionally empty stage layout')
     ids = {note['id']: note for note in notes}
     for edge in edges:
         if edge['target'] not in ids:
@@ -177,7 +193,7 @@ def catalog(root: Path, max_file_bytes: int = 262144, max_notes: int = 2000) -> 
 def discover(root: Path, scopes: list[str], max_notes: int = 200,
              max_file_bytes: int = 262144) -> dict:
     """Read explicitly selected existing-library Markdown; infer no persistent state."""
-    root = root.resolve(strict=True)
+    root = library_root(root)
     if not scopes:
         raise ValueError('Existing-library discovery requires an explicit scope')
     paths = set()
@@ -281,28 +297,59 @@ def discover(root: Path, scopes: list[str], max_notes: int = 200,
             'mode': 'existing_library_read_only', 'approval_available': False}
 
 
-def prepare_proposal(root: Path, target: str, draft: str, evidence: list[str]) -> dict:
-    """Bind an existing target, draft and selected inputs; never approve or apply."""
+def new_target_path(root: Path, target: str) -> Path:
+    """Validate an absent Markdown leaf under existing visible directories."""
+    root = library_root(root)
+    relative = Path(target)
+    if (relative.is_absolute() or not relative.parts or '..' in relative.parts
+            or relative.as_posix() != target or relative.suffix != '.md'
+            or any(p.startswith('.') for p in relative.parts)
+            or any(c in target for c in '[]|#\n\r\\')):
+        raise ValueError('New target must be a safe relative Markdown path')
+    current = root
+    for part in relative.parts[:-1]:
+        current /= part
+        if current.is_symlink() or not current.is_dir():
+            raise ValueError('New target parent must be an existing non-symlink directory')
+    path = current / relative.name
+    if os.path.lexists(path):
+        raise ValueError('New target already exists; preserve it and review again')
+    return path
+
+
+def prepare_proposal(root: Path, target: str, draft: str, evidence: list[str], create: bool = False) -> dict:
+    """Bind an existing base or absent destination and evidence; never write."""
     if len(draft.encode('utf-8')) > 262144:
         raise ValueError('Draft exceeds byte limit')
     # Discovery enforces path containment, link safety and bounded input reads.
-    data = discover(root, [target, *evidence])
+    if create:
+        new_target_path(root, target)
+        if not draft.strip():
+            raise ValueError('New derived note draft must be nonempty')
+        if not evidence:
+            raise ValueError('New derived notes require explicit evidence')
+    data = discover(root, evidence if create else [target, *evidence])
     notes = {n['path']: n for n in data['notes']}
-    if target not in notes or any(path not in notes for path in evidence):
+    if (not create and target not in notes) or any(path not in notes for path in evidence):
         raise ValueError('Proposal target and evidence must be existing Markdown files')
-    with (root.resolve(strict=True) / target).open('rb') as stream:
-        original_bytes = stream.read(262145)
-    if len(original_bytes) > 262144 or hashlib.sha256(original_bytes).hexdigest() != notes[target]['sha256']:
-        raise ValueError('Proposal base changed during preparation')
+    original_bytes = b''
+    if not create:
+        with (root.resolve(strict=True) / target).open('rb') as stream:
+            original_bytes = stream.read(262145)
+        if len(original_bytes) > 262144 or hashlib.sha256(original_bytes).hexdigest() != notes[target]['sha256']:
+            raise ValueError('Proposal base changed during preparation')
+    target_binding = ({'path': target, 'operation': 'create', 'expected_absent': True, 'base_sha256': None}
+                      if create else {'path': target, 'base_sha256': notes[target]['sha256']})
     original = original_bytes.decode('utf-8')
     packet = {'status': 'prepared_not_approved', 'approval_available': False,
               'apply_available': False, 'binding': 'content_only_not_authenticated',
-              'target': {'path': target, 'base_sha256': notes[target]['sha256']},
+              'target': target_binding,
               'draft': draft, 'draft_sha256': hashlib.sha256(draft.encode()).hexdigest(),
               'evidence': [{'path': p, 'sha256': notes[p]['sha256']} for p in sorted(set(evidence))],
               'diff': ''.join(difflib.unified_diff(original.splitlines(keepends=True),
                                                  draft.splitlines(keepends=True),
-                                                 fromfile=target, tofile=target + ' (proposed)'))}
+                                                 fromfile='/dev/null' if create else target,
+                                                 tofile=target + ' (proposed)'))}
     packet['packet_sha256'] = hashlib.sha256(json.dumps(packet, sort_keys=True,
         ensure_ascii=False, separators=(',', ':')).encode()).hexdigest()
     return packet
@@ -345,8 +392,13 @@ def markdown(data: dict, language: str = 'es') -> str:
               if language == 'es' else
               'Disposable view. Declared relations and states are unverified; this is not approval.')
     lines.extend(['---', '', heading, '', notice, ''])
+    maturity_labels = ({'seed': 'Semilla', 'developing': 'Síntesis', 'evergreen': 'Evergreen',
+                        'unknown': 'Desconocida'} if language == 'es' else
+                       {'seed': 'Seed', 'developing': 'Synthesis', 'evergreen': 'Evergreen',
+                        'unknown': 'Unknown'})
     for note in data['notes']:
-        lines.append(f'- [[{note["path"][:-3]}]] — {note["role"]}; {note["maturity"]}; {note["review"]}')
+        maturity = maturity_labels[note['maturity']]
+        lines.append(f'- [[{note["path"][:-3]}]] — {note["role"]}; {maturity}; {note["review"]}')
     lines.extend(['', '## Conexiones declaradas' if language == 'es' else '## Declared connections', ''])
     for edge in data['edges']:
         # Prevent metadata from injecting Markdown headings/HTML in generated output.
@@ -362,8 +414,10 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, required=True)
     parser.add_argument('--mode', choices=['strict', 'existing'], default='strict')
+    parser.add_argument('--allow-empty-strict', action='store_true', help='explicitly permit an empty Raw/Wiki-only projection')
     parser.add_argument('--scope', action='append', default=[])
-    parser.add_argument('--proposal-target', help='existing relative Markdown target; draft from stdin')
+    parser.add_argument('--proposal-target', help='relative Markdown target; draft from stdin')
+    parser.add_argument('--create', action='store_true', help='propose a new derived note at an absent target')
     parser.add_argument('--evidence', action='append', default=[])
     parser.add_argument('--focus')
     parser.add_argument('--neighbors', type=int, default=8)
@@ -371,6 +425,10 @@ def main() -> int:
     parser.add_argument('--language', choices=['es', 'en'], default='es')
     args = parser.parse_args()
     try:
+        if args.allow_empty_strict and (args.mode != 'strict' or args.proposal_target):
+            raise ValueError('allow-empty-strict is only available for strict projection')
+        if args.create and not args.proposal_target:
+            raise ValueError('create requires proposal-target')
         if args.evidence and not args.proposal_target:
             raise ValueError('evidence requires proposal-target')
         if args.proposal_target:
@@ -379,13 +437,13 @@ def main() -> int:
             draft = sys.stdin.buffer.read(262145)
             if len(draft) > 262144:
                 raise ValueError('Draft exceeds byte limit')
-            data = prepare_proposal(args.root, args.proposal_target, draft.decode('utf-8'), args.evidence)
+            data = prepare_proposal(args.root, args.proposal_target, draft.decode('utf-8'), args.evidence, args.create)
         elif args.mode == 'existing':
             data = discover(args.root, args.scope)
         else:
             if args.scope or args.evidence:
                 raise ValueError('scope is only available in existing mode; evidence needs proposal-target')
-            data = catalog(args.root)
+            data = catalog(args.root, allow_empty=args.allow_empty_strict)
         if args.focus:
             data = focus(data, args.focus, args.neighbors)
         if args.format == 'markdown' and not args.focus:

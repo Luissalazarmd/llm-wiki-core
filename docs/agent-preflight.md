@@ -10,8 +10,8 @@ Read the actual request, library root and applicable trusted rules before source
 
 Use available/unavailable/unverified/not_required based on actual tools and permissions:
 - Read/search: existing host file tools or scoped mapping/discovery. No engine needed.
-- Capture: permitted host retrieval/create-only operations or the library's own capture writer; Core bundles no downloader or capture runtime.
-- Proposal: original helper for existing Markdown base/draft/evidence binding; no approval or write.
+- Capture: permitted host retrieval/create-only operations or the library's own capture writer; Core bundles no downloader or capture runtime. New Raw admission requires existing MOC/root hierarchy and declared taxonomy tags under [Raw admission](raw-admission.md); structural preflight/recheck and exact readback do not replace actual permissions or source validation. Missing classification blocks capture completion only.
+- Proposal: original helper for existing Markdown base/draft/evidence or explicit absent-target creation binding; no approval or write. New derived notes are proposed/reviewed before the first library write, not created as placeholders. Source capture remains a separate host capability.
 - Review: actual human interaction on exact version, not a model label or imported chat.
 - Save: library writer policy, current original/evidence, conflicts/concurrent editing and private recovery route. Defaults remain read-only; missing capabilities block dependent writes.
 - Managed libraries: discover the actual external writer and its approval/locking/recovery requirements. Core neither installs it nor promises an adapter. Never bypass it using ordinary saving.

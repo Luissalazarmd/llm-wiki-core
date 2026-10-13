@@ -6,9 +6,11 @@
 - **Review:** proposed elaboration, evidence, uncertainty and exact changes awaiting human review.
 - **Wiki:** maintained derived knowledge retained through the library's actual permitted review/write process.
 
-These are logical responsibilities, not mandatory directory names or another library. Existing flat/grouped organization remains intact. Articles/projects select reusable sources and notes; they do not clone thematic collections. A capture does not require a concept, MOC, diagram or folder.
+These are logical responsibilities, not mandatory directory names or another library. Existing flat/grouped organization remains intact. Articles/projects select reusable sources and notes; they do not clone thematic collections. Every new Raw capture requires a connection to an existing MOC, an acyclic hierarchy to an explicitly declared root and tags from the library's taxonomy, verified under [Raw admission](raw-admission.md). Reuse maps rather than auto-creating a concept/MOC/diagram/folder. Missing classification blocks capture completion, not reading; no retroactive migration of old sources.
 
 The [ontology](ontology.md) separates note role, maturity and declared review. A seed can be reviewed; evergreen does not certify truth; metadata does not authenticate acceptance. Unknown external metadata remains unknown. Strict stable identities/version anchors and permissive temporary path locators are distinct modes, not an automatic migration.
+
+[Idea emergence](knowledge-workflow.md#idea-emergence) develops derived knowledge as Semilla → Síntesis → Evergreen, independent of organizational hierarchy and Raw → Review → Wiki custody. Selected ideas and originals inform an explicit new argument, not an automatic summary merge. The Bibliotecario justifies maturity and proposes exact changes for human review; no threshold-based promotion, new folders or maturity engine. Raw originals stay unchanged. Retained personal knowledge, author manuscript and public article are distinct surfaces and permissions.
 
 ## Bibliotecario and agent host
 

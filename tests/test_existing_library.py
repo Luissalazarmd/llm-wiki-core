@@ -67,7 +67,8 @@ class ExistingLibraryTests(unittest.TestCase):
             self.assertIn('--mode existing', result.stderr)
             self.assertEqual(result.stdout, '')
         (self.root / 'Raw').mkdir()
-        self.assertEqual(api().catalog(self.root)['notes'], [])
+        with self.assertRaisesRegex(ValueError, '--mode existing'):
+            api().catalog(self.root)
 
     def test_scope_boundary_hidden_paths_and_symlinks(self):
         module = api()

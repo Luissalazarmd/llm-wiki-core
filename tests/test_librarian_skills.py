@@ -22,7 +22,20 @@ class LibrarianSkillTests(unittest.TestCase):
                 self.assertIn(heading, text)
             for link in re.findall(r'\]\(([^)]+)\)', text):
                 if '://' not in link:
-                    self.assertTrue((path.parent / link).exists(), link)
+                    self.assertTrue((path.parent / link.split('#')[0]).exists(), link)
+    def test_emergence_is_discovered_from_profile_reading_and_review_skills(self):
+        for relative in ('Librarian Profile.md', 'skills/read-connect/SKILL.md', 'skills/review-save/SKILL.md'):
+            text = (BASE / relative).read_text()
+            self.assertIn('knowledge-workflow.md#idea-emergence', text, relative)
+        workflow = (BASE / 'docs/knowledge-workflow.md').read_text()
+        self.assertIn('## Idea emergence', workflow)
+        for concept in ('Semilla', 'Síntesis', 'Evergreen', 'not a source-count or link-count threshold',
+                        'Raw originals remain unchanged', 'publication permission is separate'):
+            self.assertIn(concept, workflow)
+        review = (BASE / 'skills/review-save/SKILL.md').read_text()
+        self.assertIn('current and proposed maturity', review)
+        self.assertIn('new evidence undermines', review)
+
     def test_entry_point_discovers_each_skill(self):
         for name in ('read-connect', 'capture-source', 'review-save'):
             self.assertIn(f'skills/{name}/SKILL.md', (BASE / 'AGENTS.md').read_text())

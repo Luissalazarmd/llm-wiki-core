@@ -4,9 +4,10 @@ Core runs through the person's existing agent host. The Bibliotecario is a role 
 
 ## Available surfaces
 
-- `knowledge.py`: strict optional ontology or scoped existing-library discovery, bounded navigation, existing-target proposal packets. Read-only.
+- `knowledge.py`: strict optional ontology or scoped existing-library discovery, bounded navigation, existing-target or explicit absent-target derived-note proposals. Read-only.
 - `library.py`: private personal-config validation, scoped folder/note/attachment mapping, read/navigation and proposal preparation. Read-only.
-- `note_write.py`: optional save/conditional recovery of one existing derived Markdown note in an explicitly editable library. Actual host confirmation is required by the skill, not authenticated by this script. See [plain saving](plain-saving.md).
+- `capture_check.py`: new Raw admission preflight/recheck/readback for explicit MOC/root hierarchy and taxonomy tags. Read-only; actual capture remains with the permitted host/library writer. See [Raw admission](raw-admission.md).
+- `note_write.py`: optional update/conditional recovery or no-clobber creation of one derived Markdown note in an explicitly editable library. Creation records have no previous bytes and cannot be restored by deletion. Actual host confirmation is required by the skill, not authenticated by this script. See [plain saving](plain-saving.md).
 - [Action skills](../AGENTS.md): capture uses permitted host/library retrieval and create-only tools; reading uses relevant originals; review/save uses actual user interaction and the allowed writer.
 
 ## Library custody and writer selection

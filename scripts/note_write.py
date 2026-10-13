@@ -43,22 +43,22 @@ def read_json(path):
     return json.loads(read_bytes(path, 2097152), object_pairs_hook=unique)
 
 
-def target_path(settings, relative):
+def target_path(settings, relative, create=False):
     root = Path(settings['library_root'])
     if settings.get('write_policy', 'read_only') != 'plain_files':
         raise ValueError('Plain writing is disabled; use the library permitted writer')
     # Compatibility refusal signals only: no vendor imports, installs or calls.
     if any(os.path.lexists(root / marker) for marker in ('.wanderloots-llm-wiki', '.private-engine-install.json')):
-        raise ValueError('Managed library requires its canonical engine')
-    path = library.authorize(root, settings['authorized_paths'], relative)
-    if path.suffix != '.md' or not path.is_file():
+        raise ValueError('Managed library requires its library-permitted writer; Core does not install it')
+    path = library.authorize(root, settings['authorized_paths'], relative, create=create)
+    if path.suffix != '.md' or (not create and not path.is_file()):
         raise ValueError('Target must be an existing Markdown file')
     for source in settings.get('layers', {}).get('sources', []):
         boundary = root / source
         if path == boundary or path.is_relative_to(boundary):
             raise ValueError('Captured sources are immutable')
-    if path.name == 'AGENTS.md':
-        raise ValueError('This helper does not edit agent instructions')
+    if path.name.casefold() in ('agents.md', 'skill.md', 'claude.md'):
+        raise ValueError('This helper does not write known agent instruction files (AGENTS.md, SKILL.md, CLAUDE.md)')
     return path
 
 
@@ -73,13 +73,21 @@ def check_packet(settings, packet):
     draft = packet['draft'].encode('utf-8')
     if len(draft) > LIMIT or digest(draft) != packet['draft_sha256']:
         raise ValueError('Invalid draft binding')
-    path = target_path(settings, packet['target']['path'])
-    previous = read_bytes(path)
-    if digest(previous) != packet['target']['base_sha256']:
+    operation = packet['target'].get('operation', 'update')
+    if operation not in ('update', 'create'):
+        raise ValueError('Unsupported proposal operation')
+    create = operation == 'create'
+    if create and (packet['target'].get('expected_absent') is not True
+                   or packet['target'].get('base_sha256') is not None
+                   or not packet['evidence'] or not packet['draft'].strip()):
+        raise ValueError('Creation requires an absent-target binding and explicit evidence')
+    path = target_path(settings, packet['target']['path'], create=create)
+    previous = None if create else read_bytes(path)
+    if not create and digest(previous) != packet['target']['base_sha256']:
         raise ValueError('Stale proposal base; preserve current note and review again')
-    expected_diff = ''.join(difflib.unified_diff(previous.decode('utf-8').splitlines(keepends=True),
+    expected_diff = ''.join(difflib.unified_diff((previous or b'').decode('utf-8').splitlines(keepends=True),
                                                packet['draft'].splitlines(keepends=True),
-                                               fromfile=packet['target']['path'],
+                                               fromfile='/dev/null' if create else packet['target']['path'],
                                                tofile=packet['target']['path'] + ' (proposed)'))
     if packet.get('diff') != expected_diff:
         raise ValueError('Proposal diff does not match the current base and draft')
@@ -108,11 +116,26 @@ def replace_checked(path, expected, replacement):
             Path(temporary).unlink()
 
 
+def create_checked(path, draft):
+    """Publish complete bytes with a no-clobber hard link in the same directory."""
+    fd, temporary = tempfile.mkstemp(prefix='.core-note-', dir=path.parent)
+    try:
+        with os.fdopen(fd, 'wb') as stream:
+            stream.write(draft)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.link(temporary, path)  # Atomic absence requirement; never replace a competing entry.
+    finally:
+        Path(temporary).unlink()
+
+
 def save(settings, packet):
     path, previous, draft = check_packet(settings, packet)
     record = {'format': 'plain-note-recovery-v1', 'library_root': settings['library_root'],
-              'target': packet['target']['path'], 'before_sha256': digest(previous),
-              'after_sha256': digest(draft), 'before_base64': base64.b64encode(previous).decode(),
+              'target': packet['target']['path'], 'before_exists': previous is not None,
+              'before_sha256': digest(previous) if previous is not None else None,
+              'after_sha256': digest(draft),
+              'before_base64': base64.b64encode(previous).decode() if previous is not None else None,
               'proposal': packet, 'human_authentication_verified': False}
     record_path = Path(settings['recovery_directory']) / (uuid.uuid4().hex + '.json')
     # Persist previous bytes and provenance BEFORE replacing the note. Not an apply receipt.
@@ -122,10 +145,14 @@ def save(settings, packet):
         stream.flush()
         os.fsync(stream.fileno())
     check_packet(settings, packet)
-    replace_checked(path, previous, draft)
+    if previous is None:
+        create_checked(path, draft)
+    else:
+        replace_checked(path, previous, draft)
     if read_bytes(path) != draft:
         raise ValueError('Saved output not verified; preserve recovery record')
-    return {'status': 'plain_file_saved', 'record': str(record_path), 'sha256': digest(draft),
+    return {'status': 'plain_file_created' if previous is None else 'plain_file_saved',
+            'record': str(record_path), 'sha256': digest(draft),
             'human_authentication_verified': False}
 
 
@@ -136,6 +163,8 @@ def restore(settings, record_path):
     record = read_json(record_path)
     if record.get('format') != 'plain-note-recovery-v1' or record['library_root'] != settings['library_root']:
         raise ValueError('Recovery record belongs to a different library')
+    if record.get('before_exists') is False:
+        raise ValueError('Creation has no previous bytes; deletion requires separate review and is unsupported')
     path = target_path(settings, record['target'])
     current = read_bytes(path)
     if digest(current) != record['after_sha256']:

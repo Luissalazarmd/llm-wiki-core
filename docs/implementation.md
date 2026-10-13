@@ -6,9 +6,10 @@ One AGENTS entry, one canonical Bibliotecario profile, three portable action ski
 
 - Read/connect: relevant sources and justified neighbors, exact citations and explicit uncertainty.
 - Capture: duplicate/version checking, provenance and immutable originals through available permitted host create-only or managed tools. No automatic capture runtime bundled.
+- Raw admission: mandatory existing MOC/root chain and taxonomy tags for new captures, with a small read-only checker and unchanged-dependency/saved-byte verification. Reuse existing maps and preserve foreign schema; no background orphan cleanup or blanket migration.
 - Review/save: exact revised diff, actual human confirmation, current target/evidence checks, permitted writer, private recovery and exact readback.
 - Mapping/config: bounded observations and optional personal settings, no forced migration/metadata completion.
-- Plain helper: existing derived-note save/conditional restore, not authentication or a transaction engine.
+- Plain helper: existing derived-note save/conditional restore and absent-target no-clobber creation after exact proposal review; not source capture, deletion, authentication or a transaction engine.
 
 ## Engine independence
 

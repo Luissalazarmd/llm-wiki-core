@@ -52,7 +52,7 @@ def load_config(path: Path) -> dict:
         return result
     data = json.loads(raw, object_pairs_hook=unique)
     keys = {'version', 'library_root', 'authorized_paths', 'objectives', 'language',
-            'organization', 'initiative', 'layers', 'write_policy', 'recovery_directory'}
+            'organization', 'initiative', 'layers', 'write_policy', 'recovery_directory', 'capture_policy'}
     if not isinstance(data, dict) or set(data) - keys:
         raise ValueError('Unknown configuration fields; no credentials or runtime settings allowed')
     if type(data.get('version')) is not int or data['version'] != 1:
@@ -91,6 +91,25 @@ def load_config(path: Path) -> dict:
             raise ValueError('Layer correspondence must contain path lists')
         for relative in selections:
             authorize(root, allowed, relative)
+    if 'capture_policy' in data:
+        policy = data['capture_policy']
+        if (not isinstance(policy, dict) or set(policy) - {'roots', 'taxonomy_path', 'fields'}
+                or not isinstance(policy.get('roots'), list) or not 1 <= len(policy['roots']) <= 20
+                or not isinstance(policy.get('taxonomy_path'), str)):
+            raise ValueError('Invalid capture_policy; explicit roots and taxonomy_path are required')
+        for relative in [*policy['roots'], policy['taxonomy_path']]:
+            selected = authorize(root, allowed, relative)
+            if selected.suffix != '.md' or not selected.is_file() or selected.relative_to(root).as_posix() != relative:
+                raise ValueError('Capture policy paths must be exact regular Markdown paths')
+        if len(set(policy['roots'])) != len(policy['roots']):
+            raise ValueError('Duplicate capture roots')
+        fields = policy.get('fields', {})
+        if (not isinstance(fields, dict) or set(fields) - {'moc', 'parent', 'role', 'tags', 'taxonomy_tags'}
+                or any(not isinstance(v, str) or not v.strip() or len(v) > 64 for v in fields.values())):
+            raise ValueError('Invalid capture field mapping')
+        effective = {'moc': 'moc', 'parent': 'parent', 'role': 'role', 'tags': 'tags', **fields}
+        if len({effective[k].casefold() for k in ('moc', 'parent', 'role', 'tags')}) != 4:
+            raise ValueError('Capture fields for MOC, parent, role and tags must be distinct')
     if data.get('write_policy', 'read_only') not in ('read_only', 'canonical_engine', 'plain_files'):
         raise ValueError('Invalid write_policy')
     recovery = data.get('recovery_directory')
@@ -113,9 +132,9 @@ def load_config(path: Path) -> dict:
             'initiative': data.get('initiative', 'within_focus'), 'layers': layers}
 
 
-def authorize(root: Path, allowed: list[str], relative: str) -> Path:
+def authorize(root: Path, allowed: list[str], relative: str, create: bool = False) -> Path:
     """A config restricts Core operations; it cannot grant host permissions."""
-    target = contained(root, relative)
+    target = knowledge.new_target_path(root, relative) if create else contained(root, relative)
     for scope in allowed:
         boundary = contained(root, scope)
         if target == boundary or (boundary.is_dir() and target.is_relative_to(boundary)):
@@ -221,6 +240,7 @@ def main() -> int:
             command.add_argument('--format', choices=['json', 'markdown'], default='json')
     proposal = sub.add_parser('proposal')
     proposal.add_argument('--target', required=True)
+    proposal.add_argument('--create', action='store_true', help='propose an absent derived-note target')
     proposal.add_argument('--evidence', action='append', default=[])
     args = parser.parse_args()
     try:
@@ -228,7 +248,8 @@ def main() -> int:
         root = Path(settings['library_root'])
         paths = [args.target, *args.evidence] if args.action == 'proposal' else args.scope
         for path in paths:
-            authorize(root, settings['authorized_paths'], path)
+            authorize(root, settings['authorized_paths'], path,
+                      create=args.action == 'proposal' and args.create and path == args.target)
         if args.action == 'map':
             data = map_library(root, args.scope, settings['layers'])
         elif args.action == 'read':
@@ -244,7 +265,7 @@ def main() -> int:
             draft = sys.stdin.buffer.read(262145)
             if len(draft) > 262144:
                 raise ValueError('Draft exceeds byte limit')
-            data = knowledge.prepare_proposal(root, args.target, draft.decode('utf-8'), args.evidence)
+            data = knowledge.prepare_proposal(root, args.target, draft.decode('utf-8'), args.evidence, args.create)
         print(json.dumps(data, ensure_ascii=False, indent=2))
         return 0
     except (OSError, ValueError, TypeError, RecursionError) as exc:

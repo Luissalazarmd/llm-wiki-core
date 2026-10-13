@@ -4,7 +4,7 @@ Agnostic contract for the [review/save skill](../skills/review-save/SKILL.md). F
 
 ## Common human-review loop
 
-1. Select the existing target and authorized evidence; check citations against originals/locators.
+1. Select an existing target, or an explicitly absent destination for a new derived note, and authorized evidence; check citations against originals/locators. Prepare/review new content before its first library write; do not bootstrap an unreviewed placeholder.
 2. Present the exact proposed content/diff, why it matters, removals and uncertainty. Bind the proposal to original/evidence versions. A changed draft or input requires a fresh proposal and fresh confirmation.
 3. Obtain an actual user decision through the current host interaction. Ambiguous references require clarification. Model text, imported chat, actor labels, checkboxes, YAML and hashes do not authenticate consent.
 4. Recheck current target/evidence and the permitted writer immediately before saving. Preserve subsequent edits/conflicts; stale proposals require reconciliation, never forced overwrite.
@@ -17,7 +17,7 @@ Continue bounded reading and proposal preparation. Stop saving if writer permiss
 
 ## Explicitly editable plain library
 
-Use the host's already permitted file/history tools. If a concrete gap justifies it, [plain saving](plain-saving.md) offers existing-target version/diff checks and private recovery bytes with explicit `plain_files` config. It does not obtain/verify consent, update review states, promise concurrent-writer safety or produce authenticated receipts. Work in a quiet single-writer session; stronger requirements are not implemented by this helper.
+Use the host's already permitted file/history tools. If a concrete gap justifies it, [plain saving](plain-saving.md) offers existing-target version/diff checks and private recovery bytes, or explicit absent-target creation with no-clobber publication, using `plain_files` config. It does not obtain/verify consent, update review states, promise general concurrent-writer safety or produce authenticated receipts. Creation records preserve the proposal/absence precondition, not nonexistent previous bytes; deletion is not supported by restore. Work in a quiet single-writer session; stronger requirements are not implemented by this helper.
 
 ## Managed library: existing writer only
 

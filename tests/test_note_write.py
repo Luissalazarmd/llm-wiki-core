@@ -116,7 +116,7 @@ class NoteWriteTests(unittest.TestCase):
                                       ('restore', '--record', record)):
                 result = self.call(action, flag, path)
                 self.assertEqual(result.returncode, 2)
-                self.assertIn('canonical engine', result.stderr)
+                self.assertIn('library-permitted writer', result.stderr)
             self.assertEqual((self.root / 'Notes/one.md').read_bytes(), current)
             marker.unlink()
 
@@ -135,14 +135,18 @@ class NoteWriteTests(unittest.TestCase):
         self.assertEqual(self.call('save', '--packet', str(self.packet)).returncode, 2)
 
     def test_sources_and_instructions_are_not_editable(self):
-        for relative in ('Sources/a.md', 'Notes/AGENTS.md'):
+        for relative in ('Sources/a.md', 'Notes/AGENTS.md', 'Notes/SKILL.md', 'Notes/CLAUDE.md'):
             path = self.root / relative
             if not path.exists():
                 path.write_text('Synthetic trusted policy')
             result = subprocess.run([sys.executable, str(BASE / 'scripts/knowledge.py'), '--root', str(self.root),
                 '--proposal-target', relative], input='draft', capture_output=True, text=True, check=True)
             self.packet.write_text(result.stdout)
+            original = path.read_bytes()
+            self.assertEqual(self.call('check', '--packet', str(self.packet)).returncode, 2)
             self.assertEqual(self.call('save', '--packet', str(self.packet)).returncode, 2)
+            self.assertEqual(path.read_bytes(), original)
+        self.assertEqual(list((self.base / 'recovery').iterdir()), [])
 
     def test_recovery_directory_cannot_be_inside_library(self):
         (self.root / 'Recovery').mkdir()
