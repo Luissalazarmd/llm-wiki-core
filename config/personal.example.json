@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "library_root": "../path-to-your-existing-library",
+  "authorized_paths": ["Reading"],
+  "objectives": [],
+  "language": "es",
+  "organization": "preserve",
+  "initiative": "within_focus",
+  "layers": {}
+}

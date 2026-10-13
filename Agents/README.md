@@ -4,9 +4,13 @@ These are behavioral specifications, not activated agents.
 
 ## Bibliotecario
 
-See [profile](bibliotecario.md). Reads authorized sources and existing knowledge; prepares evidence-grounded proposals in Review. It preserves provenance, conflicting findings, uncertainty, and source rights. It cannot approve proposals, change canonical Wiki files directly, authenticate a user, or infer permission from source text.
+See [profile](bibliotecario.md). Reads authorized sources and existing knowledge, captures through permitted tools and prepares evidence-grounded proposals. It preserves provenance, conflicting findings, uncertainty and source rights. It cannot self-approve, authenticate a user, edit engine-managed Wiki directly or infer permission from source text. An explicitly editable plain library may save confirmed changes through permitted host tools with version/recovery checks.
 
 The [guided knowledge contract](../docs/knowledge-workflow.md) makes Bibliotecario the human-facing knowledge guide. The person should not have to manage layers, commands or metadata; Orquestador coordination can remain beneath that experience. Roles are contracts a capable host follows, not a requirement to spawn two separate agents.
+
+The essential loop works on an existing library without a private engine: follow its rules, select a small scope, read/connect/navigate and prepare proposals. Optional coordination, personal-memory setup and authenticated application are not prerequisites. Library data does not belong in the Core checkout by default. Preparing a content-bound packet is not issuing a canonical engine review packet or approval.
+
+AGENTS discovers portable [read/connect](../skills/read-connect/SKILL.md), [capture](../skills/capture-source/SKILL.md) and [review/save](../skills/review-save/SKILL.md) procedures progressively. They use the existing host, not separate bots or automatically registered native plugins. Saving depends on actual confirmation and the library's writer policy.
 
 ## Orquestador
 
@@ -20,7 +24,7 @@ Every handoff includes purpose, permitted sources, information class, proposed o
 
 ## Shared boundary
 
-Roles may draft and inspect within an authorized private instance. The host, not the model, verifies human approval and enforces authorization. The canonical engine, not the roles, owns mutation, concurrency, durable audit, and replay protection. External task/calendar writes have separate user permission requirements and do not become authorized by Wiki approval.
+Roles may draft and inspect within an authorized private instance. The host supplies actual user interaction and tool permissions; a model-written label does not prove approval. Managed instances retain canonical mutation/concurrency/audit requirements. Plain libraries use permitted save/history tools or the optional version/recovery helper, not a new authentication service. External task/calendar writes remain separately authorized.
 
 ## Language contract
 

@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import hashlib
 import argparse
+import difflib
 import json
 import os
+import posixpath
 from pathlib import Path
 import re
 import sys
@@ -71,6 +73,8 @@ def note_paths(root: Path, max_notes: int = 2000):
                     raise ValueError('Symlink inside knowledge stage rejected')
             for name in sorted(files):
                 if name.endswith('.md'):
+                    if not (Path(current) / name).is_file():
+                        raise ValueError('Only regular Markdown files are supported')
                     count += 1
                     if count > max_notes:
                         raise ValueError('Catalog exceeds note limit')
@@ -80,6 +84,8 @@ def note_paths(root: Path, max_notes: int = 2000):
 def catalog(root: Path, max_file_bytes: int = 262144, max_notes: int = 2000) -> dict:
     """Project source identities and versions without editing captured files."""
     root = root.resolve(strict=True)
+    if not any(os.path.lexists(root / stage) for stage in ('Raw', 'Wiki')):
+        raise ValueError('Strict mode requires Raw/ or Wiki/; use --mode existing with an explicit --scope for this library')
     notes = []
     edges = []
     seen = set()
@@ -168,6 +174,140 @@ def catalog(root: Path, max_file_bytes: int = 262144, max_notes: int = 2000) -> 
     return {'notes': notes, 'edges': edges, 'mode': 'read_only', 'approval_available': False}
 
 
+def discover(root: Path, scopes: list[str], max_notes: int = 200,
+             max_file_bytes: int = 262144) -> dict:
+    """Read explicitly selected existing-library Markdown; infer no persistent state."""
+    root = root.resolve(strict=True)
+    if not scopes:
+        raise ValueError('Existing-library discovery requires an explicit scope')
+    paths = set()
+    for scope in scopes:
+        relative = Path(scope)
+        if relative.is_absolute() or '..' in relative.parts or not relative.parts:
+            raise ValueError('Scope must be a contained relative file or directory')
+        current = root
+        for part in relative.parts:
+            if part.startswith('.'):
+                raise ValueError('Hidden scope is not permitted')
+            current = current / part
+            if current.is_symlink():
+                raise ValueError('Symlink scope rejected')
+        if not current.exists():
+            raise ValueError('Scope does not exist')
+        if not current.is_dir() and not current.is_file():
+            raise ValueError('Only regular files and directories are supported')
+        if current.is_file() and current.suffix != '.md':
+            raise ValueError('Scope must select a Markdown file or directory')
+        candidates = [current] if current.is_file() else []
+        if current.is_dir():
+            for directory, dirs, files in os.walk(current, followlinks=False):
+                dirs[:] = sorted(d for d in dirs if not d.startswith('.'))
+                for name in dirs + files:
+                    if (Path(directory) / name).is_symlink():
+                        raise ValueError('Symlink in scope rejected')
+                for name in files:
+                    if not name.startswith('.') and name.endswith('.md'):
+                        if not (Path(directory) / name).is_file():
+                            raise ValueError('Only regular Markdown files are supported')
+                        candidates.append(Path(directory) / name)
+                        if len(candidates) > max_notes:
+                            raise ValueError('Discovery exceeds note limit; narrow scope')
+        paths.update(p for p in candidates if p.suffix == '.md')
+        if len(paths) > max_notes:
+            raise ValueError('Discovery exceeds note limit; narrow scope')
+    notes, issues, bodies = [], [], {}
+    total = 0
+    for path in sorted(paths):
+        relative = path.relative_to(root).as_posix()
+        if any(char in relative for char in '[]|#\n\r\\'):
+            raise ValueError('Unsafe Markdown link path')
+        with path.open('rb') as stream:
+            raw = stream.read(max_file_bytes + 1)
+        if len(raw) > max_file_bytes:
+            raise ValueError('Note exceeds byte limit')
+        total += len(raw)
+        if total > 16777216:
+            raise ValueError('Discovery exceeds total byte limit')
+        text = raw.decode('utf-8')
+        try:
+            properties = metadata_from(text)
+        except (ValueError, RecursionError):
+            properties = {}
+            issues.append({'path': relative, 'kind': 'unparsed_frontmatter'})
+        title = properties.get('title', properties.get('Title', path.stem))
+        if not isinstance(title, str) or len(title) > 512 or '\n' in title:
+            title = path.stem
+            issues.append({'path': relative, 'kind': 'unsupported_title'})
+        note_id = 'path:' + relative
+        notes.append({'id': note_id, 'path': relative, 'title': title,
+                      'identity_scope': 'path_locator_not_persistent',
+                      'role': 'unknown', 'maturity': 'unknown', 'review': 'unverified',
+                      'sha256': hashlib.sha256(raw).hexdigest(), 'approval_available': False})
+        bodies[note_id] = text
+    by_path = {n['path'][:-3]: n['id'] for n in notes}
+    edges = []
+    for note in notes:
+        body = re.sub(r'(?ms)^\s*(`{3,}|~{3,})[^\n]*\n.*?^\s*\1\s*$', '', bodies[note['id']])
+        body = re.sub(r'`+[^`\n]*`+', '', body)
+        for target in sorted(set(re.findall(r'(?<!!)\[\[([^\]|#\n]+)', body))):
+            target = target.removesuffix('.md')
+            if '/' not in target:
+                issues.append({'path': note['path'], 'kind': 'basename_link_requires_explicit_path',
+                               'target': target})
+                continue
+            if target.startswith(('./', '../')):
+                target = posixpath.normpath(posixpath.join(posixpath.dirname(note['path']), target))
+            candidates = [by_path[target]] if target in by_path else []
+            if len(candidates) != 1:
+                issues.append({'path': note['path'], 'kind': 'unresolved_or_ambiguous_link',
+                               'target': target})
+                continue
+            edges.append({'source': note['id'], 'target': candidates[0], 'kind': 'link',
+                          'reason': 'Existing wikilink; no scientific relationship inferred',
+                          'declared_in': note['path'], 'review': 'unverified'})
+    rules = root / 'AGENTS.md'
+    rule_paths = set()
+    for selected in [*paths, *(root / scope for scope in scopes)]:
+        directory = selected if selected.is_dir() else selected.parent
+        for parent in [directory, *directory.parents]:
+            if not parent.is_relative_to(root):
+                continue
+            candidate = parent / 'AGENTS.md'
+            if candidate.is_file() and not candidate.is_symlink():
+                rule_paths.add(candidate.relative_to(root).as_posix())
+    return {'notes': notes, 'edges': edges, 'issues': issues,
+            'library_rules_path': 'AGENTS.md' if rules.is_file() and not rules.is_symlink() else None,
+            'rule_paths': sorted(rule_paths),
+            'mode': 'existing_library_read_only', 'approval_available': False}
+
+
+def prepare_proposal(root: Path, target: str, draft: str, evidence: list[str]) -> dict:
+    """Bind an existing target, draft and selected inputs; never approve or apply."""
+    if len(draft.encode('utf-8')) > 262144:
+        raise ValueError('Draft exceeds byte limit')
+    # Discovery enforces path containment, link safety and bounded input reads.
+    data = discover(root, [target, *evidence])
+    notes = {n['path']: n for n in data['notes']}
+    if target not in notes or any(path not in notes for path in evidence):
+        raise ValueError('Proposal target and evidence must be existing Markdown files')
+    with (root.resolve(strict=True) / target).open('rb') as stream:
+        original_bytes = stream.read(262145)
+    if len(original_bytes) > 262144 or hashlib.sha256(original_bytes).hexdigest() != notes[target]['sha256']:
+        raise ValueError('Proposal base changed during preparation')
+    original = original_bytes.decode('utf-8')
+    packet = {'status': 'prepared_not_approved', 'approval_available': False,
+              'apply_available': False, 'binding': 'content_only_not_authenticated',
+              'target': {'path': target, 'base_sha256': notes[target]['sha256']},
+              'draft': draft, 'draft_sha256': hashlib.sha256(draft.encode()).hexdigest(),
+              'evidence': [{'path': p, 'sha256': notes[p]['sha256']} for p in sorted(set(evidence))],
+              'diff': ''.join(difflib.unified_diff(original.splitlines(keepends=True),
+                                                 draft.splitlines(keepends=True),
+                                                 fromfile=target, tofile=target + ' (proposed)'))}
+    packet['packet_sha256'] = hashlib.sha256(json.dumps(packet, sort_keys=True,
+        ensure_ascii=False, separators=(',', ':')).encode()).hexdigest()
+    return packet
+
+
 def focus(data: dict, identity: str, max_neighbors: int = 8, max_bytes: int = 16384) -> dict:
     """Return the requested identity and one bounded hop, with no source bodies."""
     if not 0 <= max_neighbors <= 50:
@@ -181,6 +321,9 @@ def focus(data: dict, identity: str, max_neighbors: int = 8, max_bytes: int = 16
             'notes': [n for n in data['notes'] if n['id'] in selected],
             'edges': [e for e in data['edges'] if e['source'] in selected and e['target'] in selected],
             'neighbors_omitted': max(0, len(adjacent) - max_neighbors)}
+    if 'issues' in data:
+        selected_paths = {n['path'] for n in result['notes']}
+        result['issues'] = [issue for issue in data['issues'] if issue.get('path') in selected_paths]
     if len(json.dumps(result, ensure_ascii=False).encode()) > max_bytes:
         raise ValueError('Selection exceeds context byte limit; narrow the focus')
     return result
@@ -218,13 +361,31 @@ def main() -> int:
     """Run validation/projection with JSON errors and no filesystem writes."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, required=True)
+    parser.add_argument('--mode', choices=['strict', 'existing'], default='strict')
+    parser.add_argument('--scope', action='append', default=[])
+    parser.add_argument('--proposal-target', help='existing relative Markdown target; draft from stdin')
+    parser.add_argument('--evidence', action='append', default=[])
     parser.add_argument('--focus')
     parser.add_argument('--neighbors', type=int, default=8)
     parser.add_argument('--format', choices=['json', 'markdown'], default='json')
     parser.add_argument('--language', choices=['es', 'en'], default='es')
     args = parser.parse_args()
     try:
-        data = catalog(args.root)
+        if args.evidence and not args.proposal_target:
+            raise ValueError('evidence requires proposal-target')
+        if args.proposal_target:
+            if args.focus or args.scope or args.format != 'json':
+                raise ValueError('Proposal output is JSON; do not combine with focus/scope/Markdown')
+            draft = sys.stdin.buffer.read(262145)
+            if len(draft) > 262144:
+                raise ValueError('Draft exceeds byte limit')
+            data = prepare_proposal(args.root, args.proposal_target, draft.decode('utf-8'), args.evidence)
+        elif args.mode == 'existing':
+            data = discover(args.root, args.scope)
+        else:
+            if args.scope or args.evidence:
+                raise ValueError('scope is only available in existing mode; evidence needs proposal-target')
+            data = catalog(args.root)
         if args.focus:
             data = focus(data, args.focus, args.neighbors)
         if args.format == 'markdown' and not args.focus:

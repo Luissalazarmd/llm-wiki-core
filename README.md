@@ -1,58 +1,54 @@
 # llm-wiki-core
 
-One private project for the Bibliotecario, Orquestador and your Markdown Wiki. Open this same core folder in Obsidian; you do not need a second template or instance repository.
+An agent-guided, Markdown-first knowledge workflow. Bring a capable agent and a new or existing library: read, connect, navigate and prepare proposals without a private engine or metadata migration. Core supplies contracts and optional tools, not an autonomous bot, model or file-access permission.
 
-**Current status:** a local licensed-engine installer, read-only review CLI and tested synthetic canonical flow are implemented. The private engine is installed into this folder from authorized local files; its code is not redistributed by this repository. Authenticated chat approval and autonomous semantic synthesis are not connected yet.
+**Essential status:** guided role contract, scoped library mapper (notes, attachments and conventions), executable personal settings, strict optional ontology, bounded navigation and content-bound proposal preparation work without the private engine. They are read-only; authenticated approval and canonical application remain unconnected.
 
-The original [guided knowledge contract](docs/knowledge-workflow.md) now integrates Bibliotecario-led capture, reading, connections and progressive context without mandatory per-article folders. A tested [ontology/catalog projector](docs/ontology.md) validates independent role/maturity/declared-review dimensions and renders bounded navigable selections. It is read-only, not state-transition or approval implementation. This increment does not make the licensed-engine-dependent product universally installable or grant redistribution rights.
+The [guided contract](docs/knowledge-workflow.md) makes the Bibliotecario the human-facing guide. The library can remain outside this checkout; its existing rules and organization are preserved. No new vault, mandatory thematic folders or duplicated knowledge. The Core repository is public; personal libraries remain separate and private. Public visibility is not a redistribution license, and technical independence of essential tools does not settle redistribution rights.
 
 ## Start with your agent
 
-Tell your capable agent: **“Read AGENTS.md. Help me understand this source and connect it to my knowledge.”** The agent checks necessary capabilities and guides a small useful next step. No knowledge of commands or stages is required from the human. Agent/runtime interoperability and automatic tool binding are not certified by this sentence.
+Tell your capable agent: **“Read Core's AGENTS.md. My library is at [path]; follow its existing rules. Help me understand [source/question], selecting only relevant notes. Do not move or modify my library yet.”** If the path cannot be retrieved, ask for it; never assume the checkout is the user's vault. Commands are for the agent, not the human. Interoperability with every host is not certified by this prompt.
 
 For original-code validation without vendor installation (Python plus pinned PyYAML in requirements.txt):
 
 ```sh
-PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_knowledge.py -v
-python3 scripts/knowledge.py --root .
+python3 scripts/knowledge.py --root /path/to/library --mode existing --scope Reading
+python3 scripts/knowledge.py --root /path/to/library --mode existing --scope Reading --focus 'path:Reading/one.md' --format markdown
+python3 scripts/knowledge.py --root /path/to/library --proposal-target Reading/one.md --evidence Reading/two.md < /path/to/draft.md
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v
+PYTHONDONTWRITEBYTECODE=1 python3 tests/demo_existing_library.py --output-parent /path/to/authorized/scratch
+python3 scripts/knowledge.py --root . --mode strict
 ```
 
-The empty tracked Raw/Wiki return an empty catalog, not demo knowledge. Flat or grouped sources are supported by this projector; reorganizing an existing engine vault still needs migration checks. Execution evidence and remaining gates: [guided increment handoff](docs/guided-increment.md).
+Start an existing library with the scoped existing-mode command above. Strict mode is only for a known Raw/Wiki layout with Core metadata; if neither directory exists, it fails with guidance to use `--mode existing`, rather than returning a false empty catalog. The empty tracked Raw/Wiki return an empty catalog, not demo knowledge. Existing mode requires explicit scopes and reads Markdown without mandatory metadata. Basename-only wikilinks are reported as unresolved candidates, never automatic neighbors; explicit paths resolve only among selected notes. No wider scan is performed to find homonyms. Path locators are temporary, not persistent IDs. Proposal drafts come from stdin; JSON/diffs go to stdout, never apply. See [ontology](docs/ontology.md) and [current evidence](docs/self-contained-increment.md).
 
-## Install into this same folder
+For repeated use, [first-cut tools](docs/first-cut-tools.md) load **one private personal config** (library root, authorized paths, objectives, language, organization, initiative and optional declared layer correspondence), separate from the shared profile. Mapping observes selected folders/notes/attachments without decoding attachments or inferring review states; missing layer correspondence remains unassigned. No auto-created settings, migration or mandatory persistent configuration for one-off reading.
 
-From the cloned core project, with the authorized engine files already available locally:
+## Existing library or new instance
 
-```bash
-python3 scripts/install_private_engine.py --source /path/to/authorized-engine --root .
-python3 adapters/review_chat.py --root . list
-python3 adapters/review_chat.py --root . show CASE_ID
-python3 adapters/review_chat.py --root . packet CASE_ID
-```
-
-The installer verifies the pinned source hashes and preserves existing differing files instead of overwriting them. It never downloads, runs the source, migrates another vault, pushes or uploads anything. Use `--check` for a read-only preview. A source folder is a one-time installation input, not a second project you must maintain.
-
-The generated local settings start review-first, with automatic Git checkpoints, memory providers and external model processing disabled. Existing local settings are preserved. This is an engine/API installation, not the complete upstream graphical/bootstrap kit.
-
-## One folder, explicit Git policy
+Keep an existing library at its current location. Do not copy content into Core or overwrite its rules. Raw → Review → Wiki describes source inputs, reviewable elaboration and retained knowledge, not mandatory directory names. The stage placeholders are an optional starting layout for a new library; existing libraries retain their own paths. Core ships no vendor installer, source manifest or vendor adapter.
 
 - `Raw/`: your captured sources and their provenance
 - `Review/`: proposals and readable review material
 - `Wiki/`: approved canonical Markdown
 - `Agents/` and `Librarian Profile.md`: the two role contracts and canonical librarian profile
-- `adapters/`, `scripts/install_private_engine.py`, `tests/`, `config/`, `docs/`: original project code and contracts
-- `scripts/librarian/`, support packages, `_templates/`, selected `Schema/` files and `LICENSE`: licensed engine installed locally into this same core folder
-- `.wanderloots-llm-wiki/`: private operational state, requiring deliberate backup
+- `skills/`: three portable action procedures, not additional bots
+- `scripts/`, `tests/`, `config/`, `docs/`: original tools, tests and contracts
 
-Original code is versionable in the core repository. Vendor files, local settings and operational state are excluded from publication by default. Raw/Review/Wiki are **not** blanket-ignored: selected knowledge can be versioned in this same private GitHub repository when you choose what to publish. A private repository does not remove source-license, personal-data or credential constraints. No upload is automatic; review staged files before every publication. Secrets always belong in a secret store.
+Original code and synthetic fixtures are versionable in this public Core repository. Vendor files, local settings and operational state are excluded from publication by default. Raw/Review/Wiki are **not** blanket-ignored, so never place private knowledge in this checkout by assuming Git will exclude it. Keep personal libraries elsewhere; any selected knowledge publication requires separate explicit approval and source-rights/privacy review. No upload is automatic; review staged files before every publication. Secrets always belong in a secret store.
 
 ## Workflow
 
-Raw → Review → Wiki. Bibliotecario prepares source-grounded proposals; Orquestador presents them. An authenticated human decision is required before enabling real-content canonical apply. The read-only CLI provides list/show/packet now and never approves anything.
+### Librarian skills — local v0.1
 
-The isolated single-folder smoke test passes 35 checks, including canonical simulated apply, stale blocking, receipts, replay and recovery. Nine installer tests cover integrity, conflicts, repeat installation and Git exclusions. These are synthetic results, not a claim that the authenticated chat host is ready.
+Portable procedures now exist for [read/connect](skills/read-connect/SKILL.md), [capture](skills/capture-source/SKILL.md) and [review/save](skills/review-save/SKILL.md). They use the person's existing agent and tools, not separate bots. An optional [plain-note helper](docs/plain-saving.md) checks original/evidence versions, saves one existing derived note with recoverable previous bytes, and refuses restoration over later edits. Managed libraries still require their canonical writer; default is read-only. No authenticated-host implementation is claimed.
 
-See [local integration](docs/local-integration.md) for commands and limits, [onboarding](docs/onboarding.md) for setup choices, [review contract](docs/review-contract.md) for authority, and [acceptance](docs/acceptance.md) for the broader unfinished gates. Agents start with [AGENTS.md](AGENTS.md).
+AGENTS links all three skills progressively. They are portable files read by the agent, not automatically installed host plugins. Actual source capture uses existing permitted host tools; no capture runtime is bundled. This is a pilot checkpoint, not a tagged GitHub release; independent-agent portability, graphical rendering and managed authenticated-host integration remain separate gates. See [verification and limits](docs/self-contained-increment.md).
+
+Bibliotecario guides capture, selected reading, connections and human review. Core's tools are small helpers beneath that experience. Saving follows actual library rules and host permissions; missing capabilities stop dependent writes, not reading. No engine migration, new authentication service or promise of canonical apply is implied.
+
+All product tests run on synthetic files without a specific library engine, private source files or skipped vendor suite. [Writer selection](docs/review-contract.md) respects the existing library's permitted tools: explicitly editable plain files or an independently supplied managed writer. Core does not implement that writer's authentication or concurrency guarantees. Absence of a managed marker is not permission. See [runtime](docs/runtime.md), [onboarding](docs/onboarding.md), [acceptance](docs/acceptance.md) and [current evidence](docs/self-contained-increment.md). Agents start with [AGENTS.md](AGENTS.md).
 
 ## Daily Focus
 
@@ -60,4 +56,4 @@ Ask the Orquestador “¿En qué me enfoco hoy?” for up to three sourced next 
 
 ## Language
 
-Internal agent instructions are English. Replies follow the user's language. Wiki prose defaults to Spanish; original titles, citations and quotations retain their wording. Current upstream structural headings are preserved.
+Internal agent instructions are English. Replies follow the user's language. Wiki prose defaults to Spanish; original titles, citations and quotations retain their wording. Preserve the existing library's conventions rather than imposing a vendor layout.

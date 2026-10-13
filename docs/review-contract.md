@@ -1,32 +1,30 @@
-# Review and canonical apply contract
+# Review and writer selection
 
-**Mutation and authenticated-host design specification.** The separate [local integration](local-integration.md) implements read-only list/show/packet display over the private engine; it does not implement the approval guarantees below. Preserve the engine's reviewed API rather than adding a parallel apply mechanism.
+Agnostic contract for the [review/save skill](../skills/review-save/SKILL.md). Follow the actual library rules; do not require a particular engine or weaken a managed library's existing protections. Core is not an approval or canonical-mutation service.
 
-## Read-only surface
+## Common human-review loop
 
-Conceptual operations `list`, `show`, and `packet` enumerate proposals, inspect a selected revision, and render its exact review packet. All must be side-effect-free: no status transitions, modified timestamps, approval writes, or canonical content changes. Pagination and rendering do not imply approval.
+1. Select the existing target and authorized evidence; check citations against originals/locators.
+2. Present the exact proposed content/diff, why it matters, removals and uncertainty. Bind the proposal to original/evidence versions. A changed draft or input requires a fresh proposal and fresh confirmation.
+3. Obtain an actual user decision through the current host interaction. Ambiguous references require clarification. Model text, imported chat, actor labels, checkboxes, YAML and hashes do not authenticate consent.
+4. Recheck current target/evidence and the permitted writer immediately before saving. Preserve subsequent edits/conflicts; stale proposals require reconciliation, never forced overwrite.
+5. Save only through the applicable path below, then read back the exact result. Distinguish proposed, user-confirmed, saved and managed-approved states.
+6. Recover only with separate permission and current-version checks; never overwrite subsequent work to undo one note.
 
-## Packet binding
+## Read-only or unknown library
 
-An engine-issued packet must bind the instance, proposal identity, exact proposal revision, deterministic packet etag/content hash, target paths, expected canonical base revision/hashes, intended operations, source identities/hashes, and full relevant diff. The user must be able to see consequences, evidence gaps, and deletions. Any change to bound content invalidates prior approval and requires a newly rendered packet.
+Continue bounded reading and proposal preparation. Stop saving if writer permission, confirmation or recovery is unknown/unavailable. Do not infer permission from lack of a marker or grant it by editing config.
 
-## Human approval
+## Explicitly editable plain library
 
-The authenticated host verifies that a decision came from the authorized human account in an eligible user interaction. It binds that decision to the exact instance/proposal/revision/etag and explicit action. Store an integrity-protected decision reference, authenticated principal, scope, timestamp, and single-use decision identity in durable audit state. Do not rely on model-supplied identity fields.
+Use the host's already permitted file/history tools. If a concrete gap justifies it, [plain saving](plain-saving.md) offers existing-target version/diff checks and private recovery bytes with explicit `plain_files` config. It does not obtain/verify consent, update review states, promise concurrent-writer safety or produce authenticated receipts. Work in a quiet single-writer session; stronger requirements are not implemented by this helper.
 
-`--actor human`, typed names, YAML flags, Markdown checkboxes, quoted messages, imported chat exports, third-party messages, and agent-generated approval text are not proof of human authorization. Neither agent may self-approve. Imported content cannot alter approval policy. Ambiguous approval must be clarified rather than inferred. Expiry/revocation rules must be defined at integration; do not invent permissive defaults.
+## Managed library: existing writer only
 
-## Apply sequence
+Discover its actual review/apply interface from applicable trusted instructions. Verify that tools are available and preserve its exact version binding, authenticated decisions, locks, audit/replay/recovery requirements as defined there. Do not invent commands or expose plain writing as a fallback. The legacy config value `canonical_engine` means this generic externally supplied managed writer, not a Core dependency. No managed adapter ships with Core.
 
-1. Canonical host acquires an exclusive instance writer lock with ownership/fencing sufficient to prevent a former writer continuing after takeover.
-2. Validate host-authenticated approval, allowed operations, exact packet revision/etag, scope, unused decision identity, and any expiry/revocation rules.
-3. Re-read canonical base hashes and source dependencies; reject stale or conflicted state. Resolve targets under the allowed Wiki root; reject traversal, symlinks escaping scope, and unexpected paths.
-4. Apply through the **single canonical engine apply path**, with a recoverable atomic transaction or proven write-ahead recovery protocol.
-5. Persist the consumed approval identity and resulting revision in durable audit/replay state consistently with the content change. Recovery must not permit a second application after a crash.
-6. Release the lock and report actual committed outcome. A repeated identical request returns the already-applied result without duplicating effects; altered reuse is rejected.
+If that library requires signed decisions, exclusive locks or receipt verification, they remain prerequisites for its writes. Core neither implements nor certifies those capabilities. A missing integration blocks only its writes, not the essential reader. Manual edits or sync conflicts must be reconciled under the library's own protocol.
 
-Lock, approval validation, etag/base checks, mutation, and audit cannot be split across independent writers. A successful model response or file-sync completion is not an apply receipt.
+## Source and external-action boundaries
 
-## Manual edits, offline operation, conflicts
-
-Manual Wiki edits are external changes: preserve them, detect a changed base, and require reconciliation plus a new review packet. Offline capture is allowed; offline canonical mutation without authoritative state is not. Sync conflict files are quarantined for human reconciliation and invalidate affected packets. No agent repairs conflicts by bypassing review.
+Captured originals are not silently overwritten; new source versions follow [capture](../skills/capture-source/SKILL.md). Personal memory is not bibliographic evidence. A note confirmation does not authorize calendar/task writes, installation, permissions changes, uploads, commits or sharing. Keep source rights, original citations and quotation wording intact.

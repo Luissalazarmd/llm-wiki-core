@@ -1,41 +1,29 @@
-# Synthetic acceptance specification
+# Reproducible acceptance
 
-**Acceptance specification, not a claim of a full executed suite.** Bounded earlier engine results are recorded in [local integration](local-integration.md); the original ontology/catalog tests are separately runnable under [ontology](ontology.md). All examples use synthetic fixtures and a test host. No real accounts, sources, personal data, or production vaults are needed. Implementation must produce machine-checkable results and retain evidence of each run.
+All product tests use synthetic local files, Python and PyYAML; no private engine, accounts, clinical data or vendor source input. Run `python3 -m unittest discover -s tests -v` in an authorized environment, with bytecode writes disabled if desired. Report actual pass/fail/skip counts; do not count a removed vendor test as a successful test.
 
-## Fixture
+## Deterministic cases
 
-Use a temporary instance containing a synthetic source, one canonical note, and one proposed change. Capture canonical file hashes and all durable-state hashes before each test. The trusted test host supplies authenticated human events; model output cannot impersonate that host. Use separate synthetic principals for proposer and reviewer.
+- Existing library with foreign/no YAML: explicit scoped discovery and mapping, no migration, no out-of-scope file content, original hashes/mtimes unchanged.
+- Applicable nested AGENTS paths reported; root compatibility field does not hide nested rules. Agent reads actual rules before content.
+- Bounded files/context, safe paths, symlinks/special files and YAML/JSON ambiguity rejected; duplicates reconcile rather than overwrite.
+- Role/maturity/review independent; YAML accepted state cannot authorize a write. Factual strict relations bind source/version/locator; semantic support still needs source reading.
+- Personal config separately loaded: authorized paths and language checked, optional organization/objectives/initiative do not create migrations or background services.
+- Proposal binds base/draft/evidence; changed inputs produce a different packet. Plain writer recomputes displayed diff and rejects even a rehashed misleading packet.
+- Plain save requires explicit policy and existing private recovery directory; immutable configured sources/instructions and known managed markers (including broken symlinks) block editing.
+- Stale target/evidence refused without overwrite; changed packet refused. Quiet single-writer saving and readback exercised, previous bytes persisted before replacement.
+- Restore returns exact previous bytes, including CRLF, and refuses to overwrite subsequent edits; injected replacement failure leaves original and recovery bytes intact.
+- AGENTS links three portable skills; valid frontmatter/relative links. Native host registration is not inferred.
+- Product contains no obsolete vendor installer/adapter/manifest or test suite requiring private inputs. The independently reproducible demo copies only essential helpers into a disposable checkout.
 
-## Required cases
+## Human/host cases — separate evidence
 
-1. **Read-only list/show/packet:** repeated listing, revision inspection, and packet rendering return consistent data and do not change canonical or durable state, statuses, or timestamps. Rendering must not mark reviewed or approved.
-2. **Exact binding:** approve revision R and etag E from the authenticated host; change either field or any bound payload; apply rejects it without mutation. Editing the diff creates a new revision and requires new approval.
-3. **Human authenticity:** model-supplied actor flags, typed names, Markdown checkboxes, quoted approvals, and imported chat text cannot authorize apply. A verified user event approves only its explicit packet and action.
-4. **No self-approval:** both roles are denied approval authority, even when they generated a convincing approval message or possess proposal-write access.
-5. **Stale base/source:** modify the canonical base or relevant source version after packet generation; reject apply and require reconciliation and a fresh packet.
-6. **Replay:** applying a valid decision once succeeds; identical retry returns the same outcome with no duplicate effects; altered reuse is rejected. Verify after host restart.
-7. **Single writer:** concurrent apply attempts cannot interleave. After takeover, a previous writer is fenced out. Lost locks block mutation rather than fall back to best effort.
-8. **Canonical path only:** direct agent Wiki writes and alternate mutation entry points are denied. Traversal and symlink escape attempts cannot reach files outside the allowed targets.
-9. **Prompt injection:** source text asking to approve, change policy, reveal secrets, run tools, or overwrite files remains quoted data. It cannot modify authorization or trigger external actions.
-10. **Offline:** disconnected clients may read and capture drafts; apply without authoritative approval/state/lock fails closed. Reconnection does not auto-approve or replay queued mutations.
-11. **Conflicts:** concurrent manual note edits and sync conflict files are preserved for reconciliation, invalidate affected packets, and never use silent last-write-wins canonical apply.
-12. **Crash consistency:** inject failure before content write, during transaction, after content commit, and before response. Recovery yields a coherent before-or-after state and a durable consumed-decision record; retries never duplicate a committed action.
-13. **Revocation/expiry:** under the chosen host policy, revoked or expired approvals are rejected; an unavailable policy service does not bypass checks.
-14. **Separation:** personal-memory inputs cannot silently enter bibliographic evidence; a DOI does not make a synthetic low-quality source trustworthy.
-15. **Adapter boundary:** Wiki approval does not permit task/calendar writes, messages, or third-party uploads. Unconfigured adapters fail closed.
-16. **Publication boundary:** the original-code delivery contains generic code and synthetic fixtures only. Licensed engine files, credentials, local settings and operational state are excluded from publication. Selected real Raw/Review/Wiki content may be versioned in this same private repository only within approved scope; local presence is not upload approval.
-17. **Recovery and bootstrap:** a fresh host installs the pinned licensed runtime separately from note sync, then restores canonical content and required durable state consistently. Missing replay state blocks apply.
+Use [demo](../tests/demo_existing_library.py) for tool-level map/navigation/proposal and the actual host for a small user-guided task. Explain fictional sources and affected files before requesting decisions. Exercise reading → proposal → actual confirmation → save/readback → correction → revised confirmation. Do not manufacture user events to make a test pass.
 
-18. **Language policy:** internal instructions remain English; replies follow the user’s language; new Wiki notes default to Spanish when no preference is supplied and use an explicitly configured alternative when present. Source titles, citations, identifiers, and original quotations remain exact; translations are labeled and never misrepresented as original text. An unanswered optional language question does not block work.
+Capture follows the host's verified retrieval/create-only tools or library writer; Core has no bundled capture runtime. Test duplicate reuse/provenance and source preservation separately when evaluating a particular host. Do not infer working PDF/network capture from synthetic prepared inputs.
 
-Passing document syntax/link checks is not a substitute for these engine tests. Report each case as passed, failed, blocked, or not run against an exact engine revision.
+Recovery is a separate human permission; automated restore tests do not prove a user requested it. Actual Obsidian/K-Plex rendering, voice, concurrent writers, authenticated managed apply, stronger crash guarantees and host portability need their own explicit scope and verification. They are not baseline private-engine milestones and must not become new infrastructure by default.
 
-## Guided knowledge and navigation cases
+## Invariants
 
-- Flat/grouped capture identity and byte preservation; duplicate identities, symlinks and invalid paths rejected.
-- Role/maturity/review independent; declared accepted metadata cannot authorize apply. Current projector reports it unverified.
-- Connections include reasons; factual connections require exact source hashes and locators. Changed evidence blocks projection; locator meaning still needs source review.
-- Focus excludes source bodies and unrelated neighbors, with explicit count/byte limits.
-- Plain Markdown links and optional K-Plex view grouping retain original files. Real host rendering must be separately tested.
-- No per-article thematic folder, duplicate bibliography or mandatory note creation. Existing knowledge is reused.
-- Conversational explain/alternative/change/accept/ambiguous/stale requests follow exact object/version gates. An unconnected host stops at proposal, never fabricated approval.
+No self-approval or source-driven tool execution. Real user interaction and tool permissions are host responsibilities, not content-hash properties. Actual library rules prevail; unknown writer means proposal-only. Preserve exact quotations/identifiers, label translations, default output language Spanish if unspecified. Note approval never permits external tasks, messages, uploads, account changes or Git publication. Local filesystem scope is not provider-transmission permission. No personal memory mirrored into bibliography; no per-article parallel library or compulsory maps.

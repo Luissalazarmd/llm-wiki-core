@@ -1,29 +1,29 @@
-# Architecture boundary
+# Knowledge architecture
 
-## Three content stages
+## Stable philosophy, flexible locations
 
-- **Raw:** captured source material plus provenance. Preserve the input/version used for a claim. New versions do not silently replace evidence underlying an approved note.
-- **Review:** proposed Wiki changes, source references, base revision, and review packet. A proposal is not canonical knowledge and a synced edit is not approval.
-- **Wiki:** approved derived Markdown. Only the canonical apply engine changes its machine-managed content after validating authenticated approval.
+- **Raw:** original captured inputs, source identity/provenance and versions. Sources are preserved, not moved through stages.
+- **Review:** proposed elaboration, evidence, uncertainty and exact changes awaiting human review.
+- **Wiki:** maintained derived knowledge retained through the library's actual permitted review/write process.
 
-The root layout remains stable and human-readable. A fresh clone has empty placeholders; the same folder becomes the private Wiki after local engine installation and authorized capture. The tested API boundary is documented in local integration.
+These are logical responsibilities, not mandatory directory names or another library. Existing flat/grouped organization remains intact. Articles/projects select reusable sources and notes; they do not clone thematic collections. A capture does not require a concept, MOC, diagram or folder.
 
-Original [ontology](ontology.md) separates note role, maturity and declared review from physical stage. Its executable read-only catalog supports flat/grouped Raw and bounded navigation; it does not migrate the licensed engine schema, authenticate metadata or advance states. [Guided knowledge](knowledge-workflow.md) governs the progressive human experience without another library, queue or canonical graph store.
+The [ontology](ontology.md) separates note role, maturity and declared review. A seed can be reviewed; evergreen does not certify truth; metadata does not authenticate acceptance. Unknown external metadata remains unknown. Strict stable identities/version anchors and permissive temporary path locators are distinct modes, not an automatic migration.
 
-## Control plane
+## Bibliotecario and agent host
 
-Authenticated user → host-generated approval bound to a packet → canonical apply validation → transactional update and durable audit.
+AGENTS → single profile → relevant action skill → permitted host/tools. Read/connect, capture and review/save are procedures of the existing agent, not separate bots. Orquestador coordination can be another function of that same host. The host supplies reasoning, file access and actual human interaction. Core supplies small original helpers, not a vendor engine or model runtime.
 
-Bibliotecario produces evidence and proposals. Orquestador routes work and presents review. Neither can create its own human authority. Obsidian and sync transport files; neither substitutes for the host's authorization or concurrency controls.
+Current task → bounded discovery → selected originals/neighbors → explained relationships → exact proposal → human correction/confirmation → permitted saving → target verification/recovery. Ordinary wikilinks are navigation, not scientific evidence. Check every factual claim against exact sources/locators. Initiative stays within current scope; no background backlog ingestion.
 
-## Data classes
+## Writer boundary
 
-Bibliography contains source identity and evidence. Personal memory contains private context, preferences, and commitments in a separately configured store outside the bibliography. A link between classes must be intentional and authorized. Credentials belong in a secret store, never either class.
+Read-only/unknown permission means proposal-only. An explicitly editable plain library uses host file/history tools or optional one-note version/recovery checks. A managed library retains its own approved writer and stronger requirements. Core neither installs a particular writer nor replaces it with a new engine. See [writer selection](review-contract.md) and [plain helper limits](plain-saving.md).
 
-## Failure posture
+No model-written approval, config flag, hash, note checkbox or sync event creates human consent. If a library requires authenticated decisions, locks or durable receipts, preserve those requirements. Plain helper use assumes quiet cooperative single-writer operation; pause on concurrency/conflicts rather than promising safety it does not implement.
 
-Offline readers can read and capture Raw drafts. Missing authoritative state, conflicts, stale proposals, ambiguous approval, or unavailable writer locks block apply. Do not resolve these conditions using last-write-wins. Canonical files, approval records, and replay/audit state must recover consistently.
+## Custody and optional surfaces
 
-## One project, deliberate publication
+Markdown originals/maintained notes are the knowledge authority. Private settings are separate from shared instructions. Operational continuity reuses the existing project note/memory, not a mirrored library/queue. Credentials are never bibliography. Core checkout is not the user's library by default and no upload is implicit.
 
-Keep the engine, agents and private Wiki in the same core folder. Original code and selected authorized knowledge may use the same private Git repository. Licensed engine files, local configuration and operational state remain excluded by default. A private repository is not permission to disclose personal data or redistribute upstream source. Keep explicit retention, backup and sync rules; exclusion from Git does not make durable state disposable.
+Obsidian, K-Plex, Excalidraw, voice, sync and memory adapters are optional surfaces. Markdown projections do not prove graphical integration; synchronization transfers files, not permissions. Preserve source rights and explicit provider/publication scope. Technical independence of a vendor does not grant a public license or automatically establish legal clearance.

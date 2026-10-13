@@ -1,23 +1,16 @@
-# Onboarding checklist
+# Start with the person's knowledge
 
-This checklist collects decisions. It does not activate integrations.
+This is a selective guide for the agent, not a questionnaire for the human. Start from the person's question and one authorized source. AGENTS discovers the Bibliotecario profile and relevant action skill progressively.
 
-The agent conducts it selectively under the [guided knowledge contract](knowledge-workflow.md). Start with the person's question and one authorized source. Preserve an existing physical organization; use a flat default when unspecified. Do not require every optional integration decision before reading or preparing a proposal, or create folders/maps merely to complete onboarding. Keep missing required writer/approval capabilities explicit.
+1. Locate the actual existing library and its applicable rules. Keep it separate from Core if already separate; no content copying, migration, rewritten instructions or required folder names.
+2. Determine a small authorized reading scope and relevant source. Preserve originals, provenance and authorship. Read/connect does not require metadata completion, calendar, sync, plugins or an engine.
+3. Ask about desired meaning or consequential ambiguity, not architecture. Default visible note language to Spanish, reply in the person's language and preserve original citations/quotes. Clarify rights/privacy/provider transmission only where needed.
+4. For repeated use, optionally prepare one authorized private [personal config](first-cut-tools.md). No auto-create/autoload, copied profile or personal data in shared files. Missing settings grant no permissions.
+5. If retaining knowledge is useful, follow [review/save](../skills/review-save/SKILL.md): exact diff, actual confirmation, current versions and recovery. Select the writer from real library rules: read-only/unknown, explicitly editable plain files or external managed writer. No engine installation is part of onboarding. Core does not ship or authenticate a managed writer.
+6. Re-read actual saved/captured outputs; distinguish proposal from retained knowledge and verified library review state. Explain the smallest missing capability rather than adding another system.
 
-1. **Purpose and boundaries:** what knowledge belongs in the instance, what must stay out, and whether personal memory is needed. Keep personal memory separate from bibliography.
-2. **Single core folder:** use this repository as the private vault. Install the licensed engine into it from authorized local files. Do not migrate an old vault or history implicitly. Choose whether selected Raw/Review/Wiki content will later be versioned in this same private GitHub repository.
-3. **Devices:** list operating systems and which device will be the canonical writer. Mobile devices may read and capture; they do not automatically become engine hosts.
-4. **Synchronization:** select exactly one vault sync provider using [sync guidance](sync.md). Make backups before first sync or migration. Configure exclusions on each device and test an innocuous note round trip.
-5. **Obsidian:** open this core folder as a vault. No community plugin is required. Review any optional plugin's permissions before installation.
-6. **Task application:** select none, an existing task app, or an adapter to implement later. Decide read-only versus explicitly authorized write actions.
-7. **Calendar application:** make a separate choice, including none. Choose a time zone and target calendar in ignored local configuration.
-8. **Host and authority:** select an authenticated human-review channel, a single writer host, a protected audit store, and a recovery owner. Without these, keep all operations read-only/proposal-only.
-9. **Engine:** run the [local installer](local-integration.md), then verify the read-only review CLI. Complete authenticated-host integration before enabling real-content apply; the synthetic test does not authenticate a user.
-10. **Language:** internal instructions remain English; replies follow the user’s language. Optionally ask for a preferred Wiki language. Default to Spanish (`wiki_language: es`) if no preference is supplied; this question is not a blocker. Preserve original source titles, citations, and quotations, and label translations.
-11. **Recovery rehearsal:** verify backup restore, stale approval rejection, conflict handling, and restart/replay behavior on synthetic fixtures.
+Devices, [sync](sync.md), Obsidian, voice, diagrams, calendar/task providers and recovery policy are conditional on the requested action. Review optional tool permissions before separately authorized installations. Preserve existing setups. Sync transfers files, not consent or runtime readiness; pause on conflicts/concurrent edits before writes.
 
-Use [the example configuration](../config/example.json) as an inert record of choices. `null`, `unselected`, and `unconfigured` mean setup is incomplete; they are not permissive defaults. Put actual configuration in local ignored files in this same folder, and credentials in a secret store. Never paste credentials into review packets or commit them.
+## Optional personal continuity
 
-## Optional Daily Focus context
-
-If the user wants [Daily Focus](../Agents/daily-focus.md), choose or reuse a separately authorized personal-memory location for stable Principles and dated current Priorities. The [generic templates](../Agents/templates/principles.md) contain no personal data. Record only user-confirmed criteria and up to three current priorities with confirmation sources and review dates. Keep private records outside Raw/Review/Wiki and outside published reusable files; agree on private backup/sync. Unknown context does not block a limited, clearly labeled answer. This choice does not enable scheduling or task/calendar writes.
+Resume through an existing authorized project note/memory adapter, never a mirror of the entire library. [Daily Focus](../Agents/daily-focus.md) can reuse confirmed principles/priorities in a separately authorized private store; it is on-demand and requires no service. Generic [principles](../Agents/templates/principles.md) and priorities templates are examples, not live personal data. Unknown personal context does not block bounded reading. Keep credentials in the host secret store and never commit private config, recovery bytes or sensitive content.

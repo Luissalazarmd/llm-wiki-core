@@ -28,8 +28,8 @@ __pycache__/
 
 # Review staged files; ignore rules do not prevent secret/data leakage.
 
-# Licensed engine: installed locally INTO this core folder, never auto-published.
-# Original scripts/install_private_engine.py remains tracked.
+# Defensive exclusions for pre-existing third-party managed-library artifacts.
+# No installer is shipped; these patterns prevent accidental publication only.
 /scripts/librarian/
 /scripts/wanderloots_expansions/
 /scripts/wanderloots_release_bridge/
@@ -47,6 +47,6 @@ __pycache__/
 /.wanderloots-llm-wiki/
 
 # Raw/Review/Wiki are deliberately NOT blanket-ignored: the owner may choose
-# to version selected private knowledge in this SAME private repository.
+# to publish separately authorized knowledge; this Core repository is PUBLIC.
 # No content upload is automatic. Review rights, sensitive data and staging.
 # Hidden operational state needs an explicit backup plan; ignore != disposable.

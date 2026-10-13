@@ -1,31 +1,23 @@
-# Implementation milestones
+# Implementation and scope
 
-## M0: private baseline (this delivery)
+## Product now
 
-Original documentation, two role profiles, inert config example, fixed stage-directory placeholders, and acceptance requirements. Validate syntax, internal links, privacy, and clear non-runnable status. This is not engine acceptance.
+One AGENTS entry, one canonical Bibliotecario profile, three portable action skills and small original Python helpers. The same host can perform Bibliotecario and Orquestador functions; neither needs a separate bot/provider. The library remains in place, with its own rules and directories.
 
-## M1: licensed engine mapping
+- Read/connect: relevant sources and justified neighbors, exact citations and explicit uncertainty.
+- Capture: duplicate/version checking, provenance and immutable originals through available permitted host create-only or managed tools. No automatic capture runtime bundled.
+- Review/save: exact revised diff, actual human confirmation, current target/evidence checks, permitted writer, private recovery and exact readback.
+- Mapping/config: bounded observations and optional personal settings, no forced migration/metadata completion.
+- Plain helper: existing derived-note save/conditional restore, not authentication or a transaction engine.
 
-Inspect authorized upstream source and license. Pin revision; document root layout and existing APIs; identify minimal clean reusable components. Resolve durable-state location and recovery policy. Gate: rights and compatibility reviewed, no personal data copied.
+## Engine independence
 
-## M2: isolated synthetic instance
+Vendor installer, private file manifest, vendor-specific review adapter, unavailable vendor test suite and obsolete integration handoffs were retired from the product. The pre-change tree was preserved outside the repository; Git history was not rewritten. Those historical experiments are not prerequisites or pending product milestones. Core's entire current test suite must run without private engine inputs or vendor skips.
 
-Install the reviewed runtime on one canonical host using a verified procedure. Test a disposable copy of the same core layout, installing engine and synthetic Wiki in one folder. Real use keeps that same layout in the core project; no second repository is required. Gate: read-only list/show/packet demonstrably leave state unchanged.
+A managed library's writer is a capability selected from its rules, not an implementation Core must rebuild. Known old marker names remain only protective signals that refuse accidental ordinary editing. This is safety compatibility, not runtime installation or dependency.
 
-## M3: authenticated review and canonical apply
+## Acceptance for this version
 
-Integrate the trusted human-chat host, packet binding, single writer, canonical apply, durable audit, and replay-safe recovery. Gate: all [acceptance cases](acceptance.md) pass, including crash recovery and adversarial content.
+Run [synthetic acceptance](acceptance.md), then separately evaluate host behavior: instruction/skill discovery, capture with actual tools, relevant reading and human correction/confirmation. The host pilot and external reviewer observations are summarized in [current handoff](self-contained-increment.md). Passing helper tests does not certify every host, graphical plugin or managed writer.
 
-## M4: device and sync validation
-
-Choose one provider; verify note round trips, offline capture, stale-base blocking, conflict handling, code installation, and backup restoration. Headless is optional. Gate: no hidden assumption that Sync replicates runtime or durable state.
-
-## M5: optional task/calendar adapters
-
-Choose providers during onboarding. Start read-only; test permissions and explicit write authorization on synthetic or safe test targets. Gate: approved Wiki changes cannot accidentally create external communications, tasks, or events.
-
-## M6: controlled private use
-
-Only after the prior gates, admit authorized real sources under retention/privacy rules. Observe audit and recovery behavior. Additional specialist roles and broad automation are out of v0.1 scope.
-
-Local progress: authorized source/license mapping and an isolated synthetic API integration have been exercised; see [local integration](local-integration.md). The tracked project contains original installer, adapter and test code; licensed engine files are installed locally into that same folder. This is bounded M1/M2 progress, not a complete bootstrap installation, authenticated M3 review bridge, or production activation.
+No planned new approval server, canonical engine, database, scheduling service, universal agent adapter or mandatory setup questionnaire. Add only a demonstrated missing capability as a bounded skill/helper. Rights and publication scope still require independent review; no public license or Git publication is implied.
