@@ -7,6 +7,7 @@ Start every task with the [operational preflight](docs/agent-preflight.md). Veri
 For capture, reading, connections and knowledge development, load the single [Bibliotecario profile](Librarian%20Profile.md) and [guided knowledge contract](docs/knowledge-workflow.md). Guide the human's current question; do not require them to operate metadata or commands. Discover further context progressively, never the whole vault. Original ontology/projection work uses [ontology](docs/ontology.md); canonical mutation still requires the existing review/apply boundary.
 
 Load only the action skill needed, with the host's file reader; no native skill installation is required:
+- Start with an existing library or adapt a small part: [progressive adoption](skills/progressive-adoption/SKILL.md). Not a compulsory setup or bulk migration.
 - Understand/compare/navigate: [read and connect](skills/read-connect/SKILL.md).
 - Retain a supplied source: [capture source](skills/capture-source/SKILL.md).
 - Propose/correct/review/save or recover: [review and save](skills/review-save/SKILL.md).

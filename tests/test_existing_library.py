@@ -44,6 +44,43 @@ class ExistingLibraryTests(unittest.TestCase):
         self.assertEqual(before, {str(p): p.read_bytes() for p in self.root.rglob('*.md')})
         self.assertFalse(data['approval_available'])
 
+    def test_recognized_maturity_is_displayed_as_declaration_not_verified_state(self):
+        import hashlib
+        module = api()
+        for value, spanish, english in (('seed', 'Semilla', 'Seed'),
+                                         ('developing', 'Síntesis', 'Synthesis'),
+                                         ('evergreen', 'Evergreen', 'Evergreen')):
+            raw = f'---\r\nmaturity: {value}\r\nreview: accepted\r\n---\r\nSynthetic.\r\n'.encode()
+            target = self.root / 'Reading/one.md'
+            target.write_bytes(raw)
+            data = module.discover(self.root, ['Reading/one.md'])
+            note = data['notes'][0]
+            self.assertEqual(note['declared_maturity'], value)
+            self.assertEqual(note['maturity'], 'unknown')
+            self.assertEqual(note['review'], 'unverified')
+            self.assertFalse(note['approval_available'])
+            self.assertEqual(note['sha256'], hashlib.sha256(raw).hexdigest())
+            selected = module.focus(data, note['id'])
+            self.assertIn(f'madurez declarada: {spanish} — no verificada', module.markdown(selected))
+            self.assertIn(f'declared maturity: {english} — unverified', module.markdown(selected, 'en'))
+            self.assertEqual(target.read_bytes(), raw)
+
+    def test_foreign_or_invalid_maturity_is_not_interpreted_or_rendered(self):
+        module = api()
+        for front in ('status: growing', 'Maturity: developing', 'maturity: growing',
+                      'maturity: [developing]', 'maturity: null',
+                      'maturity: "<script>injected</script>"', 'maturity: developing\nmaturity: seed'):
+            (self.root / 'Reading/one.md').write_text('---\n' + front + '\n---\nSynthetic.')
+            data = module.discover(self.root, ['Reading/one.md'])
+            note = data['notes'][0]
+            self.assertIsNone(note.get('declared_maturity'))
+            self.assertEqual(note['maturity'], 'unknown')
+            view = module.markdown(data)
+            self.assertIn('; Desconocida;', view)
+            self.assertNotIn('<script>', view)
+            if front.startswith('maturity:') and 'maturity: seed' not in front:
+                self.assertIn('unsupported_maturity', {i['kind'] for i in data['issues']})
+
     def test_discovery_reports_applicable_nested_rules_without_root_rules(self):
         (self.root / 'AGENTS.md').unlink()
         (self.root / 'Reading/AGENTS.md').write_text('Synthetic reading rules')

@@ -9,6 +9,7 @@ All product tests use synthetic local files, Python and PyYAML; no private engin
 - Bounded files/context, safe paths, symlinks/special files and YAML/JSON ambiguity rejected; duplicates reconcile rather than overwrite.
 - Role/maturity/review independent; YAML accepted state cannot authorize a write. Factual strict relations bind source/version/locator; semantic support still needs source reading.
 - Maturity display localizes seed/developing/evergreen to Semilla/Síntesis/Evergreen without changing JSON, source bytes or review authority; foreign unknown stays unknown. Profile and relevant skills discover the idea-emergence contract, including justified maturity/reopening and separate publication permission. Static contract checks do not certify agent reasoning.
+- Existing-mode recognized exact maturity is exposed separately as `declared_maturity` and displayed explicitly as unverified; effective maturity remains unknown and no accepted review is inferred. Missing/custom/invalid maturity stays unknown; invalid values are reported without rendering untrusted text. Tests cover all three labels, both languages, focus, CRLF and unchanged bytes/hashes.
 - Personal config separately loaded: authorized paths and language checked, optional organization/objectives/initiative do not create migrations or background services.
 - New Raw admission preflight is read-only and binds the complete draft, existing explicit MOC/root chain, taxonomy file and policy. Missing MOC/tags/root, cyclic or unresolved hierarchy, wrong roles, unauthorized/symlink paths and undeclared tags fail. Changed dependencies invalidate recheck; saved verification requires exact reviewed bytes. Structural linking does not certify source quality, global uniqueness or host enforcement.
 - Proposal binds base/draft/evidence; changed inputs produce a different packet. Plain writer recomputes displayed diff and rejects even a rehashed misleading packet.
@@ -18,18 +19,23 @@ All product tests use synthetic local files, Python and PyYAML; no private engin
 - Strict zero-note projection fails unless explicitly allowed as intentionally empty; no wider scan. Symlink root/ancestors fail on all knowledge entries. CRLF metadata parses with original hashes/bytes preserved; undeclared strict maturity remains unknown while invalid explicit maturity fails.
 - Stale target/evidence refused without overwrite; changed packet refused. Quiet single-writer saving and readback exercised, previous bytes persisted before replacement.
 - Restore returns exact previous bytes, including CRLF, and refuses to overwrite subsequent edits; injected replacement failure leaves original and recovery bytes intact.
-- AGENTS links three portable skills; valid frontmatter/relative links. Native host registration is not inferred.
+- AGENTS links four portable skills; valid frontmatter/relative links. Native host registration is not inferred.
+- Progressive-adoption fixture uses foreign folder names and mixed source/personal content, explicit per-file source custody and no Raw/Review/Wiki folders. Mapping/check/proposal preserve bytes and paths; a supplied draft updates an existing explanation rather than duplicating it, preserves authorship and other inputs, and is retrieved with its two explicit links. Default read-only, immutable source, out-of-scope and stale-base refusals are exercised. Automated fixture writes are not actual user approvals or semantic classification.
 - Product contains no obsolete vendor installer/adapter/manifest or test suite requiring private inputs. The independently reproducible demo copies only essential helpers into a disposable checkout.
 
 ## Human/host cases — separate evidence
 
 Use [demo](../tests/demo_existing_library.py) for tool-level map/navigation/proposal and the actual host for a small user-guided task. Explain fictional sources and affected files before requesting decisions. Exercise reading → proposal → actual confirmation → save/readback → correction → revised confirmation. Do not manufacture user events to make a test pass.
 
+Show complete new-note content or an exact update diff plus readable resulting content before the decision. A form can reference already presented versions, but titles/hashes/paths alone do not prove prose review. An explicit later review of saved content is a post-save review, not retroactive evidence of a successful original presentation. Preserve notes and use fresh proposals for corrections; static checks of this rule do not prove a host actually followed it.
+
 Capture follows the host's verified retrieval/create-only tools or library writer; Core has no bundled capture runtime. Test duplicate reuse/provenance and source preservation separately when evaluating a particular host. Do not infer working PDF/network capture from synthetic prepared inputs.
 
 The synthetic maturity journey in `tests/test_new_note.py` binds selected seed notes plus original evidence into a supplied Síntesis draft, rejects stale idea dependencies, checks/creates it, shows an exact proposed Evergreen diff, verifies check-only does not promote, saves/readbacks and restores the previous Síntesis while preserving seeds/Raw. Drafts and maturity judgments are authored test fixtures, not automatically inferred or human-approved. For a real host evaluation, separately observe a useful emergent argument, exact source claim checking, justified keep/promote/reopen decisions and actual user confirmation. No such live semantic pilot is claimed by passing helper tests.
 
 Recovery is a separate human permission; automated restore tests do not prove a user requested it. Actual Obsidian/K-Plex rendering, voice, concurrent writers, authenticated managed apply, stronger crash guarantees and host portability need their own explicit scope and verification. They are not baseline private-engine milestones and must not become new infrastructure by default.
+
+For a human-guided adoption pilot, start from rules and a small unfamiliar library sample, explain the correspondence without claiming acceptance, compare source claims with an existing explanation, present one complete bounded adaptation and wait for actual confirmation before any note/config write. Verify saved/reused result, unchanged originals and retrieval; unavailable writers stop at proposal-only. Do not mark adoption complete for the entire library or reuse the earlier synthetic note-review approval for a new pilot.
 
 ## Invariants
 

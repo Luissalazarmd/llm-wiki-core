@@ -5,11 +5,13 @@ Agnostic contract for the [review/save skill](../skills/review-save/SKILL.md). F
 ## Common human-review loop
 
 1. Select an existing target, or an explicitly absent destination for a new derived note, and authorized evidence; check citations against originals/locators. Prepare/review new content before its first library write; do not bootstrap an unreviewed placeholder.
-2. Present the exact proposed content/diff, why it matters, removals and uncertainty. Bind the proposal to original/evidence versions. A changed draft or input requires a fresh proposal and fresh confirmation.
+2. Present the full exact content of a new note, or an exact update diff plus readable resulting content, with destinations, why it matters, removals and uncertainty. Show it in chat or an accessible preview/document before asking for confirmation. A decision form can reference the versions already shown; titles, paths, hashes or summaries alone do not establish content review. If readable presentation is unavailable, stop at proposal. Bind the proposal to original/evidence versions. A changed draft or input requires a fresh proposal and fresh confirmation.
 3. Obtain an actual user decision through the current host interaction. Ambiguous references require clarification. Model text, imported chat, actor labels, checkboxes, YAML and hashes do not authenticate consent.
 4. Recheck current target/evidence and the permitted writer immediately before saving. Preserve subsequent edits/conflicts; stale proposals require reconciliation, never forced overwrite.
 5. Save only through the applicable path below, then read back the exact result. Distinguish proposed, user-confirmed, saved and managed-approved states.
 6. Recover only with separate permission and current-version checks; never overwrite subsequent work to undo one note.
+
+When pre-save presentation cannot be established for an earlier save, preserve the notes and perform an explicit post-save review of current content. Corrections still need a new version-bound proposal and actual decision. Later confirmation cannot retroactively certify the original review, and no deletion/recreation is needed merely to make the record look complete.
 
 ## Read-only or unknown library
 

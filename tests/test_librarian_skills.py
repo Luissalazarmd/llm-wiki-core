@@ -8,8 +8,8 @@ BASE = Path(__file__).resolve().parents[1]
 
 
 class LibrarianSkillTests(unittest.TestCase):
-    def test_three_skills_are_discoverable_and_portable(self):
-        for name in ('read-connect', 'capture-source', 'review-save'):
+    def test_four_skills_are_discoverable_and_portable(self):
+        for name in ('progressive-adoption', 'read-connect', 'capture-source', 'review-save'):
             path = BASE / 'skills' / name / 'SKILL.md'
             self.assertTrue(path.is_file(), f'Missing {name} skill')
             text = path.read_text()
@@ -36,9 +36,40 @@ class LibrarianSkillTests(unittest.TestCase):
         self.assertIn('current and proposed maturity', review)
         self.assertIn('new evidence undermines', review)
 
+    def test_review_requires_readable_exact_content_before_confirmation(self):
+        for relative in ('skills/review-save/SKILL.md', 'docs/review-contract.md'):
+            text = (BASE / relative).read_text()
+            self.assertIn('full exact content', text, relative)
+            self.assertIn('titles, paths, hashes or summaries alone', text, relative)
+            self.assertIn('post-save review', text, relative)
+
     def test_entry_point_discovers_each_skill(self):
-        for name in ('read-connect', 'capture-source', 'review-save'):
+        for name in ('progressive-adoption', 'read-connect', 'capture-source', 'review-save'):
             self.assertIn(f'skills/{name}/SKILL.md', (BASE / 'AGENTS.md').read_text())
+
+    def test_adoption_identifies_starting_material_before_requesting_a_sample(self):
+        text = (BASE / 'skills/progressive-adoption/SKILL.md').read_text()
+        for rule in ('## Identify the starting point', 'existing wiki', 'collected articles',
+                     'authored articles', 'starting from scratch', 'ask one short question',
+                     'do not search the device', 'unknown is not absent',
+                     'no automatic folder creation', 'where they are'):
+            self.assertIn(rule, text, rule)
+        self.assertLess(text.index('## Identify the starting point'), text.index('1. **Observe a sample.**'))
+        for relative in ('docs/onboarding.md', 'README.md'):
+            self.assertIn('starting point', (BASE / relative).read_text(), relative)
+
+    def test_adoption_is_a_bounded_action_not_a_migration_or_router(self):
+        path = BASE / 'skills/progressive-adoption/SKILL.md'
+        self.assertTrue(path.is_file(), 'Progressive adoption procedure is missing')
+        text = path.read_text()
+        for rule in ('small authorized sample', 'external sources', 'personal notes',
+                     'existing syntheses', 'author drafts', 'mixed folders',
+                     'first useful case', 'mapping is not acceptance', 'do not move',
+                     'actual confirmation', 'proposal-only', 'bytes and paths',
+                     'no migration runtime', 'no whole-library completion claim'):
+            self.assertIn(rule, text, rule)
+        for relative in ('Librarian Profile.md', 'docs/onboarding.md', 'README.md'):
+            self.assertIn('progressive-adoption/SKILL.md', (BASE / relative).read_text(), relative)
 
 
 if __name__ == '__main__':

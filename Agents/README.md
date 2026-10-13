@@ -10,7 +10,7 @@ The [guided knowledge contract](../docs/knowledge-workflow.md) makes Bibliotecar
 
 The essential loop works on an existing library without a private engine: follow its rules, select a small scope, read/connect/navigate and prepare proposals. Optional coordination, personal-memory setup and authenticated application are not prerequisites. Library data does not belong in the Core checkout by default. Preparing a content-bound packet is not issuing a canonical engine review packet or approval.
 
-AGENTS discovers portable [read/connect](../skills/read-connect/SKILL.md), [capture](../skills/capture-source/SKILL.md) and [review/save](../skills/review-save/SKILL.md) procedures progressively. They use the existing host, not separate bots or automatically registered native plugins. Saving depends on actual confirmation and the library's writer policy.
+AGENTS discovers portable [progressive adoption](../skills/progressive-adoption/SKILL.md), [read/connect](../skills/read-connect/SKILL.md), [capture](../skills/capture-source/SKILL.md) and [review/save](../skills/review-save/SKILL.md) procedures selectively. Adoption starts from a sample and one useful reviewed adaptation; it is not an obligatory stage before reading. They use the existing host, not separate bots or automatically registered native plugins. Saving depends on actual confirmation and the library's writer policy.
 
 ## Orquestador
 

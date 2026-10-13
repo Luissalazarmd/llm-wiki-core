@@ -2,9 +2,10 @@
 
 ## Product now
 
-One AGENTS entry, one canonical Bibliotecario profile, three portable action skills and small original Python helpers. The same host can perform Bibliotecario and Orquestador functions; neither needs a separate bot/provider. The library remains in place, with its own rules and directories.
+One AGENTS entry, one canonical Bibliotecario profile, four portable action skills and small original Python helpers. The same host can perform Bibliotecario and Orquestador functions; neither needs a separate bot/provider. The library remains in place, with its own rules and directories.
 
 - Read/connect: relevant sources and justified neighbors, exact citations and explicit uncertainty.
+- Progressive adoption: representative authorized sample, explicit logical correspondence, source/personal/synthesis/draft distinctions and one useful reviewed adaptation in existing locations. No mandatory setup, all-to-Raw import, bulk moves or migration runtime.
 - Capture: duplicate/version checking, provenance and immutable originals through available permitted host create-only or managed tools. No automatic capture runtime bundled.
 - Raw admission: mandatory existing MOC/root chain and taxonomy tags for new captures, with a small read-only checker and unchanged-dependency/saved-byte verification. Reuse existing maps and preserve foreign schema; no background orphan cleanup or blanket migration.
 - Review/save: exact revised diff, actual human confirmation, current target/evidence checks, permitted writer, private recovery and exact readback.

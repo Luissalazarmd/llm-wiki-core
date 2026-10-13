@@ -14,7 +14,7 @@ The [ontology](ontology.md) separates note role, maturity and declared review. A
 
 ## Bibliotecario and agent host
 
-AGENTS → single profile → relevant action skill → permitted host/tools. Read/connect, capture and review/save are procedures of the existing agent, not separate bots. Orquestador coordination can be another function of that same host. The host supplies reasoning, file access and actual human interaction. Core supplies small original helpers, not a vendor engine or model runtime.
+AGENTS → single profile → relevant action skill → permitted host/tools. Progressive adoption, read/connect, capture and review/save are procedures of the existing agent, not separate bots. Adoption maps a small existing selection to logical responsibilities and adapts one useful reviewed case in place; it adds no migration runtime, automatic classification or duplicate registry. Orquestador coordination can be another function of that same host. The host supplies reasoning, file access and actual human interaction. Core supplies small original helpers, not a vendor engine or model runtime.
 
 Current task → bounded discovery → selected originals/neighbors → explained relationships → exact proposal → human correction/confirmation → permitted saving → target verification/recovery. Ordinary wikilinks are navigation, not scientific evidence. Check every factual claim against exact sources/locators. Initiative stays within current scope; no background backlog ingestion.
 

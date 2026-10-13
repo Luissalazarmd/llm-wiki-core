@@ -1,6 +1,6 @@
 # Runtime: existing agent, small tools
 
-Core runs through the person's existing agent host. The Bibliotecario is a role with three progressively loaded skills, not an executable bot. Core supplies no model provider, vendor engine, installer, approval server or database. Python and pinned PyYAML are needed only for the supplied helpers; use an authorized environment, never install dependencies automatically.
+Core runs through the person's existing agent host. The Bibliotecario is a role with four selectively loaded skills, not an executable bot. Progressive adoption reuses current mapping/proposal/writer tools for a small existing-library case; it adds no migration runtime. Core supplies no model provider, vendor engine, installer, approval server or database. Python and pinned PyYAML are needed only for the supplied helpers; use an authorized environment, never install dependencies automatically.
 
 ## Available surfaces
 

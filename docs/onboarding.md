@@ -2,6 +2,10 @@
 
 This is a selective guide for the agent, not a questionnaire for the human. Start from the person's question and one authorized source. AGENTS discovers the Bibliotecario profile and relevant action skill progressively.
 
+Identify the starting point first from provided context and authorized locations: existing wiki/notes, collected reading, authored articles/drafts, starting from scratch, or a mixture. If unknown, ask one brief question about what the person already has and where it is or which item to start with. Do not search the device/accounts for a library or assume missing evidence means none exists. Reuse known context rather than repeat questions. With articles only, reading can begin before a wiki exists; with authored work, preserve manuscripts as authorship, not automatic Raw. With nothing yet, start from a question/source and propose only the minimal separately authorized setup needed for saving.
+
+When the person wants help adopting Core, follow [progressive adoption](../skills/progressive-adoption/SKILL.md): observe a small sample, distinguish external originals, personal notes, existing syntheses and drafts, explain a minimal logical correspondence and adapt one useful case through actual review/save. Reuse existing names and paths; no whole-library normalization or all-to-Raw import. Mixed folders require per-file selections. Mapping a prior explanation to knowledge does not certify previous acceptance. Existing read-only work can begin without adopting anything.
+
 1. Locate the actual existing library and its applicable rules. Keep it separate from Core if already separate; no content copying, migration, rewritten instructions or required folder names.
 2. Determine a small authorized reading scope and relevant source. Preserve originals, provenance and authorship. Read/connect does not require metadata completion, calendar, sync, plugins or an engine.
 3. Ask about desired meaning or consequential ambiguity, not architecture. Default visible note language to Spanish, reply in the person's language and preserve original citations/quotes. Clarify rights/privacy/provider transmission only where needed.

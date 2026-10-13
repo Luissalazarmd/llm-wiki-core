@@ -255,9 +255,15 @@ def discover(root: Path, scopes: list[str], max_notes: int = 200,
             title = path.stem
             issues.append({'path': relative, 'kind': 'unsupported_title'})
         note_id = 'path:' + relative
+        declared_maturity = properties.get('maturity')
+        if not isinstance(declared_maturity, str) or declared_maturity not in ONTOLOGY['maturity']:
+            if 'maturity' in properties:
+                issues.append({'path': relative, 'kind': 'unsupported_maturity'})
+            declared_maturity = None
         notes.append({'id': note_id, 'path': relative, 'title': title,
                       'identity_scope': 'path_locator_not_persistent',
                       'role': 'unknown', 'maturity': 'unknown', 'review': 'unverified',
+                      'declared_maturity': declared_maturity,
                       'sha256': hashlib.sha256(raw).hexdigest(), 'approval_available': False})
         bodies[note_id] = text
     by_path = {n['path'][:-3]: n['id'] for n in notes}
@@ -398,6 +404,11 @@ def markdown(data: dict, language: str = 'es') -> str:
                         'unknown': 'Unknown'})
     for note in data['notes']:
         maturity = maturity_labels[note['maturity']]
+        declared_maturity = note.get('declared_maturity')
+        if data.get('mode') == 'existing_library_read_only' and declared_maturity in ('seed', 'developing', 'evergreen'):
+            label = maturity_labels[declared_maturity]
+            maturity = (f'madurez declarada: {label} — no verificada' if language == 'es' else
+                        f'declared maturity: {label} — unverified')
         lines.append(f'- [[{note["path"][:-3]}]] — {note["role"]}; {maturity}; {note["review"]}')
     lines.extend(['', '## Conexiones declaradas' if language == 'es' else '## Declared connections', ''])
     for edge in data['edges']:
