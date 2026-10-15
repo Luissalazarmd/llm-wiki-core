@@ -1,41 +1,58 @@
 # llm-wiki-core
 
-### A librarian workflow for your agent and your Markdown library
+**Read with purpose. Connect ideas. Keep what matters.**
 
-Read selected sources, develop connected ideas, review exact changes, and retain useful knowledge. Your agent does the reasoning. You decide what stays. Your files remain in your library.
+A librarian workflow for your agent and your Markdown library. Start with a question, read the relevant material, and develop explanations you can return to. Your agent handles the permitted technical steps. You decide what stays.
 
-**v0.1 · Public preview · Markdown · Agent-guided · 138 passing tests**
+**v0.1 public preview** · Engine-agnostic · Markdown · Human-reviewed
 
-[Start](#start-with-your-agent) · [Workflow](#how-it-works) · [Tools](#small-tools-clear-boundaries) · [Verification](#what-has-been-verified) · [Limits](#limits-and-permissions)
+[Start here](#start-with-your-agent) · [The workflow](#how-it-works) · [Obsidian preview](#an-optional-home-for-obsidian) · [Evidence](#what-has-been-verified) · [Documentation](#documentation)
 
-> Core is a set of portable agent procedures and small Python helpers. It is not a hosted app, autonomous bot, model runtime or replacement for your library's rules. This is a public preview, not a tagged release or certification for unattended use.
-
-## What you get
-
-| Capability | What Core provides |
-|---|---|
-| Adopt gradually | Start from a small existing sample, map responsibilities without moving files and adapt one useful reviewed case. |
-| Read and navigate | Explicitly scoped discovery, selected notes and bounded neighbors. Existing libraries need no migration or required metadata. |
-| Capture with context | A procedure and read-only checker for new sources linked to an existing MOC, a root index and declared taxonomy tags. The host writes the capture. |
-| Develop ideas | A librarian procedure for **Semilla → Síntesis → Evergreen**, with source lineage, tensions and reasons for maturity decisions. |
-| Propose before writing | Complete drafts, exact diffs and evidence hashes for existing notes or new derived notes through `--create`. |
-| Save and recover | An optional plain-file helper with version checks, create-only publication, previous-byte recovery for updates and exact readback. |
-
-The [Bibliotecario](Librarian%20Profile.md) guides this work through four skills: [progressive adoption](skills/progressive-adoption/SKILL.md), [read/contrast/connect](skills/read-connect/SKILL.md), [capture/classify](skills/capture-source/SKILL.md) and [propose/review/retain](skills/review-save/SKILL.md). They run on a capable agent host with permitted file tools and a real channel for human decisions. They are not separate bots or automatically registered plugins.
+---
 
 ## Start with your agent
 
-Give your agent the location of this checkout and your library, then ask:
+You need a capable agent that can read authorized files and receive your decisions. Core supplies portable instructions and optional Python helpers; the host supplies reasoning and tools.
 
-> Read llm-wiki-core's AGENTS.md. My library is at [library path]; follow its existing rules. Help me understand [source or question], selecting only relevant notes. Do not move or modify my library yet. Show me any proposed note in full before asking to save it.
+### 1. Open this repository in your agent
 
-If you do not yet have a library, give it an article or a question instead. The Bibliotecario identifies your starting point from what you have shared and asks briefly when needed: existing wiki/notes, collected reading, articles you wrote, or a fresh start. It does not search your device for private material or require a wiki before helping you read. Authored manuscripts stay separate from external evidence; initial folders and capture classification are proposed only when needed and with permission.
+Point it to [AGENTS.md](AGENTS.md), the single entry point. Your agent follows the [Bibliotecario profile](Librarian%20Profile.md) and loads only the skill needed for your task. No native skill installation is required.
 
-[AGENTS.md](AGENTS.md) is the single entry point. It leads to the profile, the relevant skill and only the technical contracts needed for the task. If your agent cannot access files or receive a real decision, it must state that limitation rather than pretend the workflow is complete.
+### 2. Choose one starting point
 
-Keep an existing library where it is. Core preserves its organization, schemas and custody rules. The optional `Raw/`, `Review/` and `Wiki/` placeholders are a possible new-library layout, not a migration requirement. Reading does not require sync, a plugin, a calendar, a new engine or a private configuration file.
+An existing library, a supplied article, an authored draft, or just a question. Keep your material where it is. Reading can begin without Core metadata, new folders, private configuration, Obsidian or plugins.
 
-To adopt Core, ask: “Help me use this library with Core. Start with this question and a small sample; explain what can stay as it is and propose one useful adaptation for my review.” [Progressive adoption](skills/progressive-adoption/SKILL.md) distinguishes external sources, personal notes, prior syntheses and author drafts. It does not send everything to Raw, consider old syntheses automatically approved or rewrite a whole vault. The first useful case may update an existing explanation rather than create a duplicate. Reading/reuse can continue when a proposed adaptation cannot yet be saved.
+### 3. Paste this prompt
+
+```text
+Use llm-wiki-core from [path to this checkout].
+Read its AGENTS.md and follow my library's existing rules.
+
+My starting point: [library path, supplied article, draft, or question].
+Help me understand: [one question].
+
+Start read-only. Select only the relevant authorized material.
+Preserve my organization, originals and authorship. Reuse an existing
+explanation before proposing a new note.
+
+Before asking to save anything, show me the full proposed content,
+or the exact update diff and readable result, with sources and limits.
+```
+
+A useful first session gives you an answer grounded in selected material, clear uncertainty, and a proposal **only when something is worth retaining**. Reading or reusing an existing explanation is a complete outcome too.
+
+You bring the question and decisions. You do not need to operate YAML, hashes or commands. If a tool or permission is missing, the agent explains the limit and continues the independent reading it can do.
+
+## What you can ask
+
+| Your starting point | A useful request |
+|---|---|
+| An article to understand | “Explain its central claim, supporting evidence and limitations.” |
+| Notes you already keep | “Compare this source with my existing explanation. What actually changes?” |
+| A promising connection | “Help me develop this idea and show where the sources agree or conflict.” |
+| Something worth keeping | “Show me the exact proposed update before we save it.” |
+
+Adopt a library through [one small, reviewed case](skills/progressive-adoption/SKILL.md). Existing explanations remain yours; authored drafts stay authored work. Core does not require a bulk import or a replacement vault.
 
 ## How it works
 
@@ -50,110 +67,128 @@ flowchart LR
     W --> V[Readback and recovery record]
 ```
 
-**Raw → Review → Wiki** describes custody: original inputs, reviewable elaboration and maintained knowledge. Original sources remain original; they do not turn into synthesized prose.
+The same agent can guide the whole conversation. **Bibliotecario** handles reading, connections and proposals; **Orquestador** keeps scope and handoffs clear. These are [responsibilities](Agents/README.md), not a requirement to run two bots.
 
-**Semilla → Síntesis → Evergreen** describes idea development:
+Your library keeps its existing organization. **Raw, Review and Wiki** name responsibilities: preserve originals, review proposed changes, and maintain useful knowledge. They need not be new folders, and an original source stays original as an explanation develops.
 
-| Maturity | Meaning |
+<details>
+<summary><strong>How an idea develops: Semilla → Síntesis → Evergreen</strong></summary>
+
+| Stage | What it means |
 |---|---|
-| Semilla (`seed`) | A bounded observation, question or hypothesis with context and uncertainty. |
-| Síntesis (`developing`) | An explanation connecting selected ideas and sources, with an explicit argument and unresolved gaps. |
-| Evergreen (`evergreen`) | A reusable explanation with checked central claims, examined counterevidence and clear scope. It remains open to correction. |
+| **Semilla** — seed | A bounded question, observation or hypothesis with context and uncertainty. |
+| **Síntesis** — developing | An explanation connecting ideas and evidence, with an argument and unresolved gaps. |
+| **Evergreen** | A reusable explanation with checked central claims, examined counterevidence and clear limits. Still open to correction. |
 
-A MOC (map of content) organizes notes; it does not mature them. Link counts, age and folder placement do not promote an idea. Review and maturity are separate: a person can retain a Semilla without making it Evergreen. Writing an article and publishing it require separate decisions.
+Reuse the same note when the idea is continuous. A map organizes a reading route; it does not mature an idea. Link counts, age and folder placement do not promote it. Review is separate from maturity: you can retain a seed without calling it Evergreen.
 
-New captures must follow **source → existing MOC → valid ancestor chain → declared root**, with tags from the library's taxonomy. Missing classification stops at a draft, without inventing maps or rewriting earlier sources. See [Raw admission](docs/raw-admission.md).
+See the [knowledge workflow](docs/knowledge-workflow.md#idea-emergence). Writing an article and publishing it remain separate decisions.
 
-For new derived notes, review happens before the first write. The person sees the full content, destination, evidence and limitations. A changed draft requires renewed confirmation. A successful check or a hash is not consent. See [review and writer selection](docs/review-contract.md).
+</details>
 
-## Small tools, clear boundaries
+## An optional Home for Obsidian
 
-| Tool | Reads / prepares | Writes |
+If you use Obsidian, the [synthetic workbench](examples/obsidian/README.md) shows three complementary surfaces:
+
+| Surface | What it helps you do |
+|---|---|
+| **Home / Bases** | Orient yourself: inventory, complete eligible proposals and a labeled sample of recent edits. |
+| **K-Plex** | Control a selected reading route, with typed relationships explained in the accompanying text. |
+| **Canvas** | Understand responsibilities, custody and the review boundary. |
+
+![Synthetic Obsidian Home with collection counts, proposals for review and recent edits.](docs/assets/obsidian-home.png)
+
+*Fictional content, not a personal library. Layout observed on 2026-10-14; Spanish sample notes and English host UI. This image illustrates the optional interface, not current graphical certification.*
+
+The workbench prepares a new disposable directory outside Core. It does not deploy to a personal library or install plugins. Ordinary Markdown remains available without this interface. Opening an original in K-Plex returns its ordinary neighborhood; the projected selection does not install a global semantic graph.
+
+Read the [dated validation record](examples/obsidian/VALIDATION.md) before adapting it.
+
+## What has been verified
+
+At the [published Home/navigation v2 checkpoint](https://github.com/Luissalazarmd/llm-wiki-core/commit/46a3c9cea57899c55811194f706c4dd958dd11c5): **138 tests passed**, with zero failures, errors or skips. An independent read-only audit separately ran those 138 tests and approved that exact cut for commit and push.
+
+| Evidence | Scope |
+|---|---|
+| **Automated suite** | Synthetic discovery, provenance/version binding, proposal checks, permitted plain-file saves/recovery, fixture identity and projection. |
+| **Existing-library journey** | Scoped reading and reuse without migration; original bytes and paths preserved. |
+| **Optional native interface** | Dated author observations of Home/Canvas, review labels and earlier refresh/layout/K-Plex behavior. See [what was and was not reproduced](examples/obsidian/VALIDATION.md). |
+
+These checks establish structural behavior. They do not establish scientific validity, real human knowledge acceptance, personal deployment or universal host compatibility. Historical pilots and their limits remain in the [verification history](docs/self-contained-increment.md); later review does not retroactively prove an earlier save's consent.
+
+## For builders and maintainers
+
+You can use the agent procedures without running the helpers. Expand this section when you need command-line detail.
+
+<details>
+<summary><strong>Tools, examples and reproducible checks</strong></summary>
+
+### Small tools, clear boundaries
+
+| Tool | Purpose | Writes to the library? |
 |---|---|---|
-| [`knowledge.py`](scripts/knowledge.py) | Scoped discovery, optional strict ontology, navigation and bound proposals | Nothing |
-| [`library.py`](scripts/library.py) | Private settings, scoped inventory, reading and proposals | Nothing |
-| [`capture_check.py`](scripts/capture_check.py) | Capture structure, dependency recheck and saved-byte verification | Nothing |
-| [`note_write.py`](scripts/note_write.py) | Proposal, target and evidence checks | One permitted derived note; conditional update recovery |
+| [`knowledge.py`](scripts/knowledge.py) | Scoped discovery, navigation and version-bound proposals | No |
+| [`library.py`](scripts/library.py) | Private settings, scoped inventory and proposals | No |
+| [`capture_check.py`](scripts/capture_check.py) | New-source structure, dependency and saved-byte checks | No |
+| [`note_write.py`](scripts/note_write.py) | Check/save a permitted derived note; recover previous update bytes | Only through the allowed plain-file workflow |
 
-Existing mode starts from explicitly selected files or folders. Unknown metadata stays unknown. Recognized exact maturity declarations are displayed separately, for example **“madurez declarada: Síntesis — no verificada”**. This reports the file's declaration, not a judgment or approval.
+The optional helpers were last checked with **Python 3.14.7** and **PyYAML 6.0.3**, pinned in [requirements.txt](requirements.txt). Missing dependencies require an explicitly authorized isolated environment; no global install is part of onboarding.
 
-Only explicit links between selected notes become navigation edges. Basename links remain unresolved candidates. Links outside the selection are reported as unresolved; the tool does not expand the scope to fetch them. Wikilinks never establish scientific support on their own.
-
-Strict mode is for a known Core-schema Raw/Wiki layout, not a whole-library inventory. Empty strict projections fail by default; `--allow-empty-strict` is only an explicit opt-in for intentionally empty stages. It says nothing about other folders.
-
-For repeated use, [personal settings](docs/first-cut-tools.md) can declare the library root, authorized paths, language and capture policy. Keep this configuration private. Writing defaults to read-only; selecting `plain_files` does not itself grant permission.
-
-### Read an existing library
-
-The optional helpers use Python and the pinned PyYAML dependency in [requirements.txt](requirements.txt). The tested environment is Python 3.11 with PyYAML 6.0.3. If dependencies are missing, use an explicitly authorized isolated environment, not a global install on a managed Python host. The agent procedures can also use an existing host's file reader without running these helpers.
+### Read selected existing notes
 
 ```sh
 python3 scripts/knowledge.py --root /path/to/library --mode existing --scope Reading
 python3 scripts/knowledge.py --root /path/to/library --mode existing --scope Reading --focus 'path:Reading/one.md' --format markdown
 ```
 
-### Propose a new derived note
+Existing mode preserves unknown metadata. It resolves explicit paths only among selected notes; basename-only and out-of-scope links remain unresolved. Strict mode is for known Core-schema Raw/Wiki metadata, not arbitrary libraries. See [ontology and projection](docs/ontology.md).
+
+### Prepare a new-note proposal
 
 ```sh
 python3 scripts/knowledge.py --root /path/to/library --proposal-target Notes/new.md --create --evidence Sources/one.md < /path/to/draft.md
 ```
 
-The parent directory must already exist and the destination must be absent. The command returns a proposal on stdout and creates no library file. Host permissions and library policy must still be checked. A proposal may be prepared for a target that the writer later refuses; it is not permission to save. Follow [plain saving](docs/plain-saving.md) for the separately confirmed check/save operation.
+The destination must be absent and its parent must exist. This returns a proposal on stdout and creates no library file. Checks bind content and versions; they do not grant permission or authenticate consent. Follow [review and writer selection](docs/review-contract.md) before any save.
 
-## What has been verified
+New source capture follows the library's [existing map/root hierarchy and taxonomy](docs/raw-admission.md). Missing classification leaves a draft; the agent does not invent maps or tags to pass a checker. Existing originals need no retroactive cleanup. Optional [personal settings](docs/first-cut-tools.md) stay private and default to read-only.
 
-| Evidence | Observed result | What it does not certify |
-|---|---|---|
-| Automated suite | **138 tests passed**, zero failures or skips; synthetic helpers and static contracts, including the optional Obsidian workbench and single-journey evolution | Agent judgment, human authentication or every host's behavior |
-| Independent review | Six earlier inconsistencies reproduced as fixed; 104 tests passed on the preceding published checkpoint | Later follow-up/adoption tests or universal portability |
-| External synthetic pilot | Fixture capture, proposals, a reported user decision, plain creation and readback | Complete presentation of prose before the original save |
-| Follow-up in this host | Readable presentation, actual test-only approval, corrected Síntesis save/readback; five selected notes and six explicit links | Real research validation, Evergreen, managed apply or graphical integration |
-| Progressive adoption | Fixture mapping, per-file source custody in a mixed folder, existing-explanation update/readback and preservation/refusal checks | A completed human-guided adoption pilot; its fresh proposal is still awaiting review |
-
-The follow-up preserved the fixture sources and seeds. Its later review does not retroactively prove the external pilot's original review. All pilot sources were invented test material, not scientific evidence. See [acceptance criteria](docs/acceptance.md) and [verification history](docs/self-contained-increment.md) for scope and exclusions.
-
-Reproduce the technical checks in an authorized environment:
+### Run the checks
 
 ```sh
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v
 PYTHONDONTWRITEBYTECODE=1 python3 tests/demo_existing_library.py --output-parent /path/to/authorized/scratch
 ```
 
-The demo verifies scoped mapping/navigation/proposal with unchanged input bytes and mtimes. It is not the human-guided save pilot. No test requires a particular library engine, accounts or private source files.
+The demo uses fictional files and verifies unchanged inputs. It is not an actual human-guided save or scientific evaluation. Full [acceptance criteria](docs/acceptance.md) distinguish automated checks from host/human cases.
 
-### Optional visual entry for Obsidian
-
-The [synthetic workbench](examples/obsidian/README.md) provides an automatic native Bases Home, optional K-Plex navigation and a separate architecture Canvas. Its new-only materializer prepares a disposable example outside Core; it does not deploy a personal library or install plugins. Read the [observed validation and limits](examples/obsidian/VALIDATION.md) before adapting it.
+</details>
 
 ## Limits and permissions
 
-- The host supplies reasoning, retrieval, actual decisions and file-access enforcement. Core is not a sandbox; unrestricted host tools can bypass its helpers.
-- Capture admission checks organization and bytes, not global Reference uniqueness, scientific validity or every library template. The agent must check identity/reuse within its authorized scope.
-- Plain writing assumes a quiet, cooperative single writer. There is no multiprocess locking, atomic compare-and-swap, signed approval or multi-file transaction. Pause conflicting editor/sync activity.
-- The plain helper protects configured sources, known instruction filenames and known managed markers. Other policy documents require actual library rules and host restrictions. Missing markers never grant permission.
-- Update restore protects later edits. Creation has no previous file and cannot be undone by restore; reviewed deletion is not implemented.
-- A managed library keeps its own writer and authentication/recovery requirements. Core does not install or certify that integration; an unavailable writer means proposal-only.
-- The 2026-10-14 synthetic closure observed normal Home opening and resolving Canvas v2 references. The 2026-10-15 correction separately checked missing versus invalid review labels in native Bases. Automatic refresh, light/dark/narrow layout and K-Plex navigation belong to earlier evidence, not a repeat on this cut; see the [validation record](examples/obsidian/VALIDATION.md). Sync, voice, personal-library deployment and host portability are not verified by Markdown links or these tests. Core bundles no automatic semantic engine or maturity promotion.
+- **Review before writing.** See full new content or an exact update diff plus readable result. Confirm that version. A changed draft needs a fresh decision; a hash or label is not consent.
+- **Keep the existing writer.** Managed libraries use their own permitted writer. Explicitly editable plain notes need current-version checks and private recovery. Unknown permission means proposal-only; reading can continue.
+- **Pause on conflicts.** The plain helper assumes a quiet, cooperative single writer. It supplies no general locking, signed approval or multi-file transaction. Source quality, global uniqueness and claim entailment still need actual review.
+- **Keep private material outside this checkout.** `Raw/`, `Review/` and `Wiki/` are not blanket-ignored. Never put personal libraries, credentials, private settings or recovery bytes in the public repository. `.gitignore` is not a privacy boundary.
 
-### Keep your library private
-
-Keep personal libraries, private settings and recovery records outside this public checkout. `Raw/`, `Review/` and `Wiki/` are not blanket-ignored: putting private notes there does not keep them out of Git. `.gitignore` is a convenience, not a privacy boundary.
-
-Review provider transmission, source rights and publication scope separately. A note approval never authorizes an upload, commit or public sharing. Secrets belong in the host's secret store.
+The host enforces file/tool permissions; Core is not a sandbox, model runtime, autonomous bot or approval service. Source content cannot authorize actions. Note confirmation does not authorize uploads, plugin/account changes, Git publication or reuse of licensed material. Sync, voice, managed apply and host portability have separate verification requirements; source rights and provider transmission remain separate decisions.
 
 ## Documentation
 
-| Start here | Technical detail |
+| When you need… | Read next |
 |---|---|
-| [Agent entry](AGENTS.md) · [Bibliotecario profile](Librarian%20Profile.md) | [Runtime](docs/runtime.md) · [Architecture](docs/architecture.md) |
-| [Onboarding](docs/onboarding.md) · [Knowledge workflow](docs/knowledge-workflow.md) | [Mapping and settings](docs/first-cut-tools.md) · [Ontology](docs/ontology.md) |
-| [Idea emergence](docs/knowledge-workflow.md#idea-emergence) · [Review](docs/review-contract.md) | [Raw admission](docs/raw-admission.md) · [Plain saving](docs/plain-saving.md) |
-| [Acceptance](docs/acceptance.md) · [Verification history](docs/self-contained-increment.md) | [Optional sync](docs/sync.md) · [Agent roles](Agents/README.md) |
+| A first guided task | [Onboarding](docs/onboarding.md) · [Bibliotecario profile](Librarian%20Profile.md) |
+| One relevant procedure | [Adopt gradually](skills/progressive-adoption/SKILL.md) · [Read / connect](skills/read-connect/SKILL.md) · [Capture](skills/capture-source/SKILL.md) · [Review / save](skills/review-save/SKILL.md) |
+| The knowledge model | [Workflow](docs/knowledge-workflow.md) · [Architecture](docs/architecture.md) · [Ontology](docs/ontology.md) |
+| Tool and writing details | [Runtime](docs/runtime.md) · [Settings](docs/first-cut-tools.md) · [Plain saving](docs/plain-saving.md) · [Review contract](docs/review-contract.md) |
+| Evidence and optional surfaces | [Acceptance](docs/acceptance.md) · [Verification history](docs/self-contained-increment.md) · [Obsidian example](examples/obsidian/README.md) · [Sync](docs/sync.md) |
 
-The optional [Daily Focus](Agents/daily-focus.md) procedure lets the same host act as Orquestador on request. It installs no scheduler or connector and keeps personal planning separate from bibliography.
+[Daily Focus](Agents/daily-focus.md) is an optional, on-demand planning procedure for the same host. Personal planning stays separate from bibliography; no scheduler is installed.
 
-Internal agent contracts are English. Replies follow the user's language; new Wiki prose defaults to Spanish. Original titles, citations, identifiers and quotations retain their wording. Existing library conventions prevail.
+### Language
 
-## License status
+Agent contracts are English. Replies follow your language; new Wiki prose defaults to Spanish unless another preference is configured. Original source titles, citations, identifiers and quotations keep their wording. Existing library conventions prevail.
 
-This repository is publicly visible, but no project license has been granted in a `LICENSE` file. Do not treat visibility as permission to reuse or redistribute the project. Licensing is an explicit owner decision, separate from this technical preview; third-party material retains its own terms.
+### License status
+
+Public preview, not a tagged release or unattended-use certification. This repository has **no project license granted in a `LICENSE` file**. Public visibility is not permission to reuse or redistribute it. Licensing remains an explicit owner decision; third-party material retains its own terms.
