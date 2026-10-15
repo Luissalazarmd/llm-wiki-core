@@ -1,0 +1,142 @@
+{
+  "noteTypeField": "role",
+  "nameFields": "title, Title, aliases",
+  "wrapNodeLabels": true,
+  "showNeighborCount": false,
+  "baseNodeStyle": {
+    "prefix": "",
+    "backgroundColor": "#00000066",
+    "fillStyle": "solid",
+    "textColor": "#ffffffff",
+    "borderColor": "#00000000",
+    "fontSize": 20,
+    "fontFamily": 3,
+    "maxLabelLength": 70,
+    "maxWidth": 350,
+    "roughness": 0,
+    "strokeShaprness": "round",
+    "strokeWidth": 1,
+    "strokeStyle": "solid",
+    "padding": 10,
+    "gateRadius": 5,
+    "gateOffset": 15,
+    "gateStrokeColor": "#ffffffff",
+    "gateBackgroundColor": "#ffffffff",
+    "gateFillStyle": "solid"
+  },
+  "showURLNodes": false,
+  "showAttachments": false,
+  "showVirtualNodes": false,
+  "showFolderNodes": false,
+  "showTagNodes": false,
+  "showContentPane": true,
+  "sidecarOpen": true,
+  "sidecarMarkdownMode": "preview",
+  "centralNodeMarkdownMode": "preview",
+  "followActiveFile": true,
+  "allowOntologySuggester": false,
+  "confirmFileDelete": true,
+  "inferAllLinksAsFriends": false,
+  "backgroundColor": "#1b2028ff",
+  "graphDepth": 1,
+  "maxItemCount": 50,
+  "hierarchy": {
+    "exclusions": [
+      "relations",
+      "Reference",
+      "origin",
+      "author",
+      "created",
+      "updated"
+    ],
+    "parents": [
+      "Parent",
+      "MOC"
+    ],
+    "children": [
+      "Children"
+    ],
+    "leftFriends": [
+      "Related",
+      "Evidence",
+      "EvidenceFor"
+    ],
+    "rightFriends": [
+      "Contrasts"
+    ],
+    "previous": ["BuildsOn"],
+    "next": ["DevelopedBy"],
+    "hidden": [
+      "hidden"
+    ]
+  },
+  "noteTypeStyles": {
+    "source": {
+      "prefix": "Fuente · ",
+      "borderColor": "#65b4e8ff",
+      "strokeWidth": 2
+    },
+    "concept": {
+      "prefix": "Idea · ",
+      "borderColor": "#9dc8a2ff",
+      "strokeWidth": 2
+    },
+    "entity": {
+      "prefix": "Entidad · ",
+      "borderColor": "#b9a6e3ff",
+      "strokeWidth": 2
+    },
+    "map": {
+      "prefix": "Mapa/índice · ",
+      "borderColor": "#dfc578ff",
+      "strokeWidth": 2
+    }
+  },
+  "graphLenses": [
+    {
+      "id": "core-knowledge-only",
+      "name": "Ocultar ayudas de navegación",
+      "enabled": true,
+      "scope": "node",
+      "mode": "exclude",
+      "expression": "file.inFolder(\"examples/obsidian/Navigation\")"
+    },
+    {
+      "id": "core-review-stale",
+      "name": "Revisión anterior",
+      "enabled": false,
+      "scope": "node",
+      "mode": "style",
+      "expression": "note[\"review\"] == \"stale\"",
+      "style": {
+        "node": {
+          "borderColor": "#eaa08c",
+          "strokeWidth": 3,
+          "strokeStyle": "dashed"
+        }
+      }
+    },
+    {
+      "id": "core-ideas-only",
+      "name": "Solo ideas del vecindario",
+      "enabled": false,
+      "scope": "node",
+      "mode": "include",
+      "expression": "note[\"role\"] == \"concept\""
+    },
+    {
+      "id": "core-synthesis",
+      "name": "Resaltar Síntesis",
+      "enabled": false,
+      "scope": "node",
+      "mode": "style",
+      "expression": "note[\"maturity\"] == \"developing\"",
+      "style": {
+        "node": {
+          "borderColor": "#91c8b1",
+          "strokeWidth": 3
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,135 @@
+filters:
+  and:
+    - 'file.ext == "md"'
+    - or:
+        - 'file.inFolder("examples/obsidian/Raw/Sources")'
+        - 'file.inFolder("examples/obsidian/Review/Inbox")'
+        - 'file.inFolder("examples/obsidian/Wiki")'
+formulas:
+  categoria: 'if(file.inFolder("examples/obsidian/Review/Inbox"), "Propuestas", if(file.inFolder("examples/obsidian/Raw/Sources"), "Capturas", if(role == "concept", "Conceptos", if(role == "entity", "Entidades", if(role == "map", "Mapas e índices", if(role == "project", "Proyectos", if(role == "diagram", "Diagramas", "Sin clasificar")))))))'
+  unidad: '1'
+  nota: 'file.asLink(if(title, title, if(Title, Title, file.basename)))'
+  madurez: 'if(formula.categoria != "Conceptos", "—", if(maturity == "seed", "Semilla", if(maturity == "developing", "Síntesis", if(maturity == "evergreen", "Evergreen", "Desconocida"))))'
+  revision: 'if(!file.hasProperty("review"), "Sin declarar", if(review == "pending", "Pendiente", if(review == "changes_requested", "Cambios solicitados", if(review == "stale", "Revisión anterior", if(review == "accepted", "Aceptación declarada", if(review == "unreviewed", "Sin revisar", "Estado no reconocido"))))))'
+  fecha_estado: 'if(created && Created && created != Created, "Conflicto", if(created || Created, if(date(if(created, created, Created)), "Fecha declarada", "Fecha inválida"), "Sin fecha"))'
+  fecha: 'if(formula.fecha_estado == "Fecha declarada", date(if(created, created, Created)), null)'
+  periodo: 'if(formula.fecha, formula.fecha.format("YYYY-MM"), formula.fecha_estado)'
+  editada: 'file.mtime.relative()'
+  orden_revision: 'if(review == "changes_requested", 0, if(review == "pending", 1, 2))'
+  incidencia: 'if(file.inFolder("examples/obsidian/Raw/Sources") && role && role != "source", "Rol de captura por comprobar", if(file.inFolder("examples/obsidian/Wiki") && role == "source", "Rol y ubicación por comprobar", if(file.hasProperty("review") && !["unreviewed", "pending", "changes_requested", "accepted", "stale"].contains(review), "Estado no reconocido", "")))'
+properties:
+  formula.categoria:
+    displayName: Colección
+  formula.unidad:
+    displayName: Objetos
+  formula.nota:
+    displayName: Nota
+  formula.madurez:
+    displayName: Desarrollo
+  formula.revision:
+    displayName: Revisión
+  formula.fecha:
+    displayName: Fecha documental
+  formula.fecha_estado:
+    displayName: Cobertura de fechas
+  formula.periodo:
+    displayName: Periodo documental
+  formula.editada:
+    displayName: Editada
+  formula.incidencia:
+    displayName: Observación técnica
+views:
+  - type: table
+    name: Panorama
+    groupBy:
+      property: formula.categoria
+      direction: ASC
+    order:
+      - formula.nota
+      - formula.unidad
+    summaries:
+      formula.unidad: Sum
+  - type: table
+    name: Atencion
+    columnSize:
+      formula.nota: 270
+      formula.revision: 140
+    filters:
+      and:
+        - 'file.inFolder("examples/obsidian/Review/Inbox")'
+        - 'review != "accepted"'
+    order:
+      - formula.nota
+      - formula.revision
+    sort:
+      - property: formula.orden_revision
+        direction: ASC
+      - property: formula.nota
+        direction: ASC
+  - type: table
+    name: Recientes
+    columnSize:
+      formula.nota: 270
+      formula.editada: 110
+    limit: 5
+    order:
+      - formula.nota
+      - formula.editada
+    sort:
+      - property: file.mtime
+        direction: DESC
+  - type: table
+    name: Madurez
+    filters:
+      and:
+        - 'formula.categoria == "Conceptos"'
+    groupBy:
+      property: formula.madurez
+      direction: ASC
+    order:
+      - formula.nota
+      - formula.revision
+      - formula.unidad
+    summaries:
+      formula.unidad: Sum
+  - type: table
+    name: Comprobar
+    filters:
+      and:
+        - 'formula.incidencia != ""'
+    order:
+      - formula.nota
+      - formula.incidencia
+  - type: table
+    name: Capturas
+    filters:
+      and:
+        - 'formula.categoria == "Capturas"'
+    order:
+      - formula.nota
+      - formula.fecha
+      - formula.fecha_estado
+  - type: table
+    name: Inventario
+    groupBy:
+      property: formula.categoria
+      direction: ASC
+    order:
+      - formula.nota
+      - formula.madurez
+      - formula.revision
+      - formula.unidad
+    summaries:
+      formula.unidad: Sum
+  - type: table
+    name: Incorporaciones
+    groupBy:
+      property: formula.periodo
+      direction: ASC
+    order:
+      - formula.nota
+      - formula.categoria
+      - formula.fecha_estado
+      - formula.unidad
+    summaries:
+      formula.unidad: Sum

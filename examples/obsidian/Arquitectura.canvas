@@ -1,0 +1,366 @@
+{
+  "nodes": [
+    {
+      "id": "g-roles",
+      "type": "group",
+      "x": 0,
+      "y": 0,
+      "width": 790,
+      "height": 690,
+      "label": "01 · Quién hace qué",
+      "color": "5"
+    },
+    {
+      "id": "roles-a",
+      "type": "text",
+      "x": 30,
+      "y": 40,
+      "width": 340,
+      "height": 280,
+      "text": "## Tú + el host\n\nTú traes preguntas, corriges y confirmas una versión exacta.\n\nEl host autorizado aporta razonamiento, archivos y herramientas.\n\nCore no es un servidor autónomo.",
+      "color": "5"
+    },
+    {
+      "id": "roles-b",
+      "type": "text",
+      "x": 420,
+      "y": 40,
+      "width": 340,
+      "height": 280,
+      "text": "## Dos responsabilidades\n\nBibliotecario: leer, conectar y proponer.\n\nOrquestador: delimitar y coordinar.\n\nPueden ser funciones del mismo agente. Las skills no son otros bots."
+    },
+    {
+      "id": "roles-doc",
+      "type": "file",
+      "x": 30,
+      "y": 390,
+      "width": 730,
+      "height": 260,
+      "file": "Agents/README.md",
+      "subpath": "#Bibliotecario"
+    },
+    {
+      "id": "g-flujo",
+      "type": "group",
+      "x": 850,
+      "y": 0,
+      "width": 790,
+      "height": 690,
+      "label": "02 · De la pregunta a lo retenido",
+      "color": "4"
+    },
+    {
+      "id": "flujo-a",
+      "type": "text",
+      "x": 880,
+      "y": 40,
+      "width": 340,
+      "height": 280,
+      "text": "## Comprender y elaborar\n\nPregunta → selección acotada → lectura → conexiones → propuesta exacta.\n\nRutas: adopción progresiva, lectura/conexión, captura, revisión/guardado.",
+      "color": "4"
+    },
+    {
+      "id": "flujo-b",
+      "type": "text",
+      "x": 1270,
+      "y": 40,
+      "width": 340,
+      "height": 280,
+      "text": "## Revisar y conservar\n\nRevisión humana → corrección o confirmación → recheck → guardado permitido → lectura del resultado.\n\nSi cambia la versión, se vuelve a revisar."
+    },
+    {
+      "id": "flujo-doc",
+      "type": "file",
+      "x": 880,
+      "y": 390,
+      "width": 730,
+      "height": 260,
+      "file": "docs/knowledge-workflow.md",
+      "subpath": "#Guided loop"
+    },
+    {
+      "id": "g-custodia",
+      "type": "group",
+      "x": 1700,
+      "y": 0,
+      "width": 790,
+      "height": 690,
+      "label": "03 · Cada contenido tiene su lugar",
+      "color": "2"
+    },
+    {
+      "id": "custodia-a",
+      "type": "text",
+      "x": 1730,
+      "y": 40,
+      "width": 340,
+      "height": 280,
+      "text": "## Raw · originales\n\nCapturas preservadas con identidad, procedencia y versión.\n\nEl original no se convierte en una Síntesis ni cambia de carpeta al madurar una idea.",
+      "color": "2"
+    },
+    {
+      "id": "custodia-b",
+      "type": "text",
+      "x": 2120,
+      "y": 40,
+      "width": 340,
+      "height": 280,
+      "text": "## Review y Wiki\n\nReview conserva lo propuesto.\n\nWiki conserva explicaciones mantenidas mediante revisión.\n\nSon responsabilidades, no una cinta que mueve el mismo archivo."
+    },
+    {
+      "id": "custodia-doc",
+      "type": "file",
+      "x": 1730,
+      "y": 390,
+      "width": 730,
+      "height": 260,
+      "file": "docs/architecture.md",
+      "subpath": "#Stable philosophy, flexible locations"
+    },
+    {
+      "id": "g-dimensiones",
+      "type": "group",
+      "x": 0,
+      "y": 780,
+      "width": 790,
+      "height": 690,
+      "label": "04 · Tres dimensiones, no una escalera",
+      "color": "6"
+    },
+    {
+      "id": "dimensiones-a",
+      "type": "text",
+      "x": 30,
+      "y": 820,
+      "width": 340,
+      "height": 280,
+      "text": "## Rol + desarrollo\n\nRol: fuente, concepto, entidad, mapa, proyecto o diagrama.\n\nDesarrollo: Semilla → Síntesis → Evergreen.\n\nUn MOC organiza; no hace madurar una idea.",
+      "color": "6"
+    },
+    {
+      "id": "dimensiones-b",
+      "type": "text",
+      "x": 420,
+      "y": 820,
+      "width": 340,
+      "height": 280,
+      "text": "## Revisión independiente\n\nSin revisar · Pendiente · Cambios solicitados · Aceptación declarada · Desactualizada.\n\nSemilla aceptada y Evergreen desactualizada son combinaciones posibles."
+    },
+    {
+      "id": "dimensiones-doc",
+      "type": "file",
+      "x": 30,
+      "y": 1170,
+      "width": 730,
+      "height": 260,
+      "file": "docs/ontology.md",
+      "subpath": "#Independent dimensions"
+    },
+    {
+      "id": "g-guardar",
+      "type": "group",
+      "x": 850,
+      "y": 780,
+      "width": 790,
+      "height": 690,
+      "label": "05 · La frontera del guardado",
+      "color": "1"
+    },
+    {
+      "id": "guardar-a",
+      "type": "text",
+      "x": 880,
+      "y": 820,
+      "width": 340,
+      "height": 280,
+      "text": "## Confirmar no es una etiqueta\n\nLa persona revisa el contenido exacto.\n\nSe comprueba la versión y evidencia actuales.\n\nUn hash, una casilla o un estado no crean consentimiento.",
+      "color": "1"
+    },
+    {
+      "id": "guardar-b",
+      "type": "text",
+      "x": 1270,
+      "y": 820,
+      "width": 340,
+      "height": 280,
+      "text": "## Un camino permitido\n\nBiblioteca editable: herramientas autorizadas y recuperación.\n\nBiblioteca gestionada: su escritor existente.\n\nSin permisos o con conflicto: solo propuesta."
+    },
+    {
+      "id": "guardar-doc",
+      "type": "file",
+      "x": 880,
+      "y": 1170,
+      "width": 730,
+      "height": 260,
+      "file": "docs/review-contract.md",
+      "subpath": "#Common human-review loop"
+    },
+    {
+      "id": "g-superficies",
+      "type": "group",
+      "x": 1700,
+      "y": 780,
+      "width": 790,
+      "height": 690,
+      "label": "06 · Las herramientas, sin confundirlas",
+      "color": "5"
+    },
+    {
+      "id": "superficies-a",
+      "type": "text",
+      "x": 1730,
+      "y": 820,
+      "width": 340,
+      "height": 280,
+      "text": "## Tres ventanas a la biblioteca\n\nHome/Bases: estado y actividad.\nK-Plex: mapa de conocimiento.\nCanvas: explicación de la arquitectura.\n\nMarkdown conserva el contenido.",
+      "color": "5"
+    },
+    {
+      "id": "superficies-b",
+      "type": "text",
+      "x": 2120,
+      "y": 820,
+      "width": 340,
+      "height": 280,
+      "text": "## Continuidad, no aprobación\n\nSync transporta archivos.\nGit conserva historial.\nMemoria operativa conserva decisiones autorizadas.\n\nNinguno aprueba conocimiento ni publica por sí solo."
+    },
+    {
+      "id": "superficies-doc",
+      "type": "file",
+      "x": 1730,
+      "y": 1170,
+      "width": 730,
+      "height": 260,
+      "file": "docs/architecture.md",
+      "subpath": "#Custody and optional surfaces"
+    }
+  ],
+  "edges": [
+    {
+      "id": "roles-flow",
+      "fromNode": "roles-a",
+      "fromSide": "bottom",
+      "fromEnd": "none",
+      "toNode": "roles-b",
+      "toSide": "bottom",
+      "toEnd": "arrow",
+      "label": "asume roles",
+      "color": "5"
+    },
+    {
+      "id": "roles-authority",
+      "fromNode": "roles-b",
+      "fromSide": "bottom",
+      "fromEnd": "none",
+      "toNode": "roles-doc",
+      "toSide": "top",
+      "toEnd": "none",
+      "label": "ver contrato"
+    },
+    {
+      "id": "flujo-flow",
+      "fromNode": "flujo-a",
+      "fromSide": "bottom",
+      "fromEnd": "none",
+      "toNode": "flujo-b",
+      "toSide": "bottom",
+      "toEnd": "arrow",
+      "label": "presenta versión",
+      "color": "4"
+    },
+    {
+      "id": "flujo-authority",
+      "fromNode": "flujo-b",
+      "fromSide": "bottom",
+      "fromEnd": "none",
+      "toNode": "flujo-doc",
+      "toSide": "top",
+      "toEnd": "none",
+      "label": "ver contrato"
+    },
+    {
+      "id": "custodia-flow",
+      "fromNode": "custodia-a",
+      "fromSide": "bottom",
+      "fromEnd": "none",
+      "toNode": "custodia-b",
+      "toSide": "bottom",
+      "toEnd": "arrow",
+      "label": "informa ideas",
+      "color": "2"
+    },
+    {
+      "id": "custodia-authority",
+      "fromNode": "custodia-b",
+      "fromSide": "bottom",
+      "fromEnd": "none",
+      "toNode": "custodia-doc",
+      "toSide": "top",
+      "toEnd": "none",
+      "label": "ver contrato"
+    },
+    {
+      "id": "dimensiones-flow",
+      "fromNode": "dimensiones-a",
+      "fromSide": "bottom",
+      "fromEnd": "none",
+      "toNode": "dimensiones-b",
+      "toSide": "bottom",
+      "toEnd": "none",
+      "label": "son independientes",
+      "color": "6"
+    },
+    {
+      "id": "dimensiones-authority",
+      "fromNode": "dimensiones-b",
+      "fromSide": "bottom",
+      "fromEnd": "none",
+      "toNode": "dimensiones-doc",
+      "toSide": "top",
+      "toEnd": "none",
+      "label": "ver contrato"
+    },
+    {
+      "id": "guardar-flow",
+      "fromNode": "guardar-a",
+      "fromSide": "bottom",
+      "fromEnd": "none",
+      "toNode": "guardar-b",
+      "toSide": "bottom",
+      "toEnd": "arrow",
+      "label": "autoriza versión",
+      "color": "1"
+    },
+    {
+      "id": "guardar-authority",
+      "fromNode": "guardar-b",
+      "fromSide": "bottom",
+      "fromEnd": "none",
+      "toNode": "guardar-doc",
+      "toSide": "top",
+      "toEnd": "none",
+      "label": "ver contrato"
+    },
+    {
+      "id": "superficies-flow",
+      "fromNode": "superficies-a",
+      "fromSide": "bottom",
+      "fromEnd": "none",
+      "toNode": "superficies-b",
+      "toSide": "bottom",
+      "toEnd": "arrow",
+      "label": "tienen límites",
+      "color": "5"
+    },
+    {
+      "id": "superficies-authority",
+      "fromNode": "superficies-b",
+      "fromSide": "bottom",
+      "fromEnd": "none",
+      "toNode": "superficies-doc",
+      "toSide": "top",
+      "toEnd": "none",
+      "label": "ver contrato"
+    }
+  ]
+}

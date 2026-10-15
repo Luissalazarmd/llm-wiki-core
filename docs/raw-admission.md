@@ -50,6 +50,8 @@ The capture skill must keep the same verified metadata with the Raw capture; a s
 
 The required connection is **Raw → MOC → ancestors → root**. A forward root-to-Raw listing is a distinct surface: use the library's existing backlinks/query navigation or propose the corresponding MOC source link through its permitted review writer. Do not mutate Raw later just to maintain inverse links. This checker proves the outgoing organizational route, not universal plugin rendering or bidirectional index completeness.
 
+The strict Core catalog now derives inverse organization from `moc`/`parent` read-only. Do not require matching `groups` or plugin `Children` declarations merely to repeat those primary links. Curated map selections and their reading explanations remain useful when they add a different route. Captures do not need an idea-maturity declaration or empty relation list; retain existing fields without retroactive cleanup.
+
 Up to 32 map nodes, 256 KiB each, plus one 256 KiB taxonomy; Raw draft at most 256 KiB, 1–50 distinct tags, taxonomy at most 1,000 distinct labels. No whole-vault scan. Source and map paths are scoped, regular and non-symlink. CRLF is normalized only for parsing; all version and saved-byte binding uses original bytes.
 
 A skill/checker is not a filesystem access barrier. An unrestricted host can bypass it; no source-capture runtime, multi-file transaction, authenticated review, snapshot/locking guarantee or adversarial concurrency protection is added. Pause concurrent editing/sync. A successful preflight is not proof a source was captured: actual writer result and exact readback are mandatory. Missing policy/root/taxonomy/MOC/tag means draft/proposal only; never report an unlinked capture as complete.

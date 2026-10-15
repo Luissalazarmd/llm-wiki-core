@@ -4,7 +4,7 @@
 
 Read selected sources, develop connected ideas, review exact changes, and retain useful knowledge. Your agent does the reasoning. You decide what stays. Your files remain in your library.
 
-**v0.1 · Public preview · Markdown · Agent-guided · 112 passing tests**
+**v0.1 · Public preview · Markdown · Agent-guided · 138 passing tests**
 
 [Start](#start-with-your-agent) · [Workflow](#how-it-works) · [Tools](#small-tools-clear-boundaries) · [Verification](#what-has-been-verified) · [Limits](#limits-and-permissions)
 
@@ -104,7 +104,7 @@ The parent directory must already exist and the destination must be absent. The 
 
 | Evidence | Observed result | What it does not certify |
 |---|---|---|
-| Automated suite | **112 tests passed**, zero failures or skips; synthetic helpers and static contracts, including a foreign-layout adoption case and starting-point discovery rules | Agent judgment, human authentication or every host's behavior |
+| Automated suite | **138 tests passed**, zero failures or skips; synthetic helpers and static contracts, including the optional Obsidian workbench and single-journey evolution | Agent judgment, human authentication or every host's behavior |
 | Independent review | Six earlier inconsistencies reproduced as fixed; 104 tests passed on the preceding published checkpoint | Later follow-up/adoption tests or universal portability |
 | External synthetic pilot | Fixture capture, proposals, a reported user decision, plain creation and readback | Complete presentation of prose before the original save |
 | Follow-up in this host | Readable presentation, actual test-only approval, corrected Síntesis save/readback; five selected notes and six explicit links | Real research validation, Evergreen, managed apply or graphical integration |
@@ -121,6 +121,10 @@ PYTHONDONTWRITEBYTECODE=1 python3 tests/demo_existing_library.py --output-parent
 
 The demo verifies scoped mapping/navigation/proposal with unchanged input bytes and mtimes. It is not the human-guided save pilot. No test requires a particular library engine, accounts or private source files.
 
+### Optional visual entry for Obsidian
+
+The [synthetic workbench](examples/obsidian/README.md) provides an automatic native Bases Home, optional K-Plex navigation and a separate architecture Canvas. Its new-only materializer prepares a disposable example outside Core; it does not deploy a personal library or install plugins. Read the [observed validation and limits](examples/obsidian/VALIDATION.md) before adapting it.
+
 ## Limits and permissions
 
 - The host supplies reasoning, retrieval, actual decisions and file-access enforcement. Core is not a sandbox; unrestricted host tools can bypass its helpers.
@@ -129,7 +133,7 @@ The demo verifies scoped mapping/navigation/proposal with unchanged input bytes 
 - The plain helper protects configured sources, known instruction filenames and known managed markers. Other policy documents require actual library rules and host restrictions. Missing markers never grant permission.
 - Update restore protects later edits. Creation has no previous file and cannot be undone by restore; reviewed deletion is not implemented.
 - A managed library keeps its own writer and authentication/recovery requirements. Core does not install or certify that integration; an unavailable writer means proposal-only.
-- Obsidian, K-Plex, sync, voice and host portability are separate optional surfaces, not verified by Markdown links or these tests. Core bundles no automatic semantic engine or maturity promotion.
+- The 2026-10-14 synthetic closure observed normal Home opening and resolving Canvas v2 references. The 2026-10-15 correction separately checked missing versus invalid review labels in native Bases. Automatic refresh, light/dark/narrow layout and K-Plex navigation belong to earlier evidence, not a repeat on this cut; see the [validation record](examples/obsidian/VALIDATION.md). Sync, voice, personal-library deployment and host portability are not verified by Markdown links or these tests. Core bundles no automatic semantic engine or maturity promotion.
 
 ### Keep your library private
 

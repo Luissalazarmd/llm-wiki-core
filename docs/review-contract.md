@@ -27,6 +27,10 @@ Discover its actual review/apply interface from applicable trusted instructions.
 
 If that library requires signed decisions, exclusive locks or receipt verification, they remain prerequisites for its writes. Core neither implements nor certifies those capabilities. A missing integration blocks only its writes, not the essential reader. Manual edits or sync conflicts must be reconciled under the library's own protocol.
 
+## Technical version changes are not scientific expiry
+
+`stale` is an optional declaration, not an automatically computed clock or scientific judgment. Core's writer does not set it on save. A changed byte hash invalidates an old write precondition, not every argument in the note. Review the concrete diff and affected evidence; an organizational edit must not trigger rereading an entire bibliography. Confirm the current exact changed version and preserve historical attribution. A content challenge merits a bounded correction proposal, not another permanent queue or compulsory new status field. Never claim old byte-bound approval authenticates new bytes, and never relabel existing notes merely to clear a dashboard.
+
 ## Source and external-action boundaries
 
 Captured originals are not silently overwritten; new source versions follow [capture](../skills/capture-source/SKILL.md). Personal memory is not bibliographic evidence. A note confirmation does not authorize calendar/task writes, installation, permissions changes, uploads, commits or sharing. Keep source rights, original citations and quotation wording intact.

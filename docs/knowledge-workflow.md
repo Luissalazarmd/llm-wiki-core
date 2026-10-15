@@ -26,6 +26,8 @@ A map is a useful note explaining a reading path, not a compulsory category cont
 
 Initiative means noticing an unclear definition, relevant connection or missing evidence inside the current task. It does not mean processing the whole backlog, changing permissions, silently changing roles or launching permanent background work.
 
+Automate mechanical work inside the authorized flow: scoped identity/reuse checks, projection, live inventory and writer precondition/readback checks. The agent develops the argument; the human decides the exact retained change. No capture must manufacture a concept, no idea must traverse every maturity level, and a redundant contribution may require no write. Keep one primary declaration for organization and derive inverse views under [ontology](ontology.md#one-declaration-derived-views), without replacing authored reading routes.
+
 ## Idea emergence
 
 Human-facing maturity is **Semilla → Síntesis → Evergreen**, with technical values `seed`, `developing`, `evergreen`. This describes the development of an idea, not its folder, MOC membership, review decision or publication status. Raw originals remain unchanged: source captures feed thinking; the derived explanation matures. A capture is not automatically a new idea note. New exploratory derived ideas start as Semilla unless their complete proposed content already justifies a different maturity through explicit review; existing foreign notes remain unknown, not retroactively labeled seeds.
@@ -54,6 +56,8 @@ Markdown remains the content surface. A small Home may link the current work and
 The original read-only projector renders a bounded navigation selection to stdout. It can provide plain wikilinks and K-Plex's existing `Children` field in a disposable view; this is view grouping, not scientific ontology or a new canonical store. No plugin is required. Do not install/reconfigure plugins without permission. Saving a view is optional and must be outside managed Raw/Review/Wiki; never feed it back as source evidence. Do not accumulate a view per article/category by default.
 
 K-Plex navigation must be tested in the actual host before calling it integrated. K-Plex has editing actions and no verified universal readonly lock. Do not edit/rename/delete managed notes or relationships from it. Excalidraw can illustrate a question when available and authorized; drawings do not establish evidence or approval. Voice is another input channel only when the host supplies the actual selected object and verified human event; no integration is inferred from documents.
+
+K-Plex may be the person's main navigation and work-context surface. It controls the reading route, not scientific validation or acceptance. The host must actually expose the focal object before an agent can claim to know the editor selection. Home/Bases observe inventory and complete proposals, not a second queue. Do not turn a technical version mismatch into a blanket scientific re-review: inspect the affected change and dependencies, preserve previous decisions and obtain confirmation of the changed exact version. Historical size measurement, if separately authorized, needs a minimal aggregate observation record from its start; documentary dates and mtime do not fabricate that history.
 
 ## Non-clinical worked journey
 

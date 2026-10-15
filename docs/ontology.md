@@ -31,6 +31,16 @@ Spanish Markdown views display **Semilla**, **Síntesis**, **Evergreen**, or **D
 
 Property names are English and case-sensitive. For metadata compatibility source captures also support `Title` and `Reference`; new notes can use `title`. These are data fields, not an engine dependency. Conflicting case variants fail instead of guessing. Unused properties do not confer authority.
 
+## One declaration, derived views
+
+For known Core-schema libraries, a source's exact `moc` path and a map's exact `parent` path are primary organization. The strict catalog projects their inverse `groups` edges read-only; no second manual listing is required. Targets must resolve to maps inside the bounded strict catalog, paths must be exact library-relative Markdown paths, and cycles/overlong ancestor chains fail. An equivalent explicit `groups` edge remains compatible and is not added again. Curated `groups` selections beyond primary membership remain authored knowledge navigation, not factual support.
+
+Equivalent `related` declarations are symmetric for projection: identical endpoint pairs, reasons and evidence collapse to one connection while retaining other declaration paths. Different reasons/evidence and directional factual kinds are preserved. This is output normalization, never source deletion or a semantic duplicate judgment.
+
+Do not require empty `relations`, `aliases` or historical verification lists in new notes merely for a template. Strict projection already defaults absent relations/review and allows absent maturity. Explicit declarations must remain valid. Identity/provenance and the capture policy's meaningful MOC/taxonomy requirements remain; do not delete existing IDs or rewrite old captures to simplify presentation. Topic tags should add discovery value rather than repeat `role`. Foreign libraries keep scoped existing mode and their schemas; custom capture field mappings do not imply that strict projection understands every foreign schema.
+
+Known non-concept roles do not display idea maturity in Markdown navigation. Original metadata and JSON declarations remain intact. A MOC organizes a reading argument; its authored explanation is not replaced by a generated list.
+
 ## Identity and versions
 
 Use an opaque stable `id` for maintained notes and local captures. A public source with `Reference` can omit `id`: identity is `source:` followed by SHA-256 of the exact Reference UTF-8 string. No normalization/repair is performed. Explicit IDs are preserved exactly. Different versions of one source require distinct capture IDs and may share `Reference`; each file has its current full-byte `sha256`.
@@ -70,3 +80,5 @@ Catalog limits: 2,000 Markdown notes, 256 KiB per note, 16 MiB total note bytes.
 Malformed/non-mapping/duplicate/aliased YAML, symlinks, unsafe wikilink paths, duplicate IDs, invalid state vocabulary, unresolved targets and stale evidence fail closed. The tool is cooperative read-only code, not a sandbox or a concurrency/approval snapshot. Do not run it on an actively edited/synced collection for authorization decisions. It has no server, credentials, model call, database or network operation.
 
 Markdown views use existing wikilinks plus `Children` to group selected neighbors for K-Plex; typed edge meaning remains in the text, not equivalent to K-Plex's parent/child ontology. A view is disposable and carries no approval. Host rendering is not verified by syntax tests. Plain Markdown fallback works without a plugin; graphical host, voice and canonical accepted-state transport remain separate integration gates.
+
+For a focal view, opt into `--format markdown --focus NOTE_ID --typed-navigation`. `Parent/Children` reflects grouping, `Evidence/EvidenceFor` support, `Contrasts` tension and `BuildsOn/DevelopedBy` development; `Related` is used only when a more specific visual role is absent for that node. All original kinds/reasons remain in the explanatory text. These are disposable adapter fields, not new stored ontology. K-Plex can place a node in one visual region even when several claims connect it: consult the text for the complete argument. Refresh a selected view only through its authorized host, outside Raw/Review/Wiki; no watcher or automatic canonical write is supplied.

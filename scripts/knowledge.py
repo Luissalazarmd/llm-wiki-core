@@ -101,6 +101,7 @@ def catalog(root: Path, max_file_bytes: int = 262144, max_notes: int = 2000, all
     notes = []
     edges = []
     seen = set()
+    organization = []
     total_bytes = 0
     for stage, path in sorted(note_paths(root, max_notes)):
         if len(notes) >= max_notes:
@@ -169,9 +170,38 @@ def catalog(root: Path, max_file_bytes: int = 262144, max_notes: int = 2000, all
                 'approval_available': False,
                 'sha256': hashlib.sha256(raw).hexdigest(),
         })
+        field = 'moc' if role == 'source' else 'parent' if role == 'map' else None
+        if field and field in metadata and metadata[field] is not None:
+            organization.append((note_id, relative, field, metadata[field]))
     if not notes and not allow_empty:
         raise ValueError('No notes in strict Raw/Wiki scope; use --mode existing with explicit --scope, or --allow-empty-strict only for an intentionally empty stage layout')
     ids = {note['id']: note for note in notes}
+    paths = {note['path']: note for note in notes}
+    grouped = {(edge['source'], edge['target']) for edge in edges if edge['kind'] == 'groups'}
+    primary_parents = {}
+    for child, declared_in, field, parent_path in organization:
+        if (not isinstance(parent_path, str) or not parent_path.endswith('.md') or
+                parent_path.startswith('/') or any(part in ('', '.', '..') for part in parent_path.split('/'))):
+            raise ValueError('Primary organization requires an exact relative Markdown path')
+        parent = paths.get(parent_path)
+        if parent is None or parent['role'] != 'map':
+            raise ValueError('Primary organization must resolve to a catalogued map')
+        pair = (parent['id'], child)
+        primary_parents[child] = parent['id']
+        if pair not in grouped:
+            edges.append({'source': parent['id'], 'target': child, 'kind': 'groups',
+                          'reason': 'Primary organization; no scientific support implied.',
+                          'declared_in': declared_in, 'declared_field': field,
+                          'basis': 'primary_organization', 'review': 'unverified', 'evidence': []})
+            grouped.add(pair)
+    for child in primary_parents:
+        visited = set()
+        current = child
+        while current in primary_parents:
+            if current in visited or len(visited) >= 32:
+                raise ValueError('Invalid or cyclic primary organization (maximum 32 ancestors)')
+            visited.add(current)
+            current = primary_parents[current]
     for edge in edges:
         if edge['target'] not in ids:
             raise ValueError('Unresolved relation target: ' + edge['target'])
@@ -187,7 +217,23 @@ def catalog(root: Path, max_file_bytes: int = 262144, max_notes: int = 2000, all
                 raise ValueError('Evidence anchor must resolve to a source')
             if anchor['sha256'] != evidence['sha256']:
                 raise ValueError('Stale evidence anchor')
-    return {'notes': notes, 'edges': edges, 'mode': 'read_only', 'approval_available': False}
+    # Collapse only equivalent symmetric declarations, retaining their provenance.
+    unique = []
+    related = {}
+    for edge in edges:
+        if edge['kind'] != 'related':
+            unique.append(edge)
+            continue
+        key = (tuple(sorted((edge['source'], edge['target']))), edge['reason'],
+               json.dumps(edge['evidence'], sort_keys=True, ensure_ascii=False))
+        if key in related:
+            previous = related[key]
+            if edge['declared_in'] != previous['declared_in']:
+                previous.setdefault('also_declared_in', []).append(edge['declared_in'])
+        else:
+            related[key] = edge
+            unique.append(edge)
+    return {'notes': notes, 'edges': unique, 'mode': 'read_only', 'approval_available': False}
 
 
 def discover(root: Path, scopes: list[str], max_notes: int = 200,
@@ -382,7 +428,7 @@ def focus(data: dict, identity: str, max_neighbors: int = 8, max_bytes: int = 16
     return result
 
 
-def markdown(data: dict, language: str = 'es') -> str:
+def markdown(data: dict, language: str = 'es', typed_navigation: bool = False) -> str:
     """Render a disposable navigation view, not canonical knowledge or approval."""
     notes = {n['id']: n for n in data['notes']}
     if language not in ('es', 'en'):
@@ -390,7 +436,36 @@ def markdown(data: dict, language: str = 'es') -> str:
     center = data.get('focus')
     links = [f'[[{n["path"][:-3]}]]' for n in data['notes'] if n['id'] != center]
     lines = ['---', 'view: read-only-projection']
-    if links:
+    if typed_navigation:
+        if center not in notes:
+            raise ValueError('Typed navigation requires an explicit focus')
+        label = 'Lectura' if language == 'es' else 'Reading'
+        lines.append('title: ' + json.dumps(label + ' · ' + notes[center]['title'], ensure_ascii=False))
+        fields = {}
+        outgoing = {'groups': 'Children', 'related': 'Related', 'supported_by': 'Evidence',
+                    'contradicts': 'Contrasts', 'extends': 'BuildsOn'}
+        incoming = {'groups': 'Parent', 'related': 'Related', 'supported_by': 'EvidenceFor',
+                    'contradicts': 'Contrasts', 'extends': 'DevelopedBy'}
+        for edge in data['edges']:
+            if edge['source'] == center:
+                other, field = edge['target'], outgoing.get(edge['kind'])
+            elif edge['target'] == center:
+                other, field = edge['source'], incoming.get(edge['kind'])
+            else:
+                continue
+            if field:
+                fields.setdefault(field, set()).add(f'[[{notes[other]["path"][:-3]}]]')
+        # Prefer a specific visual role over a generic friend for the same node.
+        # All original kinds and reasons remain in the explanatory text below.
+        if 'Related' in fields:
+            specific = set().union(*(targets for key, targets in fields.items() if key != 'Related'))
+            fields['Related'] -= specific
+            if not fields['Related']:
+                del fields['Related']
+        for field, targets in sorted(fields.items()):
+            lines.extend([field + ':', *['  - ' + json.dumps(link, ensure_ascii=False)
+                                        for link in sorted(targets)]])
+    elif links:
         # K-Plex default field; this groups the view, not scientific conclusions.
         lines.extend(['Children:', *['  - ' + json.dumps(link, ensure_ascii=False) for link in links]])
     heading = '# Selección de lectura' if language == 'es' else '# Reading selection'
@@ -398,11 +473,22 @@ def markdown(data: dict, language: str = 'es') -> str:
               if language == 'es' else
               'Disposable view. Declared relations and states are unverified; this is not approval.')
     lines.extend(['---', '', heading, '', notice, ''])
+    if typed_navigation:
+        focal_label = 'Objeto focal' if language == 'es' else 'Focal object'
+        legend = ('Parent/Children organiza; Evidence enlaza apoyo; Contrasts enlaza contraste; '
+                  'BuildsOn/DevelopedBy muestra desarrollo. Son declaraciones, no validación científica.'
+                  if language == 'es' else
+                  'Parent/Children organizes; Evidence links support; Contrasts links tension; '
+                  'BuildsOn/DevelopedBy shows development. These are declarations, not scientific validation.')
+        lines.extend([f'{focal_label}: [[{notes[center]["path"][:-3]}]].', '', legend, ''])
     maturity_labels = ({'seed': 'Semilla', 'developing': 'Síntesis', 'evergreen': 'Evergreen',
                         'unknown': 'Desconocida'} if language == 'es' else
                        {'seed': 'Seed', 'developing': 'Synthesis', 'evergreen': 'Evergreen',
                         'unknown': 'Unknown'})
     for note in data['notes']:
+        if note['role'] in ('source', 'entity', 'map', 'project', 'diagram'):
+            lines.append(f'- [[{note["path"][:-3]}]] — {note["role"]}; {note["review"]}')
+            continue
         maturity = maturity_labels[note['maturity']]
         declared_maturity = note.get('declared_maturity')
         if data.get('mode') == 'existing_library_read_only' and declared_maturity in ('seed', 'developing', 'evergreen'):
@@ -434,8 +520,11 @@ def main() -> int:
     parser.add_argument('--neighbors', type=int, default=8)
     parser.add_argument('--format', choices=['json', 'markdown'], default='json')
     parser.add_argument('--language', choices=['es', 'en'], default='es')
+    parser.add_argument('--typed-navigation', action='store_true', help='typed fields for a disposable focal view')
     args = parser.parse_args()
     try:
+        if args.typed_navigation and (not args.focus or args.format != 'markdown' or args.proposal_target):
+            raise ValueError('Typed navigation requires focus and Markdown, not a proposal')
         if args.allow_empty_strict and (args.mode != 'strict' or args.proposal_target):
             raise ValueError('allow-empty-strict is only available for strict projection')
         if args.create and not args.proposal_target:
@@ -459,7 +548,8 @@ def main() -> int:
             data = focus(data, args.focus, args.neighbors)
         if args.format == 'markdown' and not args.focus:
             raise ValueError('Markdown projection requires an explicit focus')
-        print(markdown(data, args.language) if args.format == 'markdown' else json.dumps(data, ensure_ascii=False, indent=2))
+        print(markdown(data, args.language, args.typed_navigation) if args.format == 'markdown'
+              else json.dumps(data, ensure_ascii=False, indent=2))
         return 0
     except (OSError, ValueError, RecursionError, TypeError) as exc:
         print(json.dumps({'error': str(exc)}), file=sys.stderr)

@@ -175,6 +175,58 @@ class KnowledgeTests(unittest.TestCase):
         self.assertEqual(edge['declared_in'], 'Wiki/map.md')
         self.assertEqual(edge['review'], 'unverified')
 
+    def test_primary_organization_projects_without_inverse_declarations(self):
+        self.note('Wiki/root.md', {'id': 'root', 'role': 'map'})
+        self.note('Wiki/topic.md', {'id': 'topic', 'role': 'map', 'parent': 'Wiki/root.md'})
+        self.note('Raw/input.md', {'id': 'input', 'moc': 'Wiki/topic.md'})
+        before = {p: p.read_bytes() for p in self.root.rglob('*.md')}
+        data = load_module().catalog(self.root)
+        self.assertEqual({(e['source'], e['kind'], e['target']) for e in data['edges']},
+                         {('root', 'groups', 'topic'), ('topic', 'groups', 'input')})
+        self.assertTrue(all(e['basis'] == 'primary_organization' for e in data['edges']))
+        self.assertEqual({n['id'] for n in load_module().focus(data, 'topic')['notes']},
+                         {'root', 'topic', 'input'})
+        self.assertEqual(before, {p: p.read_bytes() for p in before})
+
+    def test_primary_organization_rejects_cycles(self):
+        self.note('Wiki/a.md', {'id': 'a', 'role': 'map', 'parent': 'Wiki/b.md'})
+        self.note('Wiki/b.md', {'id': 'b', 'role': 'map', 'parent': 'Wiki/a.md'})
+        with self.assertRaisesRegex(ValueError, 'cyclic'):
+            load_module().catalog(self.root)
+
+    def test_identical_reverse_related_is_one_projected_connection(self):
+        self.note('Wiki/a.md', {'id': 'a', 'relations': [
+            {'kind': 'related', 'target': 'b', 'reason': 'Same question'}]})
+        self.note('Wiki/b.md', {'id': 'b', 'relations': [
+            {'kind': 'related', 'target': 'a', 'reason': 'Same question'}]})
+        data = load_module().catalog(self.root)
+        self.assertEqual(len(data['edges']), 1)
+        self.assertEqual(data['edges'][0]['also_declared_in'], ['Wiki/b.md'])
+        self.assertEqual({n['id'] for n in load_module().focus(data, 'b')['notes']}, {'a', 'b'})
+
+    def test_primary_organization_keeps_compatible_explicit_group_without_double_count(self):
+        self.note('Wiki/map.md', {'id': 'm1', 'role': 'map', 'relations': [
+            {'kind': 'groups', 'target': 's1', 'reason': 'Existing authored route'}]})
+        self.note('Raw/a.md', {'id': 's1', 'moc': 'Wiki/map.md'})
+        data = load_module().catalog(self.root)
+        self.assertEqual(len(data['edges']), 1)
+        self.assertEqual(data['edges'][0]['reason'], 'Existing authored route')
+
+    def test_primary_organization_refuses_invalid_or_out_of_catalog_paths(self):
+        self.note('Wiki/map.md', {'id': 'm1', 'role': 'map'})
+        for reference in ('../outside.md', 'Wiki/../Wiki/map.md', 'Missing/map.md', '[[Wiki/map]]', 42):
+            self.note('Raw/a.md', {'id': 's1', 'moc': reference})
+            with self.assertRaisesRegex(ValueError, 'Primary organization'):
+                load_module().catalog(self.root)
+
+    def test_related_with_distinct_reasons_is_not_semantically_merged(self):
+        self.note('Wiki/a.md', {'id': 'a', 'relations': [
+            {'kind': 'related', 'target': 'b', 'reason': 'Method selection'}]})
+        self.note('Wiki/b.md', {'id': 'b', 'relations': [
+            {'kind': 'related', 'target': 'a', 'reason': 'A different open question'}]})
+        data = load_module().catalog(self.root)
+        self.assertEqual(len(data['edges']), 2)
+
     def test_missing_target_and_unexplained_relation_rejected(self):
         self.note('Wiki/map.md', {'id': 'map-1', 'role': 'map', 'relations': [
             {'kind': 'groups', 'target': 'missing', 'reason': 'A question'}]})
@@ -207,6 +259,45 @@ class KnowledgeTests(unittest.TestCase):
         self.assertEqual(len(api.focus(api.catalog(self.root), 'm1', max_neighbors=0)['notes']), 1)
         with self.assertRaisesRegex(ValueError, 'Unknown focus'):
             api.focus(api.catalog(self.root), '../outside')
+
+    def test_typed_navigation_keeps_evidence_out_of_organizational_children(self):
+        source = self.note('Raw/a.md', {'id': 's1'})
+        anchor = {'source': 's1', 'sha256': hashlib.sha256(source.read_bytes()).hexdigest(),
+                  'locator': 'Synthetic paragraph'}
+        self.note('Wiki/p.md', {'id': 'p1'})
+        self.note('Wiki/map.md', {'id': 'm1', 'role': 'map', 'relations': [
+            {'kind': 'groups', 'target': 'c1', 'reason': 'A reading route'}]})
+        self.note('Wiki/c.md', {'id': 'c1', 'relations': [
+            {'kind': 'supported_by', 'target': 's1', 'reason': 'Synthetic support', 'evidence': [{**anchor}]},
+            {'kind': 'extends', 'target': 'p1', 'reason': 'Synthetic development', 'evidence': [{**anchor}]},
+            {'kind': 'contradicts', 'target': 'p1', 'reason': 'Synthetic tension', 'evidence': [{**anchor}]}]})
+        api = load_module()
+        view = api.markdown(api.focus(api.catalog(self.root), 'c1'), typed_navigation=True)
+        fields = api.metadata_from(view)
+        self.assertEqual(fields['title'], 'Lectura · c')
+        self.assertNotIn('Children', fields)
+        self.assertEqual(fields['Parent'], ['[[Wiki/map]]'])
+        self.assertEqual(fields['Evidence'], ['[[Raw/a]]'])
+        self.assertEqual(fields['BuildsOn'], ['[[Wiki/p]]'])
+        self.assertEqual(fields['Contrasts'], ['[[Wiki/p]]'])
+        self.assertIn('contradicts', view)
+        self.assertIn('supported_by', view)
+
+    def test_typed_navigation_cli_is_read_only_and_requires_a_focal_markdown_view(self):
+        self.note('Raw/a.md', {'id': 's1'})
+        self.note('Wiki/map.md', {'id': 'm1', 'role': 'map', 'relations': [
+            {'kind': 'groups', 'target': 's1', 'reason': 'Reading route'}]})
+        before = {p: p.read_bytes() for p in self.root.rglob('*.md')}
+        result = subprocess.run([sys.executable, str(MODULE), '--root', str(self.root),
+                                 '--focus', 'm1', '--format', 'markdown', '--typed-navigation'],
+                                capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('Children:', result.stdout)
+        rejected = subprocess.run([sys.executable, str(MODULE), '--root', str(self.root),
+                                   '--typed-navigation'], capture_output=True, text=True)
+        self.assertEqual(rejected.returncode, 2)
+        self.assertEqual(rejected.stdout, '')
+        self.assertEqual(before, {p: p.read_bytes() for p in before})
 
     def test_projection_is_navigable_without_rewriting_notes(self):
         source = self.note('Raw/a.md', {'id': 's1'})
@@ -327,6 +418,14 @@ class KnowledgeTests(unittest.TestCase):
         self.assertEqual({n['maturity'] for n in data['notes']}, {'seed', 'developing', 'evergreen'})
         self.assertTrue(all(not n['approval_available'] for n in data['notes']))
         self.assertEqual(before, {str(p): p.read_bytes() for p in self.root.rglob('*.md')})
+
+    def test_nonconcept_maturity_is_not_displayed_as_idea_development(self):
+        self.note('Raw/a.md', {'id': 's1', 'maturity': 'seed'})
+        self.note('Wiki/map.md', {'id': 'm1', 'role': 'map', 'maturity': 'seed'})
+        api = load_module()
+        data = api.catalog(self.root)
+        self.assertNotIn('Semilla', api.markdown(data))
+        self.assertEqual({n['maturity'] for n in data['notes']}, {'seed'})
 
     def test_foreign_note_unknown_maturity_is_not_presented_as_seed(self):
         (self.root / 'Reading').mkdir()
