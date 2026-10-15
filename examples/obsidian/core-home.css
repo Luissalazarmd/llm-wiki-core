@@ -87,3 +87,13 @@
 .core-home .callout:is([data-callout="core-proposals"], [data-callout="core-recent"]) { margin-block: 16px; }
 .core-home .callout:is([data-callout="core-proposals"], [data-callout="core-recent"]) .callout-title { font-size: 17px; margin-bottom: 10px; }
 .core-home .callout[data-callout="core-proposals"] .bases-view { max-height: 320px; overflow: auto; }
+
+/* Native single-group Bases uses a total footer instead of group summaries. */
+.core-home .bases-embed[src$="#Madurez"] .bases-view:has(.bases-table-container > .bases-table:only-child) .bases-table-footer {
+  display: block; width: auto !important; height: auto !important; border: none;
+}
+.core-home .bases-embed[src$="#Madurez"] .bases-view:has(.bases-table-container > .bases-table:only-child) .bases-table-footer > .bases-td { display: none; }
+.core-home .bases-embed[src$="#Madurez"] .bases-view:has(.bases-table-container > .bases-table:only-child) .bases-table-footer > .bases-td:last-child {
+  display: block; position: static !important; inset: auto !important;
+  width: auto !important; height: auto !important; border: none; padding: 8px 14px;
+}
