@@ -37,7 +37,7 @@
       "width": 730,
       "height": 260,
       "file": "Agents/README.md",
-      "subpath": "#Bibliotecario"
+      "subpath": "#Two responsibilities, one host"
     },
     {
       "id": "g-flujo",
@@ -115,7 +115,7 @@
       "width": 730,
       "height": 260,
       "file": "docs/architecture.md",
-      "subpath": "#Stable philosophy, flexible locations"
+      "subpath": "#Knowledge architecture"
     },
     {
       "id": "g-dimensiones",
@@ -232,7 +232,7 @@
       "width": 730,
       "height": 260,
       "file": "docs/architecture.md",
-      "subpath": "#Custody and optional surfaces"
+      "subpath": "#Knowledge architecture"
     }
   ],
   "edges": [
