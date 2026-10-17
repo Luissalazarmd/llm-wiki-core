@@ -1,9 +1,5 @@
 {
-  "version": "1.1",
-  "roles": ["source", "concept", "entity", "map", "project", "diagram"],
-  "maturity": ["seed", "developing", "evergreen"],
-  "review": ["unreviewed", "pending", "changes_requested", "accepted", "stale"],
-  "relations": ["groups", "related", "supported_by", "contradicts", "extends"],
-  "approval_authority": "actual-host-confirmation-and-library-policy",
-  "projection_mode": "read_only"
+  "version": "2.0",
+  "roles": ["source", "note", "map"],
+  "maturity": ["seed", "synthesis", "evergreen"]
 }

@@ -66,13 +66,13 @@ class SimpleJourneyTests(unittest.TestCase):
                       'locator': '## Método'}
             packet_path = work / 'proposal.json'
             import yaml
-            metadata = {'id': 'idea1', 'title': 'Métodos no equivalen a efectos', 'role': 'concept',
+            metadata = {'id': 'idea1', 'title': 'Métodos no equivalen a efectos', 'role': 'note',
                         'review': 'accepted', 'relations': [
                             {'kind': 'supported_by', 'target': 'source1',
                              'reason': 'Atribución ficticia al alcance del método, no evidencia real.',
                              'evidence': [anchor]}]}
             phases = [('seed', 'Pregunta: ¿describir un método permite concluir su efecto?'),
-                      ('developing', 'Argumento: una descripción metodológica no determina un efecto; falta medirlo.'),
+                      ('synthesis', 'Argumento: una descripción metodológica no determina un efecto; falta medirlo.'),
                       ('evergreen', 'Alcance acotado: distinguir descripción y medición; no se afirma un efecto real.')]
             for index, (maturity, explanation) in enumerate(phases):
                 draft = ('---\n' + yaml.safe_dump({**metadata, 'maturity': maturity}, allow_unicode=True)
@@ -95,7 +95,7 @@ class SimpleJourneyTests(unittest.TestCase):
                 self.assertEqual((vault / 'Wiki/Concepts/Idea.md').read_bytes(), draft.encode())
                 self.assertEqual(target.read_bytes(), original)
                 data = json.loads(cli('knowledge.py', '--root', str(vault)))
-                self.assertEqual(len([n for n in data['notes'] if n['role'] == 'concept']), 1)
+                self.assertEqual(len([n for n in data['notes'] if n['role'] == 'note']), 1)
                 idea = next(n for n in data['notes'] if n['id'] == 'idea1')
                 self.assertEqual(idea['maturity'], maturity)
                 self.assertEqual(idea['declared_review'], 'accepted')
