@@ -22,8 +22,5 @@ K-Plex position alone cannot show every meaning. Inspect arguments/details.
 
 [Projection](projection-reference.md) retains legacy roles/developing/review/relations
 without rewriting files. Review declarations are data, never approval. Notes/maps
-without IDs get temporary path locators.
-
-## One declaration, derived views
-
-See Declare a connection once above.
+without IDs get temporary path locators. [Short addresses](../examples/numbered-notes/README.md)
+retain identities across changes and retirement.
