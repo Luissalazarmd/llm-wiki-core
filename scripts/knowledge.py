@@ -18,6 +18,96 @@ import yaml
 ONTOLOGY = json.loads((Path(__file__).resolve().parents[1] / 'config/ontology.json').read_text())
 LEGACY_ROLES = {'concept': 'note', 'entity': 'note', 'project': 'note', 'diagram': 'note'}
 LEGACY_RELATIONS = {'groups', 'related', 'supported_by', 'contradicts', 'extends'}
+BODY_RELATIONS = {'Evidence': 'supported_by', 'Contrasts': 'contradicts',
+                  'BuildsOn': 'extends', 'Related': 'related', 'sources': 'supported_by'}
+
+
+def visible_body(text: str) -> list[str]:
+    """Keep line offsets while excluding frontmatter, comments and code examples."""
+    text = text.replace('\r\n', '\n')
+    text = re.sub(r'\A---\n.*?\n---(?:\n|$)',
+                  lambda m: '\n' * m[0].count('\n'), text, count=1, flags=re.S)
+    text = re.sub(r'<!--.*?(?:-->|\Z)', lambda m: '\n' * m[0].count('\n'), text, flags=re.S)
+    lines, fence = [], None
+    for line in text.splitlines():
+        marker = re.match(r'^\s{0,3}(`{3,}|~{3,})', line)
+        if fence:
+            if marker and marker[1][0] == fence[0] and len(marker[1]) >= len(fence):
+                fence = None
+            lines.append('')
+        elif marker:
+            fence = marker[1]
+            lines.append('')
+        elif line.startswith(('    ', '\t')):
+            lines.append('')
+        elif re.match(r'^#{1,6} ', line):
+            lines.append(line)
+        else:
+            lines.append(re.sub(r'(`+).*?\1', '', line))
+    return lines
+
+
+def resolve_native_link(link: str, paths: dict, bodies: dict, prefix: str) -> tuple[dict, str]:
+    """Resolve only an explicit catalog path and exact ATX heading; never broaden scope."""
+    match = re.fullmatch(r'\[\[([^\[\]|\n\r]+)(?:\|[^\[\]\n\r]+)?\]\]', link) if isinstance(link, str) else None
+    if not match:
+        raise ValueError('Native relation requires an explicit wikilink')
+    target, _, heading = match[1].partition('#')
+    if (target.startswith('/') or '/' not in target or '\\' in target or '%' in target
+            or any(part in ('', '.', '..') for part in target.split('/'))):
+        raise ValueError('Native relation requires a safe explicit catalog path')
+    if prefix:
+        if not target.startswith(prefix + '/'):
+            raise ValueError('Native link is outside the explicit link prefix')
+        target = target[len(prefix) + 1:]
+    target = target if target.endswith('.md') else target + '.md'
+    note = paths.get(target)
+    if note is None:
+        raise ValueError('Unresolved native relation: ' + target)
+    if '#' in match[1]:
+        headings = [m[1] for line in bodies[note['id']]
+                    if (m := re.match(r'^#{1,6} (.+?)(?:\s+#+)?\s*$', line))
+                    and not any(char in m[1] for char in '`*_[]<>')]
+        if not heading or headings.count(heading) != 1:
+            raise ValueError('Unresolved or ambiguous native heading: ' + match[1])
+    return note, heading
+
+
+def native_edges(notes: list, paths: dict, bodies: dict, declarations: list, prefix: str) -> list:
+    """Project declared body relationships with current-byte provenance, not truth or consent."""
+    result = []
+    ids = {note['id']: note for note in notes}
+    for source_id, field, links, line in declarations:
+        source = ids[source_id]
+        reason = (f'{field} declared at line {line}; read the adjacent argument.' if line is not None
+                  else f'{field} declared in frontmatter; inspect the cited sources.')
+        if line is not None:
+            following = bodies[source_id][line:]
+            paragraph = []
+            for candidate in following:
+                if not candidate.strip() and not paragraph:
+                    continue
+                if not candidate.strip() or candidate.startswith('#') or re.match(r'^\w+::', candidate):
+                    break
+                paragraph.append(candidate.strip())
+            argument = ' '.join(paragraph)
+            if argument and len(argument) <= 1024:
+                reason = argument
+        for link in links:
+            target, heading = resolve_native_link(link, paths, bodies, prefix)
+            kind = BODY_RELATIONS[field]
+            if kind == 'supported_by' and target['role'] != 'source':
+                raise ValueError('Evidence must resolve to a source')
+            anchors = ([{'source': target['id'], 'sha256': target['sha256'],
+                         'locator': '#' + heading if heading else 'document'}]
+                       if kind == 'supported_by' else [])
+            result.append({'source': source_id, 'target': target['id'], 'kind': kind,
+                           'reason': reason,
+                           'declared_in': source['path'], 'declared_field': field,
+                           'declared_line': line, 'declared_sha256': source['sha256'],
+                           'target_locator': '#' + heading if heading else 'document',
+                           'basis': 'native_declaration', 'review': 'unverified', 'evidence': anchors})
+    return result
 
 
 def metadata_from(text: str) -> dict:
@@ -95,15 +185,21 @@ def library_root(root: Path) -> Path:
     return root
 
 
-def catalog(root: Path, max_file_bytes: int = 262144, max_notes: int = 2000, allow_empty: bool = False) -> dict:
+def catalog(root: Path, max_file_bytes: int = 262144, max_notes: int = 2000,
+            allow_empty: bool = False, link_prefix: str = '') -> dict:
     """Project source identities and versions without editing captured files."""
     root = library_root(root)
+    if link_prefix and (link_prefix.startswith('/') or
+                        any(part in ('', '.', '..') for part in link_prefix.split('/')) or
+                        any(char in link_prefix for char in '\\[]#|\n\r%')):
+        raise ValueError('Invalid explicit link prefix')
     if not any(os.path.lexists(root / stage) for stage in ('Raw', 'Wiki')):
         raise ValueError('Strict mode requires Raw/ or Wiki/; use --mode existing with an explicit --scope for this library')
     notes = []
     edges = []
     seen = set()
     organization = []
+    bodies, declarations = {}, []
     total_bytes = 0
     for stage, path in sorted(note_paths(root, max_notes)):
         if len(notes) >= max_notes:
@@ -120,7 +216,13 @@ def catalog(root: Path, max_file_bytes: int = 262144, max_notes: int = 2000, all
             raise ValueError('Catalog exceeds total byte limit')
         text = raw.decode('utf-8')
         metadata = metadata_from(text)
+        body = visible_body(text)
         reference = metadata.get('Reference')
+        body_references = [line[len('Reference::'):].strip() for line in body if line.startswith('Reference::')]
+        if body_references:
+            if len(body_references) != 1 or reference is not None:
+                raise ValueError('Source reference must have one declaration')
+            reference = body_references[0]
         if reference is not None and (not isinstance(reference, str) or len(reference) > 2048):
             raise ValueError('Invalid Reference')
         declared_role = metadata.get('role', 'source' if stage == 'Raw' else 'note')
@@ -144,7 +246,8 @@ def catalog(root: Path, max_file_bytes: int = 262144, max_notes: int = 2000, all
                 raise ValueError('Invalid ' + key)
         if stage == 'Raw' and role != 'source':
             raise ValueError('Raw accepts source roles only')
-        note_id = metadata.get('id') or ('source:' + hashlib.sha256(identity.encode()).hexdigest() if reference else identity)
+        note_id = metadata.get('id') or ('source:' + hashlib.sha256(identity.encode()).hexdigest()
+                                       if reference else identity)
         if note_id in seen:
             raise ValueError('Duplicate identity; reconcile rather than overwrite')
         seen.add(note_id)
@@ -174,21 +277,45 @@ def catalog(root: Path, max_file_bytes: int = 262144, max_notes: int = 2000, all
                 'role': role, 'declared_role': declared_role,
                 'maturity': maturity if role == 'note' else 'unknown',
                 'declared_maturity': declared_maturity,
-                'declared_review': metadata.get('review'),
+                'declared_review': metadata.get('review'),  # Legacy data, never workflow state.
                 'review': 'unverified',
                 'approval_available': False,
                 'sha256': hashlib.sha256(raw).hexdigest(),
         })
+        bodies[note_id] = body
+        for line_number, line in enumerate(body, 1):
+            match = re.match(r'^(Evidence|Contrasts|BuildsOn|Related)::\s*(.*)$', line)
+            if not match:
+                continue
+            links = re.findall(r'\[\[[^\]\n]+\]\]', match[2])
+            remainder = re.sub(r'\[\[[^\]\n]+\]\]', '', match[2]).strip(' ,;')
+            if not links or remainder:
+                raise ValueError('Native field requires wikilinks only; put its argument in adjacent prose')
+            declarations.append((note_id, match[1], links, line_number))
+        if 'sources' in metadata:
+            if not isinstance(metadata['sources'], list) or any(not isinstance(x, str) for x in metadata['sources']):
+                raise ValueError('sources must be a list of explicit wikilinks')
+            declarations.append((note_id, 'sources', metadata['sources'], None))
         field = 'moc' if role == 'source' else 'parent' if role == 'map' else None
+        if 'up' in metadata:
+            if field and field in metadata:
+                raise ValueError('Primary organization must have one declaration')
+            field = 'up'
         if field and field in metadata and metadata[field] is not None:
             organization.append((note_id, relative, field, metadata[field]))
     if not notes and not allow_empty:
         raise ValueError('No notes in strict Raw/Wiki scope; use --mode existing with explicit --scope, or --allow-empty-strict only for an intentionally empty stage layout')
     ids = {note['id']: note for note in notes}
     paths = {note['path']: note for note in notes}
+    edges.extend(native_edges(notes, paths, bodies, declarations, link_prefix))
     grouped = {(edge['source'], edge['target']) for edge in edges if edge['kind'] == 'groups'}
     primary_parents = {}
     for child, declared_in, field, parent_path in organization:
+        if field == 'up':
+            parent, heading = resolve_native_link(parent_path, paths, bodies, link_prefix)
+            if heading:
+                raise ValueError('up must reference a map, not a section')
+            parent_path = parent['path']
         if (not isinstance(parent_path, str) or not parent_path.endswith('.md') or
                 parent_path.startswith('/') or any(part in ('', '.', '..') for part in parent_path.split('/'))):
             raise ValueError('Primary organization requires an exact relative Markdown path')
@@ -215,7 +342,8 @@ def catalog(root: Path, max_file_bytes: int = 262144, max_notes: int = 2000, all
         if edge['target'] not in ids:
             raise ValueError('Unresolved relation target: ' + edge['target'])
         anchors = edge['evidence']
-        if not isinstance(anchors, list) or (edge['kind'] in ('supported_by', 'contradicts', 'extends') and not anchors):
+        if not isinstance(anchors, list) or (edge['kind'] in ('supported_by', 'contradicts', 'extends')
+                and not anchors and edge.get('basis') != 'native_declaration'):
             raise ValueError('Evidence anchor required for factual relation')
         for anchor in anchors:
             if not isinstance(anchor, dict) or not all(isinstance(anchor.get(k), str) and anchor[k].strip()
@@ -230,7 +358,7 @@ def catalog(root: Path, max_file_bytes: int = 262144, max_notes: int = 2000, all
     unique = []
     related = {}
     for edge in edges:
-        if edge['kind'] != 'related':
+        if edge['kind'] != 'related' or edge.get('basis') == 'native_declaration':
             unique.append(edge)
             continue
         key = (tuple(sorted((edge['source'], edge['target']))), edge['reason'],
@@ -242,7 +370,14 @@ def catalog(root: Path, max_file_bytes: int = 262144, max_notes: int = 2000, all
         else:
             related[key] = edge
             unique.append(edge)
-    return {'notes': notes, 'edges': unique, 'mode': 'read_only', 'approval_available': False}
+    pairs = {}
+    for edge in unique:
+        pairs.setdefault(tuple(sorted((edge['source'], edge['target']))), set()).add(edge['kind'])
+    issues = [{'kind': 'multiple_relation_kinds', 'nodes': list(pair), 'relations': sorted(kinds),
+               'detail': 'One K-Plex region may hide a tension; inspect all declarations.'}
+              for pair, kinds in sorted(pairs.items()) if len(kinds) > 1]
+    return {'notes': notes, 'edges': unique, 'issues': issues,
+            'mode': 'read_only', 'approval_available': False}
 
 
 def discover(root: Path, scopes: list[str], max_notes: int = 200,
@@ -431,7 +566,8 @@ def focus(data: dict, identity: str, max_neighbors: int = 8, max_bytes: int = 16
             'neighbors_omitted': max(0, len(adjacent) - max_neighbors)}
     if 'issues' in data:
         selected_paths = {n['path'] for n in result['notes']}
-        result['issues'] = [issue for issue in data['issues'] if issue.get('path') in selected_paths]
+        result['issues'] = [issue for issue in data['issues'] if issue.get('path') in selected_paths
+                            or (issue.get('nodes') and set(issue['nodes']) <= selected)]
     if len(json.dumps(result, ensure_ascii=False).encode()) > max_bytes:
         raise ValueError('Selection exceeds context byte limit; narrow the focus')
     return result
@@ -482,6 +618,10 @@ def markdown(data: dict, language: str = 'es', typed_navigation: bool = False) -
               if language == 'es' else
               'Disposable view. Declared relations and states are unverified; this is not approval.')
     lines.extend(['---', '', heading, '', notice, ''])
+    if any(issue['kind'] == 'multiple_relation_kinds' for issue in data.get('issues', [])):
+        lines.extend(['Varias relaciones conectan la misma pareja; una posición en K-Plex no muestra todos sus significados.'
+                      if language == 'es' else
+                      'Multiple relations connect the same pair; one K-Plex position does not show every meaning.', ''])
     if typed_navigation:
         focal_label = 'Objeto focal' if language == 'es' else 'Focal object'
         legend = ('Parent/Children organiza; Evidence enlaza apoyo; Contrasts enlaza contraste; '
@@ -521,6 +661,7 @@ def main() -> int:
     parser.add_argument('--root', type=Path, required=True)
     parser.add_argument('--mode', choices=['strict', 'existing'], default='strict')
     parser.add_argument('--allow-empty-strict', action='store_true', help='explicitly permit an empty Raw/Wiki-only projection')
+    parser.add_argument('--link-prefix', default='', help='explicit vault prefix for a strict catalog rooted in a subfolder')
     parser.add_argument('--scope', action='append', default=[])
     parser.add_argument('--proposal-target', help='relative Markdown target; draft from stdin')
     parser.add_argument('--create', action='store_true', help='propose a new derived note at an absent target')
@@ -532,6 +673,8 @@ def main() -> int:
     parser.add_argument('--typed-navigation', action='store_true', help='typed fields for a disposable focal view')
     args = parser.parse_args()
     try:
+        if args.link_prefix and (args.mode != 'strict' or args.proposal_target):
+            raise ValueError('link-prefix is only available for strict projection')
         if args.typed_navigation and (not args.focus or args.format != 'markdown' or args.proposal_target):
             raise ValueError('Typed navigation requires focus and Markdown, not a proposal')
         if args.allow_empty_strict and (args.mode != 'strict' or args.proposal_target):
@@ -552,7 +695,7 @@ def main() -> int:
         else:
             if args.scope or args.evidence:
                 raise ValueError('scope is only available in existing mode; evidence needs proposal-target')
-            data = catalog(args.root, allow_empty=args.allow_empty_strict)
+            data = catalog(args.root, allow_empty=args.allow_empty_strict, link_prefix=args.link_prefix)
         if args.focus:
             data = focus(data, args.focus, args.neighbors)
         if args.format == 'markdown' and not args.focus:
