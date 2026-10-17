@@ -18,7 +18,7 @@ Una vista para orientarte. Un mapa para pensar.
 > [!core-proposals] Propuestas para revisar
 > ![[examples/obsidian/Biblioteca.base#Atencion]]
 >
-> Lista completa de propuestas sin aceptación declarada. [[examples/obsidian/Biblioteca.base#Atencion|Abrir todas las propuestas]].
+> Todas las propuestas de la carpeta seleccionada; la decisión humana se verifica en su contexto. [[examples/obsidian/Biblioteca.base#Atencion|Abrir todas las propuestas]].
 
 > [!core-recent] Editadas recientemente
 > ![[examples/obsidian/Biblioteca.base#Recientes]]
@@ -41,6 +41,6 @@ Semilla → Síntesis → Evergreen describe el desarrollo de ideas, no de origi
 > Fechas declaradas en las notas; no reconstruyen todas las ediciones ni el tamaño histórico de la biblioteca. **Medición histórica no iniciada.**
 
 > [!info]- Sobre este ejemplo
-> Todos los contenidos de lectura son **datos ficticios**, no hallazgos científicos ni decisiones humanas reales. Los estados son declaraciones de una fixture. El tablero consulta solo las carpetas seleccionadas del ejemplo; excluye contratos, controles y vistas de navegación. Los enlaces a los contratos de Core permiten entender el sistema sin copiar perfiles.
+> Todos los contenidos de lectura son **datos ficticios**, no hallazgos científicos ni decisiones humanas reales. La madurez es una declaración de la fixture, independiente de la revisión. El tablero consulta solo las carpetas seleccionadas del ejemplo; excluye contratos, controles y vistas de navegación. Los enlaces a los contratos de Core permiten entender el sistema sin copiar perfiles.
 >
 > [[examples/obsidian/README|Uso, adaptación y límites]].

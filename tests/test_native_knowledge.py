@@ -140,6 +140,18 @@ class NativeKnowledgeTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'Duplicate identity'):
             API.catalog(self.root)
 
+    def test_legacy_review_is_data_while_new_notes_require_no_review_metadata(self):
+        before = (self.root / 'Wiki/idea.md').read_bytes()
+        idea = next(n for n in API.catalog(self.root)['notes'] if n['path'] == 'Wiki/idea.md')
+        self.assertIsNone(idea['declared_review'])
+        self.assertEqual(idea['review'], 'unverified')
+        self.assertFalse(idea['approval_available'])
+        self.assertEqual((self.root / 'Wiki/idea.md').read_bytes(), before)
+        self.write('Wiki/legacy.md', 'role: note\nreview: accepted', '# Legacy')
+        legacy = next(n for n in API.catalog(self.root)['notes'] if n['path'] == 'Wiki/legacy.md')
+        self.assertEqual(legacy['declared_review'], 'accepted')
+        self.assertEqual(legacy['review'], 'unverified')
+        self.assertFalse(legacy['approval_available'])
 
 
 if __name__ == '__main__':

@@ -1,12 +1,10 @@
 ---
 id: demo:proposal:question-development
 title: Desarrollar la pregunta sobre sombra
-role: concept
-review: pending
+role: note
 tags:
 - demo
-relations: []
-maturity: developing
+maturity: synthesis
 created: '2026-09-01'
 proposed_target: Wiki/Concepts/Pregunta.md
 ---

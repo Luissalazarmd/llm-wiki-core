@@ -2,24 +2,7 @@
 id: demo:map:shade
 title: Sombras y confort
 role: map
-parent: Wiki/Maps/Indice.md
-relations:
-- kind: groups
-  target: demo:idea:question
-  reason: Selección de lectura ficticia; no acuerdo entre hallazgos.
-- kind: groups
-  target: demo:idea:synthesis
-  reason: Selección de lectura ficticia; no acuerdo entre hallazgos.
-- kind: groups
-  target: demo:idea:explanation
-  reason: Selección de lectura ficticia; no acuerdo entre hallazgos.
-- kind: groups
-  target: demo:idea:unknown
-  reason: Selección de lectura ficticia; no acuerdo entre hallazgos.
-- kind: groups
-  target: demo:entity:sensor
-  reason: Selección de lectura ficticia; no acuerdo entre hallazgos.
-
+up: '[[examples/obsidian/Wiki/Maps/Indice]]'
 ---
 
 > Ejemplo ficticio. No es evidencia científica ni una aprobación real.

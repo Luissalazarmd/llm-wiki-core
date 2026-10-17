@@ -2,13 +2,11 @@
 id: demo:source:B
 title: Informe ficticio B
 role: source
-review: unreviewed
 tags:
 - demo
-relations: []
 created: '2026-07-14'
 Reference: https://example.org/fictional-shade-b
-moc: Wiki/Maps/Sombras.md
+up: '[[examples/obsidian/Wiki/Maps/Sombras]]'
 ---
 
 > Ejemplo ficticio. No es evidencia científica ni una aprobación real.

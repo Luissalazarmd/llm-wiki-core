@@ -18,7 +18,7 @@ EXAMPLE = ROOT / 'examples' / 'obsidian'
 
 def reading_view(identity: str) -> str:
     """Resolve fixture IDs using the original projector, without changing notes."""
-    selected = knowledge.focus(knowledge.catalog(EXAMPLE), identity)
+    selected = knowledge.focus(knowledge.catalog(EXAMPLE, link_prefix='examples/obsidian'), identity)
     selected['notes'] = [{**note, 'path': 'examples/obsidian/' + note['path']}
                          for note in selected['notes']]
     return knowledge.markdown(selected, typed_navigation=True)
