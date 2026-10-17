@@ -1,31 +1,5 @@
 # Knowledge architecture
 
-## Stable philosophy, flexible locations
-
-- **Raw:** original captured inputs, source identity/provenance and versions. Sources are preserved, not moved through stages.
-- **Review:** proposed elaboration, evidence, uncertainty and exact changes awaiting human review.
-- **Wiki:** maintained derived knowledge retained through the library's actual permitted review/write process.
-
-These are logical responsibilities, not mandatory directory names or another library. Existing flat/grouped organization remains intact. Articles/projects select reusable sources and notes; they do not clone thematic collections. Every new Raw capture requires a connection to an existing MOC, an acyclic hierarchy to an explicitly declared root and tags from the library's taxonomy, verified under [Raw admission](raw-admission.md). Reuse maps rather than auto-creating a concept/MOC/diagram/folder. Missing classification blocks capture completion, not reading; no retroactive migration of old sources.
-
-The [ontology](ontology.md) separates note role, maturity and declared review. A seed can be reviewed; evergreen does not certify truth; metadata does not authenticate acceptance. Unknown external metadata remains unknown. Strict stable identities/version anchors and permissive temporary path locators are distinct modes, not an automatic migration.
-
-[Idea emergence](knowledge-workflow.md#idea-emergence) develops derived knowledge as Semilla → Síntesis → Evergreen, independent of organizational hierarchy and Raw → Review → Wiki custody. Selected ideas and originals inform an explicit new argument, not an automatic summary merge. The Bibliotecario justifies maturity and proposes exact changes for human review; no threshold-based promotion, new folders or maturity engine. Raw originals stay unchanged. Retained personal knowledge, author manuscript and public article are distinct surfaces and permissions.
-
-## Bibliotecario and agent host
-
-AGENTS → single profile → relevant action skill → permitted host/tools. Progressive adoption, read/connect, capture and review/save are procedures of the existing agent, not separate bots. Adoption maps a small existing selection to logical responsibilities and adapts one useful reviewed case in place; it adds no migration runtime, automatic classification or duplicate registry. Orquestador coordination can be another function of that same host. The host supplies reasoning, file access and actual human interaction. Core supplies small original helpers, not a vendor engine or model runtime.
-
-Current task → bounded discovery → selected originals/neighbors → explained relationships → exact proposal → human correction/confirmation → permitted saving → target verification/recovery. Ordinary wikilinks are navigation, not scientific evidence. Check every factual claim against exact sources/locators. Initiative stays within current scope; no background backlog ingestion.
-
-## Writer boundary
-
-Read-only/unknown permission means proposal-only. An explicitly editable plain library uses host file/history tools or optional one-note version/recovery checks. A managed library retains its own approved writer and stronger requirements. Core neither installs a particular writer nor replaces it with a new engine. See [writer selection](review-contract.md) and [plain helper limits](plain-saving.md).
-
-No model-written approval, config flag, hash, note checkbox or sync event creates human consent. If a library requires authenticated decisions, locks or durable receipts, preserve those requirements. Plain helper use assumes quiet cooperative single-writer operation; pause on concurrency/conflicts rather than promising safety it does not implement.
-
-## Custody and optional surfaces
-
-Markdown originals/maintained notes are the knowledge authority. Private settings are separate from shared instructions. Operational continuity reuses the existing project note/memory, not a mirrored library/queue. Credentials are never bibliography. Core checkout is not the user's library by default and no upload is implicit.
-
-Obsidian, K-Plex, Excalidraw, voice, sync and memory adapters are optional surfaces. Markdown projections do not prove graphical integration; synchronization transfers files, not permissions. Preserve source rights and explicit provider/publication scope. Technical independence of a vendor does not grant a public license or automatically establish legal clearance.
+Raw preserves originals, Review holds proposals, Wiki retains reviewed knowledge.
+The existing host follows [AGENTS](../AGENTS.md); [workflow](knowledge-workflow.md)
+and [ontology](ontology.md) define behavior. Projections are disposable views.
