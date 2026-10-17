@@ -1,10 +1,9 @@
 # Principles template
 
-Template only; not active personal context. Copy only into an authorized personal-memory store on request.
-
-Status: unconfirmed.
-Last confirmation: unknown.
+Private template; inactive until separately requested.
+Status: unconfirmed. Last confirmation: unknown.
 
 ## Confirmed criteria
 
-None. For each criterion, record the user's wording, confirmation date and source. Keep stable decision criteria here, not today's task list. Do not invent criteria from observed behavior. Replace or retire superseded criteria only with the user's direction.
+None. Preserve user wording, confirmation date/source and stable criteria.
+Change superseded criteria only at the user's direction; never infer them from behavior.

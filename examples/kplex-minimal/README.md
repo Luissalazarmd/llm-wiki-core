@@ -2,7 +2,8 @@
 
 This synthetic example tests source, note and map directly in K-Plex.
 The strict reader now accepts it with `--root examples/kplex-minimal --link-prefix examples/kplex-minimal`.
-This implements the first schema/navigation slice for issues #1 and #4. No personal migration is implied.
+This implements the first schema/navigation slice for issues #1 and #4; the current [handoff](../../docs/simplification-handoff.md) records the subsequent
+capture/review candidate. No personal migration is implied.
 
 ## Read the example
 
