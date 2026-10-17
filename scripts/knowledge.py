@@ -22,6 +22,22 @@ BODY_RELATIONS = {'Evidence': 'supported_by', 'Contrasts': 'contradicts',
                   'BuildsOn': 'extends', 'Related': 'related', 'sources': 'supported_by'}
 
 
+def source_reference(metadata: dict, body: list[str]) -> tuple[str | None, str | None]:
+    """Read one exact reference/version declaration without URL or edition inference."""
+    values = []
+    for field in ('Reference', 'Version'):
+        value = metadata.get(field)
+        declarations = [line[len(field) + 2:].strip() for line in body if line.startswith(field + '::')]
+        if declarations:
+            if len(declarations) != 1 or field in metadata:
+                raise ValueError(field + ' must have one declaration')
+            value = declarations[0]
+        if value is not None and (not isinstance(value, str) or not value.strip() or len(value) > 2048):
+            raise ValueError('Invalid ' + field)
+        values.append(value)
+    return tuple(values)
+
+
 def visible_body(text: str) -> list[str]:
     """Keep line offsets while excluding frontmatter, comments and code examples."""
     text = text.replace('\r\n', '\n')
@@ -200,6 +216,7 @@ def catalog(root: Path, max_file_bytes: int = 262144, max_notes: int = 2000,
     seen = set()
     organization = []
     bodies, declarations = {}, []
+    references = {}
     total_bytes = 0
     for stage, path in sorted(note_paths(root, max_notes)):
         if len(notes) >= max_notes:
@@ -217,14 +234,7 @@ def catalog(root: Path, max_file_bytes: int = 262144, max_notes: int = 2000,
         text = raw.decode('utf-8')
         metadata = metadata_from(text)
         body = visible_body(text)
-        reference = metadata.get('Reference')
-        body_references = [line[len('Reference::'):].strip() for line in body if line.startswith('Reference::')]
-        if body_references:
-            if len(body_references) != 1 or reference is not None:
-                raise ValueError('Source reference must have one declaration')
-            reference = body_references[0]
-        if reference is not None and (not isinstance(reference, str) or len(reference) > 2048):
-            raise ValueError('Invalid Reference')
+        reference, version = source_reference(metadata, body)
         declared_role = metadata.get('role', 'source' if stage == 'Raw' else 'note')
         if not isinstance(declared_role, str):
             raise ValueError('Invalid roles')
@@ -246,7 +256,13 @@ def catalog(root: Path, max_file_bytes: int = 262144, max_notes: int = 2000,
                 raise ValueError('Invalid ' + key)
         if stage == 'Raw' and role != 'source':
             raise ValueError('Raw accepts source roles only')
-        note_id = metadata.get('id') or ('source:' + hashlib.sha256(identity.encode()).hexdigest()
+        if role == 'source' and reference:
+            previous_versions = references.setdefault(reference, [])
+            if version is not None and version in previous_versions:
+                raise ValueError('Duplicate identity: source reference/version; reconcile rather than overwrite')
+            previous_versions.append(version)
+        reference_identity = (json.dumps([reference, version], ensure_ascii=False) if version else identity)
+        note_id = metadata.get('id') or ('source:' + hashlib.sha256(reference_identity.encode()).hexdigest()
                                        if reference else identity)
         if note_id in seen:
             raise ValueError('Duplicate identity; reconcile rather than overwrite')
@@ -272,6 +288,7 @@ def catalog(root: Path, max_file_bytes: int = 262144, max_notes: int = 2000,
         notes.append({
                 'id': note_id,
                 'source_identity': reference if stage == 'Raw' else None,
+                'source_version': version if role == 'source' else None,
                 'path': path.relative_to(root).as_posix(),
                 'title': title,
                 'role': role, 'declared_role': declared_role,
