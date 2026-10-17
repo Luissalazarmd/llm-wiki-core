@@ -27,7 +27,7 @@ class CaptureCheckTests(unittest.TestCase):
                          'capture_policy': {'roots': ['Maps/home.md'], 'taxonomy_path': 'Rules/taxonomy.md'}}
         self.config = self.base / 'personal.json'
         self.config.write_text(json.dumps(self.settings))
-        self.draft = '---\nReference: synthetic:source-a\nmoc: Maps/topic.md\ntags: [methods]\n---\n# Fictional source\nPreserved invented input.\n'
+        self.draft = '---\nReference: synthetic:source-a\nmoc: Maps/topic.md\ntags: [methods]\n---\n# Fictional source\nPreserved invented input.\n\n## Contexto de captura\nPregunta: ¿qué método describe? Contribuye una descripción para compararlo.\n'
 
     def call(self, *args, draft=None):
         return subprocess.run([sys.executable, str(BASE / 'scripts/capture_check.py'),
@@ -45,7 +45,7 @@ class CaptureCheckTests(unittest.TestCase):
             result = self.call(draft=self.draft.replace('Maps/topic.md', 'Maps/n0.md'))
             self.assertEqual(result.returncode, 0 if count == 32 else 2, result.stderr)
             if count == 32:
-                self.assertEqual(len(json.loads(result.stdout)['chain']), 32)
+                self.assertEqual(len(json.loads(result.stdout)['stronger_policy']['chain']), 32)
             else:
                 self.assertIn('32 nodes', result.stderr)
 
@@ -120,13 +120,13 @@ class CaptureCheckTests(unittest.TestCase):
         (self.root / 'Inputs/a.md').write_bytes(draft.encode())
         self.assertEqual(self.call('--saved', '--expected-sha256', expected, draft=draft).returncode, 0)
 
-    def test_capture_preflight_requires_policy_and_absent_destination(self):
+    def test_capture_preflight_accepts_missing_policy_but_requires_absent_destination(self):
         (self.root / 'Inputs/a.md').symlink_to(self.base / 'missing')
         self.assertEqual(self.call().returncode, 2)
         (self.root / 'Inputs/a.md').unlink()
         self.settings.pop('capture_policy')
         self.config.write_text(json.dumps(self.settings))
-        self.assertEqual(self.call().returncode, 2)
+        self.assertEqual(self.call().returncode, 0)
 
     def test_hierarchy_paths_must_be_exact_not_alias_or_wikilink(self):
         for moc in ('Maps/./topic.md', 'Maps//topic.md', '[[Maps/topic]]'):
@@ -149,8 +149,8 @@ class CaptureCheckTests(unittest.TestCase):
         result = self.call()
         self.assertEqual(result.returncode, 0, result.stderr)
         data = json.loads(result.stdout)
-        self.assertEqual(data['chain'], ['Maps/topic.md', 'Maps/home.md'])
-        self.assertEqual(data['tags'], ['methods'])
+        self.assertEqual(data['stronger_policy']['chain'], ['Maps/topic.md', 'Maps/home.md'])
+        self.assertEqual(data['stronger_policy']['tags'], ['methods'])
         self.assertEqual(data['status'], 'capture_structure_checked_not_saved')
         self.assertFalse(data['approval_available'])
         self.assertFalse((self.root / 'Inputs/a.md').exists())
@@ -162,6 +162,97 @@ class CaptureCheckTests(unittest.TestCase):
         verified = self.call('--saved', '--expected-sha256', data['check_sha256'])
         self.assertEqual(verified.returncode, 0, verified.stderr)
         self.assertEqual(json.loads(verified.stdout)['status'], 'capture_structure_and_saved_bytes_verified')
+
+    def simple(self, body='Related:: [[Maps/topic]]\nUseful route to the motivating question.'):
+        self.settings.pop('capture_policy', None)
+        self.config.write_text(json.dumps(self.settings))
+        return '---\ntitle: Fuente ficticia\n---\nReference:: fixture:one\nVersion:: v1\n\n' + body + '\n'
+
+    def test_simple_capture_needs_no_moc_taxonomy_or_new_notes(self):
+        draft = self.simple()
+        before = {p: (p.read_bytes(), p.stat().st_mtime_ns) for p in self.root.rglob('*.md')}
+        result = self.call(draft=draft)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        data = json.loads(result.stdout)
+        self.assertEqual(data['connection']['kind'], 'existing_notes')
+        self.assertEqual(data['identity']['version'], 'v1')
+        self.assertEqual(data['stronger_policy'], {})
+        self.assertEqual(before, {p: (p.read_bytes(), p.stat().st_mtime_ns) for p in before})
+        (self.root / 'Inputs/a.md').write_bytes(draft.encode())
+        self.assertEqual(self.call('--saved', '--expected-sha256', data['check_sha256'], draft=draft).returncode, 0)
+
+    def test_chat_question_persists_in_capture_without_placeholder(self):
+        draft = self.simple('## Contexto de captura\n¿El horario cambia la comparación? '
+                            'Este informe aporta el método, todavía no una respuesta.\n\n## Original\nTexto ficticio.')
+        result = self.call(draft=draft)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout)['connection']['kind'], 'persisted_question')
+        for body in ('', '## Contexto de captura\n', '```md\nRelated:: [[Maps/topic]]\n```',
+                     '<!-- [[Maps/topic]] -->', '[[Inputs/a]]', '[[Maps/missing]]',
+                     '[[Maps/topic#Missing]]', '[[Maps/../topic]]', '[[topic]]'):
+            with self.subTest(body=body):
+                self.assertEqual(self.call(draft=self.simple(body)).returncode, 2)
+
+    def test_identity_and_duplicate_reference_version_are_checked(self):
+        draft = self.simple()
+        for invalid in (draft.replace('title: Fuente ficticia', ''), draft.replace('Reference:: fixture:one', ''),
+                        draft.replace('Version:: v1', 'Version::'),
+                        draft.replace('Reference:: fixture:one', 'Reference:: fixture:one\nReference:: other')):
+            self.assertEqual(self.call(draft=invalid).returncode, 2)
+        other = self.root / 'Inputs/other.md'
+        for version in ('v1', None, 'v2'):
+            other.write_text('---\nid: distinct-id\nReference: fixture:one\n' +
+                             ('Version: ' + version + '\n' if version else '') + '---\nOld version')
+            result = self.call(draft=draft)
+            self.assertEqual(result.returncode, 0 if version == 'v2' else 2, result.stderr)
+        self.assertEqual(self.call(draft=draft.replace('Version:: v1\n', '')).returncode, 2)
+
+    def test_duplicate_scope_and_connection_drift_require_new_check(self):
+        draft = self.simple()
+        expected = json.loads(self.call(draft=draft).stdout)['check_sha256']
+        other = self.root / 'Inputs/other.md'
+        other.write_text('Reference:: fixture:other\n')
+        self.assertEqual(self.call('--expected-sha256', expected, draft=draft).returncode, 2)
+        other.unlink()
+        topic = self.root / 'Maps/topic.md'
+        topic.write_bytes(topic.read_bytes() + b'Later work\n')
+        self.assertEqual(self.call('--expected-sha256', expected, draft=draft).returncode, 2)
+
+    def test_duplicate_search_is_bounded_scoped_and_refuses_symlinks(self):
+        draft = self.simple()
+        outside = self.root / 'private.md'
+        outside.write_text('Reference:: fixture:one\nVersion:: v1\n')
+        self.assertEqual(self.call(draft=draft).returncode, 0)
+        (self.root / 'Inputs/linked.md').symlink_to(outside)
+        self.assertEqual(self.call(draft=draft).returncode, 2)
+        (self.root / 'Inputs/linked.md').unlink()
+        (self.root / 'Inputs/huge.md').write_bytes(b'x' * 262145)
+        self.assertEqual(self.call(draft=draft).returncode, 2)
+
+    def test_capture_connection_reads_have_a_fixed_link_limit(self):
+        for count in (50, 51):
+            result = self.call(draft=self.simple('[[Maps/topic]]\n' * count))
+            self.assertEqual(result.returncode, 0 if count == 50 else 2, result.stderr)
+
+    def test_existing_source_ids_and_capture_role_are_preserved(self):
+        draft = self.simple().replace('title: Fuente ficticia', 'id: "012"\ntitle: Fuente ficticia')
+        (self.root / 'Inputs/prior.md').write_text('---\nid: "012"\nReference: other:source\n---\n')
+        self.assertEqual(self.call(draft=draft).returncode, 2)
+        for invalid in (draft.replace('id: "012"', 'id: 12'), draft.replace('id: "012"', 'id: ""'),
+                        draft.replace('title: Fuente ficticia', 'role: note\ntitle: Fuente ficticia')):
+            self.assertEqual(self.call(draft=invalid).returncode, 2)
+
+    def test_source_removal_and_scope_change_invalidate_recheck(self):
+        draft = self.simple()
+        source = self.root / 'Inputs/another.md'
+        source.write_text('Reference:: fixture:another\n')
+        expected = json.loads(self.call(draft=draft).stdout)['check_sha256']
+        source.unlink()
+        self.assertEqual(self.call('--expected-sha256', expected, draft=draft).returncode, 2)
+        source.write_text('Reference:: fixture:another\n')
+        self.settings['authorized_paths'].append('Maps/topic.md')
+        self.config.write_text(json.dumps(self.settings))
+        self.assertEqual(self.call('--expected-sha256', expected, draft=draft).returncode, 2)
 
 
 if __name__ == '__main__':
