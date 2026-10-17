@@ -1,5 +1,12 @@
 # Optional Obsidian workbench
 
+For the proposed three-role navigation model, review the separate
+[minimal K-Plex candidate](../kplex-minimal/README.md). It does not replace this
+workbench or its current ontology; its native navigation results and remaining
+acceptance limits are recorded separately.
+
+An original, synthetic example of three complementary surfaces: a native Bases Home, K-Plex-oriented knowledge navigation and a native architecture Canvas. It is not a new knowledge engine, a required vault layout, an installer or an approval UI. Internal contracts remain English; sample UI and note prose are Spanish.
+
 ## Run safely
 
 From the Core checkout, using the existing Python/PyYAML environment:
@@ -28,7 +35,7 @@ K-Plex is optional and not bundled. The native minimal-fixture interface tested 
 
 The example now stores `up` wikilinks and body Evidence/Contrasts/BuildsOn declarations in original notes. K-Plex can navigate those originals directly; the strict reader projects the same declarations without a parallel edge store. Maps retain their authored reading arguments and inverses derive from `up`. The fixture's redundant generic link on its contrast pair was replaced by explanatory prose so it does not mask the tension in K-Plex.
 
-The disposable reading view remains available. It prefers specific adapter fields over Related, while K-Plex itself can resolve conflicting native roles into its friend region. The reader reports multiple relation kinds for inspection; source presence and graph position do not prove scientific support. See native observations recorded in the later focused-fixture slice. These observations do not certify the revised full Home/Base/Canvas layout.
+The disposable reading view remains available. It prefers specific adapter fields over Related, while K-Plex itself can resolve conflicting native roles into its friend region. The reader reports multiple relation kinds for inspection; source presence and graph position do not prove scientific support. See [native observations and limits](../kplex-minimal/VALIDATION.md). These observations do not certify the revised full Home/Base/Canvas layout.
 
 The host can reproject one selected view using `knowledge.py --root ROOT --focus ID --format markdown --typed-navigation`; it writes stdout only. The materializer prepares that selection for the example. Saving/refreshing a real library view is a separately authorized host operation outside Raw/Review/Wiki, not a watcher or a compulsory view per article. Only bundled synthetic fixtures were adapted; no personal capture is rewritten.
 

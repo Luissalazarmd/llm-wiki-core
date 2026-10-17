@@ -1,0 +1,21 @@
+{
+  "noteTypeField": "role",
+  "inferAllLinksAsFriends": true,
+  "hierarchy": {
+    "exclusions": [],
+    "parents": [
+      "up"
+    ],
+    "children": [],
+    "leftFriends": [
+      "Evidence",
+      "sources"
+    ],
+    "rightFriends": [
+      "Contrasts"
+    ],
+    "previous": [],
+    "next": [],
+    "hidden": []
+  }
+}
