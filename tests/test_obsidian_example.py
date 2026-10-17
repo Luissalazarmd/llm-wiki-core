@@ -77,10 +77,10 @@ class ObsidianExampleTests(unittest.TestCase):
         before = {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in files}
         data = api.catalog(EXAMPLE)
         self.assertEqual(Counter(n['role'] for n in data['notes']),
-                         {'source': 2, 'concept': 4, 'entity': 1, 'map': 2})
-        concepts = [n for n in data['notes'] if n['role'] == 'concept']
+                         {'source': 2, 'note': 5, 'map': 2})
+        concepts = [n for n in data['notes'] if n['role'] == 'note']
         self.assertEqual(Counter(n['maturity'] for n in concepts),
-                         {'seed': 1, 'developing': 1, 'evergreen': 1, 'unknown': 1})
+                         {'seed': 2, 'synthesis': 1, 'evergreen': 1, 'unknown': 1})
         self.assertTrue(any(n['maturity'] == 'seed' and n['declared_review'] == 'accepted' for n in concepts))
         self.assertTrue(any(n['maturity'] == 'evergreen' and n['declared_review'] == 'stale' for n in concepts))
         self.assertTrue(all(not n['approval_available'] for n in data['notes']))

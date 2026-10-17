@@ -49,6 +49,7 @@ class ExistingLibraryTests(unittest.TestCase):
         module = api()
         for value, spanish, english in (('seed', 'Semilla', 'Seed'),
                                          ('developing', 'Síntesis', 'Synthesis'),
+                                         ('synthesis', 'Síntesis', 'Synthesis'),
                                          ('evergreen', 'Evergreen', 'Evergreen')):
             raw = f'---\r\nmaturity: {value}\r\nreview: accepted\r\n---\r\nSynthetic.\r\n'.encode()
             target = self.root / 'Reading/one.md'

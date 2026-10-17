@@ -103,7 +103,7 @@ class KnowledgeTests(unittest.TestCase):
         self.assertEqual(first['notes'][0]['sha256'], second['notes'][0]['sha256'])
         self.assertEqual(dest.read_bytes(), before)
         self.assertEqual(second['notes'][0]['role'], 'source')
-        self.assertEqual(second['notes'][0]['review'], 'unreviewed')
+        self.assertEqual(second['notes'][0]['review'], 'unverified')
 
     def test_symlink_escape_rejected(self):
         outside = self.root / 'outside.md'
@@ -150,7 +150,8 @@ class KnowledgeTests(unittest.TestCase):
                                  'maturity': 'seed', 'review': 'accepted'})
         item = load_module().catalog(self.root)['notes'][0]
         self.assertEqual(item['role'], 'map')
-        self.assertEqual(item['maturity'], 'seed')
+        self.assertEqual(item['maturity'], 'unknown')
+        self.assertEqual(item['declared_maturity'], 'seed')
         self.assertEqual(item['declared_review'], 'accepted')
         self.assertEqual(item['review'], 'unverified')
         self.assertFalse(item['approval_available'])
@@ -412,10 +413,10 @@ class KnowledgeTests(unittest.TestCase):
         spanish = api.markdown(data)
         english = api.markdown(data, 'en')
         for path, label in (('seed', 'Semilla'), ('developing', 'Síntesis'), ('evergreen', 'Evergreen')):
-            self.assertIn(f'[[Wiki/{path}]] — concept; {label}; unverified', spanish)
-        self.assertIn('[[Wiki/developing]] — concept; Synthesis; unverified', english)
+            self.assertIn(f'[[Wiki/{path}]] — note; {label}; unverified', spanish)
+        self.assertIn('[[Wiki/developing]] — note; Synthesis; unverified', english)
         self.assertEqual(json.dumps(data, sort_keys=True), original)
-        self.assertEqual({n['maturity'] for n in data['notes']}, {'seed', 'developing', 'evergreen'})
+        self.assertEqual({n['maturity'] for n in data['notes']}, {'seed', 'synthesis', 'evergreen'})
         self.assertTrue(all(not n['approval_available'] for n in data['notes']))
         self.assertEqual(before, {str(p): p.read_bytes() for p in self.root.rglob('*.md')})
 
@@ -425,7 +426,7 @@ class KnowledgeTests(unittest.TestCase):
         api = load_module()
         data = api.catalog(self.root)
         self.assertNotIn('Semilla', api.markdown(data))
-        self.assertEqual({n['maturity'] for n in data['notes']}, {'seed'})
+        self.assertEqual({n['maturity'] for n in data['notes']}, {'unknown'})
 
     def test_foreign_note_unknown_maturity_is_not_presented_as_seed(self):
         (self.root / 'Reading').mkdir()

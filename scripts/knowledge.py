@@ -16,6 +16,8 @@ sys.dont_write_bytecode = True
 import yaml
 
 ONTOLOGY = json.loads((Path(__file__).resolve().parents[1] / 'config/ontology.json').read_text())
+LEGACY_ROLES = {'concept': 'note', 'entity': 'note', 'project': 'note', 'diagram': 'note'}
+LEGACY_RELATIONS = {'groups', 'related', 'supported_by', 'contradicts', 'extends'}
 
 
 def metadata_from(text: str) -> dict:
@@ -121,23 +123,28 @@ def catalog(root: Path, max_file_bytes: int = 262144, max_notes: int = 2000, all
         reference = metadata.get('Reference')
         if reference is not None and (not isinstance(reference, str) or len(reference) > 2048):
             raise ValueError('Invalid Reference')
+        declared_role = metadata.get('role', 'source' if stage == 'Raw' else 'note')
+        if not isinstance(declared_role, str):
+            raise ValueError('Invalid roles')
+        role = LEGACY_ROLES.get(declared_role, declared_role)
         identity = metadata.get('id') or reference
+        if identity is None and role in ('note', 'map'):
+            identity = 'path:' + relative
         if 'id' in metadata and (not isinstance(metadata['id'], str) or not metadata['id'].strip()):
             raise ValueError('Explicit id must be a nonempty string')
         if not isinstance(identity, str) or not identity.strip():
             raise ValueError('Note requires stable identity: id or Reference')
 
-        role = metadata.get('role', 'source' if stage == 'Raw' else 'concept')
-        maturity = metadata.get('maturity', 'unknown')
-        declared = metadata.get('review', 'unreviewed')
-        for key, value in [('roles', role), ('maturity', maturity), ('review', declared)]:
+        declared_maturity = metadata.get('maturity')
+        maturity = 'synthesis' if declared_maturity == 'developing' else metadata.get('maturity', 'unknown')
+        for key, value in [('roles', role), ('maturity', maturity)]:
             if key == 'maturity' and 'maturity' not in metadata:
                 continue
             if value not in ONTOLOGY[key]:
                 raise ValueError('Invalid ' + key)
         if stage == 'Raw' and role != 'source':
             raise ValueError('Raw accepts source roles only')
-        note_id = metadata.get('id') or 'source:' + hashlib.sha256(identity.encode()).hexdigest()
+        note_id = metadata.get('id') or ('source:' + hashlib.sha256(identity.encode()).hexdigest() if reference else identity)
         if note_id in seen:
             raise ValueError('Duplicate identity; reconcile rather than overwrite')
         seen.add(note_id)
@@ -150,7 +157,7 @@ def catalog(root: Path, max_file_bytes: int = 262144, max_notes: int = 2000, all
         if not isinstance(relations, list):
             raise ValueError('relations must be a list')
         for relation in relations:
-            if not isinstance(relation, dict) or relation.get('kind') not in ONTOLOGY['relations']:
+            if not isinstance(relation, dict) or relation.get('kind') not in LEGACY_RELATIONS:
                 raise ValueError('Invalid relation kind')
             if not all(isinstance(relation.get(k), str) and relation[k].strip() for k in ('target', 'reason')):
                 raise ValueError('Relation requires target and reason')
@@ -164,9 +171,11 @@ def catalog(root: Path, max_file_bytes: int = 262144, max_notes: int = 2000, all
                 'source_identity': reference if stage == 'Raw' else None,
                 'path': path.relative_to(root).as_posix(),
                 'title': title,
-                'role': role, 'maturity': maturity,
-                'declared_review': declared,
-                'review': 'unreviewed' if declared == 'unreviewed' else 'unverified',
+                'role': role, 'declared_role': declared_role,
+                'maturity': maturity if role == 'note' else 'unknown',
+                'declared_maturity': declared_maturity,
+                'declared_review': metadata.get('review'),
+                'review': 'unverified',
                 'approval_available': False,
                 'sha256': hashlib.sha256(raw).hexdigest(),
         })
@@ -302,7 +311,7 @@ def discover(root: Path, scopes: list[str], max_notes: int = 200,
             issues.append({'path': relative, 'kind': 'unsupported_title'})
         note_id = 'path:' + relative
         declared_maturity = properties.get('maturity')
-        if not isinstance(declared_maturity, str) or declared_maturity not in ONTOLOGY['maturity']:
+        if not isinstance(declared_maturity, str) or declared_maturity not in (*ONTOLOGY['maturity'], 'developing'):
             if 'maturity' in properties:
                 issues.append({'path': relative, 'kind': 'unsupported_maturity'})
             declared_maturity = None
@@ -481,17 +490,17 @@ def markdown(data: dict, language: str = 'es', typed_navigation: bool = False) -
                   'Parent/Children organizes; Evidence links support; Contrasts links tension; '
                   'BuildsOn/DevelopedBy shows development. These are declarations, not scientific validation.')
         lines.extend([f'{focal_label}: [[{notes[center]["path"][:-3]}]].', '', legend, ''])
-    maturity_labels = ({'seed': 'Semilla', 'developing': 'Síntesis', 'evergreen': 'Evergreen',
+    maturity_labels = ({'seed': 'Semilla', 'developing': 'Síntesis', 'synthesis': 'Síntesis', 'evergreen': 'Evergreen',
                         'unknown': 'Desconocida'} if language == 'es' else
-                       {'seed': 'Seed', 'developing': 'Synthesis', 'evergreen': 'Evergreen',
+                       {'seed': 'Seed', 'developing': 'Synthesis', 'synthesis': 'Synthesis', 'evergreen': 'Evergreen',
                         'unknown': 'Unknown'})
     for note in data['notes']:
-        if note['role'] in ('source', 'entity', 'map', 'project', 'diagram'):
+        if note['role'] in ('source', 'map'):
             lines.append(f'- [[{note["path"][:-3]}]] — {note["role"]}; {note["review"]}')
             continue
         maturity = maturity_labels[note['maturity']]
         declared_maturity = note.get('declared_maturity')
-        if data.get('mode') == 'existing_library_read_only' and declared_maturity in ('seed', 'developing', 'evergreen'):
+        if data.get('mode') == 'existing_library_read_only' and declared_maturity in maturity_labels:
             label = maturity_labels[declared_maturity]
             maturity = (f'madurez declarada: {label} — no verificada' if language == 'es' else
                         f'declared maturity: {label} — unverified')
