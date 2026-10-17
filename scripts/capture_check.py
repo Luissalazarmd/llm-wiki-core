@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 import sys
 
@@ -21,29 +22,17 @@ def read_note(settings, relative):
     path = library.authorize(Path(settings['library_root']), settings['authorized_paths'], relative)
     if (path.suffix != '.md' or not path.is_file()
             or path.relative_to(Path(settings['library_root'])).as_posix() != relative):
-        raise ValueError('Hierarchy and taxonomy must be regular Markdown files')
+        raise ValueError('Capture dependencies must be exact regular Markdown files')
     with path.open('rb') as stream:
         raw = stream.read(LIMIT + 1)
     if len(raw) > LIMIT:
-        raise ValueError('Hierarchy or taxonomy file exceeds byte limit')
+        raise ValueError('Capture dependency exceeds byte limit')
     return raw, knowledge.metadata_from(raw.decode('utf-8').replace('\r\n', '\n'))
 
 
-def check(settings, target, draft, saved=False, expected=None):
-    policy = settings.get('capture_policy')
-    if policy is None:
-        raise ValueError('Capture requires an explicit hierarchy and taxonomy policy')
-    root = Path(settings['library_root'])
-    destination = (library.authorize(root, settings['authorized_paths'], target) if saved else
-                   library.authorize(root, settings['authorized_paths'], target, create=True))
-    if destination.suffix != '.md' or not any(
-            destination.is_relative_to(root / source) for source in settings['layers'].get('sources', [])):
-        raise ValueError('Capture target must be within a declared source location')
-    if destination.name == 'AGENTS.md':
-        raise ValueError('Capture cannot create agent instructions')
-    if len(draft) > LIMIT or not draft.strip():
-        raise ValueError('Capture draft must be nonempty and bounded')
-    metadata = knowledge.metadata_from(draft.decode('utf-8').replace('\r\n', '\n'))
+def hierarchy(settings, metadata):
+    """Honor an explicitly configured stronger library policy; never require one."""
+    policy = settings['capture_policy']
     fields = {'moc': 'moc', 'parent': 'parent', 'role': 'role', 'tags': 'tags', 'taxonomy_tags': 'tags',
               **policy.get('fields', {})}
     moc = metadata.get(fields['moc'])
@@ -83,11 +72,107 @@ def check(settings, target, draft, saved=False, expected=None):
         if not isinstance(parent, str) or not parent.strip():
             raise ValueError('MOC hierarchy must reach an explicit configured root')
         current = parent
-    binding = {'target': target, 'draft_sha256': digest(draft), 'chain': chain,
-               'tags': tags, 'dependencies': dependencies, 'policy': policy}
+    return {'chain': chain, 'tags': tags, 'dependencies': dependencies, 'policy': policy}
+
+
+def connection(settings, body, target):
+    """Bind real outgoing note links or persist chat context in the capture itself."""
+    dependencies, links = [], []
+    text = '\n'.join(body)
+    for match in re.finditer(r'(?<!!)\[\[[^\]\n]+\]\]', text):
+        if len(links) >= 50:
+            raise ValueError('Capture connection exceeds 50 links; narrow the draft or use a verified equivalent')
+        link = match[0]
+        destination = link[2:-2].split('|', 1)[0].split('#', 1)[0]
+        relative = destination if destination.endswith('.md') else destination + '.md'
+        if relative == target:
+            raise ValueError('A capture cannot connect only to itself')
+        raw, _ = read_note(settings, relative)
+        note = {'id': relative, 'path': relative}
+        knowledge.resolve_native_link(link, {relative: note},
+                                      {relative: knowledge.visible_body(raw.decode('utf-8'))}, '')
+        dependencies.append({'path': relative, 'sha256': digest(raw)})
+        links.append(link)
+    if links:
+        return {'kind': 'existing_notes', 'links': links}, dependencies
+    # Context is authored annotation, separated from the preserved original.
+    for index, line in enumerate(body):
+        if line not in ('## Capture context', '## Contexto de captura'):
+            continue
+        paragraph = []
+        for following in body[index + 1:]:
+            if following.startswith('#'):
+                break
+            paragraph.append(following)
+        context = '\n'.join(paragraph).strip()
+        if context and re.search(r'[^\W\d_]', context):
+            return {'kind': 'persisted_question', 'context': context}, []
+    raise ValueError('Capture requires an existing note link or a persistent capture-context question and contribution')
+
+
+def source_inventory(settings, target, reference, version, identifier):
+    root = Path(settings['library_root'])
+    scopes = settings['layers'].get('sources', [])
+    if not scopes:
+        raise ValueError('Declare the authorized source locations before checking duplicates')
+    entries = library.inventory(root, scopes, max_entries=2000)
+    inventory, total = [], 0
+    for path in entries:
+        relative = path.relative_to(root).as_posix()
+        if path.is_dir() or path.suffix != '.md' or relative == target:
+            continue
+        raw, metadata = read_note(settings, relative)
+        total += len(raw)
+        if total > 16777216:
+            raise ValueError('Capture duplicate search exceeds total byte limit; use a verified library equivalent')
+        previous_ref, previous_version = knowledge.source_reference(
+            metadata, knowledge.visible_body(raw.decode('utf-8')))
+        if identifier is not None and metadata.get('id') == identifier:
+            raise ValueError('Duplicate source id at ' + relative + '; preserve existing identity')
+        if previous_ref == reference:
+            if previous_version == version or previous_version is None or version is None:
+                raise ValueError('Duplicate reference/version or unknown version at ' + relative + '; reuse or reconcile')
+        inventory.append({'path': relative, 'sha256': digest(raw)})
+    return inventory
+
+
+def check(settings, target, draft, saved=False, expected=None):
+    root = Path(settings['library_root'])
+    destination = (library.authorize(root, settings['authorized_paths'], target) if saved else
+                   library.authorize(root, settings['authorized_paths'], target, create=True))
+    if (destination.relative_to(root).as_posix() != target or destination.suffix != '.md'
+            or not any(destination.is_relative_to(root / source)
+                       for source in settings['layers'].get('sources', []))):
+        raise ValueError('Capture target must be an exact path within a declared source location')
+    if destination.name.casefold() in ('agents.md', 'skill.md', 'claude.md'):
+        raise ValueError('Capture cannot create agent instructions')
+    if len(draft) > LIMIT or not draft.strip():
+        raise ValueError('Capture draft must be nonempty and bounded')
+    text = draft.decode('utf-8')
+    metadata = knowledge.metadata_from(text)
+    if metadata.get('role', 'source') != 'source':
+        raise ValueError('A capture preserves an original source, not a derived note')
+    body = knowledge.visible_body(text)
+    reference, version = knowledge.source_reference(metadata, body)
+    identifier = metadata.get('id')
+    if 'id' in metadata and (not isinstance(identifier, str) or not identifier.strip() or len(identifier) > 2048):
+        raise ValueError('Explicit id must be a bounded nonempty string')
+    title = metadata.get('title', metadata.get('Title'))
+    if title is None:
+        title = next((line[2:].strip() for line in body if line.startswith('# ')), None)
+    if not reference or not isinstance(title, str) or not title.strip() or len(title) > 512:
+        raise ValueError('Capture identity requires a title and Reference')
+    connected, dependencies = connection(settings, body, target)
+    inventory = source_inventory(settings, target, reference, version, identifier)
+    stronger = hierarchy(settings, metadata) if settings.get('capture_policy') is not None else {}
+    binding = {'target': target, 'draft_sha256': digest(draft),
+               'identity': {'title': title, 'reference': reference, 'version': version},
+               'connection': connected, 'dependencies': dependencies, 'source_inventory': inventory,
+               'scope': {'root': str(root), 'sources': settings['layers']['sources'],
+                         'authorized_paths': settings['authorized_paths']}, 'stronger_policy': stronger}
     check_hash = digest(json.dumps(binding, sort_keys=True, ensure_ascii=False, separators=(',', ':')).encode())
     if expected is not None and expected != check_hash:
-        raise ValueError('Capture draft, hierarchy, taxonomy or policy changed; review again')
+        raise ValueError('Capture draft, connection, duplicate scope or policy changed; review again')
     if saved:
         if expected is None:
             raise ValueError('Saved capture verification requires the pre-write check hash')

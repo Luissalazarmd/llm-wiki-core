@@ -1,5 +1,4 @@
 """Synthetic capture -> navigation -> one evolving idea, not human approval."""
-import hashlib
 import json
 import os
 from pathlib import Path
@@ -16,19 +15,15 @@ class SimpleJourneyTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix='core-simple-journey-') as directory:
             work = Path(directory)
             vault = work / 'library'
-            for folder in ('Raw/Sources', 'Wiki/Maps', 'Wiki/Concepts', 'config'):
+            for folder in ('Raw/Sources', 'Wiki/Maps', 'Wiki/Concepts'):
                 (vault / folder).mkdir(parents=True, exist_ok=True)
             (work / 'recovery').mkdir()
-            (vault / 'Wiki/Maps/Indice.md').write_text('---\nid: root\nrole: map\n---\n# Índice ficticio\n')
-            (vault / 'Wiki/Maps/Tema.md').write_text(
-                '---\nid: topic\nrole: map\nparent: Wiki/Maps/Indice.md\n---\n# Recorrido ficticio\n')
-            (vault / 'config/taxonomy.md').write_text('---\ntags: [demo]\n---\n# Taxonomía ficticia\n')
+            (vault / 'Wiki/Maps/Tema.md').write_text('---\nid: topic\nrole: map\n---\n# Recorrido ficticio\n')
             settings = work / 'personal.json'
             settings.write_text(json.dumps({
                 'version': 1, 'library_root': str(vault),
-                'authorized_paths': ['Raw/Sources', 'Wiki', 'config/taxonomy.md'],
+                'authorized_paths': ['Raw/Sources', 'Wiki'],
                 'layers': {'sources': ['Raw/Sources'], 'knowledge': ['Wiki']},
-                'capture_policy': {'roots': ['Wiki/Maps/Indice.md'], 'taxonomy_path': 'config/taxonomy.md'},
                 'write_policy': 'plain_files', 'recovery_directory': str(work / 'recovery')}))
 
             def cli(script, *args, draft=None):
@@ -39,8 +34,8 @@ class SimpleJourneyTests(unittest.TestCase):
                 return result.stdout
 
             capture = ('---\nid: source1\nrole: source\nTitle: Informe ficticio\n'
-                       'Reference: https://example.org/fictional-method\nmoc: Wiki/Maps/Tema.md\n'
-                       'tags: [demo]\n---\n# Informe ficticio\n'
+                       'Reference: https://example.org/fictional-method\n---\n# Informe ficticio\n'
+                       'Related:: [[Wiki/Maps/Tema]]\n'
                        '## Método\nEste ejemplo describe un método, no mide efectos.\n')
             target = vault / 'Raw/Sources/Informe.md'
             before = {p: p.read_bytes() for p in vault.rglob('*.md')}
@@ -58,25 +53,19 @@ class SimpleJourneyTests(unittest.TestCase):
             original = target.read_bytes()
             catalog = json.loads(cli('knowledge.py', '--root', str(vault)))
             self.assertEqual({(e['source'], e['target']) for e in catalog['edges']},
-                             {('root', 'topic'), ('topic', 'source1')})
+                             {('source1', 'topic')})
             self.assertNotIn('maturity', capture)
             self.assertNotIn('relations', capture)
 
-            anchor = {'source': 'source1', 'sha256': hashlib.sha256(original).hexdigest(),
-                      'locator': '## Método'}
             packet_path = work / 'proposal.json'
             import yaml
-            metadata = {'id': 'idea1', 'title': 'Métodos no equivalen a efectos', 'role': 'concept',
-                        'review': 'accepted', 'relations': [
-                            {'kind': 'supported_by', 'target': 'source1',
-                             'reason': 'Atribución ficticia al alcance del método, no evidencia real.',
-                             'evidence': [anchor]}]}
+            metadata = {'id': 'idea1', 'title': 'Métodos no equivalen a efectos', 'role': 'note'}
             phases = [('seed', 'Pregunta: ¿describir un método permite concluir su efecto?'),
-                      ('developing', 'Argumento: una descripción metodológica no determina un efecto; falta medirlo.'),
+                      ('synthesis', 'Argumento: una descripción metodológica no determina un efecto; falta medirlo.'),
                       ('evergreen', 'Alcance acotado: distinguir descripción y medición; no se afirma un efecto real.')]
             for index, (maturity, explanation) in enumerate(phases):
                 draft = ('---\n' + yaml.safe_dump({**metadata, 'maturity': maturity}, allow_unicode=True)
-                         + '---\n# Idea ficticia\n' + explanation + '\n[[Raw/Sources/Informe]]\n')
+                         + '---\n# Idea ficticia\nEvidence:: [[Raw/Sources/Informe#Método]]\n\n' + explanation + '\n')
                 arguments = ['--root', str(vault), '--proposal-target', 'Wiki/Concepts/Idea.md',
                              '--evidence', 'Raw/Sources/Informe.md']
                 if index == 0:
@@ -95,10 +84,10 @@ class SimpleJourneyTests(unittest.TestCase):
                 self.assertEqual((vault / 'Wiki/Concepts/Idea.md').read_bytes(), draft.encode())
                 self.assertEqual(target.read_bytes(), original)
                 data = json.loads(cli('knowledge.py', '--root', str(vault)))
-                self.assertEqual(len([n for n in data['notes'] if n['role'] == 'concept']), 1)
+                self.assertEqual(len([n for n in data['notes'] if n['role'] == 'note']), 1)
                 idea = next(n for n in data['notes'] if n['id'] == 'idea1')
                 self.assertEqual(idea['maturity'], maturity)
-                self.assertEqual(idea['declared_review'], 'accepted')
+                self.assertIsNone(idea['declared_review'])
                 self.assertFalse(idea['approval_available'])
                 navigation = cli('knowledge.py', '--root', str(vault), '--focus', 'idea1',
                                  '--format', 'markdown', '--typed-navigation')
@@ -106,7 +95,7 @@ class SimpleJourneyTests(unittest.TestCase):
                 self.assertIn('supported_by', navigation)
             self.assertEqual(before, {p: p.read_bytes() for p in before})
             self.assertEqual(len(list((vault / 'Wiki/Concepts').glob('*.md'))), 1)
-            # Maturity and accepted labels are supplied fixtures, never inferred/authenticated by a helper.
+            # Maturity labels are supplied fixtures, never inferred/authenticated by a helper.
 
 
 if __name__ == '__main__':

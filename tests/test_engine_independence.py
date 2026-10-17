@@ -33,10 +33,10 @@ class EngineIndependenceTests(unittest.TestCase):
                     if line.startswith('python3 scripts/knowledge.py ')]
         self.assertIn('--mode existing --scope', commands[0])
 
-    def test_review_authority_follows_host_and_library_not_named_engine(self):
+    def test_ontology_contains_only_role_and_maturity_vocabulary(self):
         ontology = json.loads((ROOT / 'config/ontology.json').read_text())
-        self.assertEqual(ontology['approval_authority'], 'actual-host-confirmation-and-library-policy')
-        self.assertEqual(ontology['review'], ['unreviewed', 'pending', 'changes_requested', 'accepted', 'stale'])
+        self.assertEqual(ontology, {'version': '2.0', 'roles': ['source', 'note', 'map'],
+                                    'maturity': ['seed', 'synthesis', 'evergreen']})
 
 
 if __name__ == '__main__':

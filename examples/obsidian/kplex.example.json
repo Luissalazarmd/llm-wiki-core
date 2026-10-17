@@ -36,7 +36,7 @@
   "followActiveFile": true,
   "allowOntologySuggester": false,
   "confirmFileDelete": true,
-  "inferAllLinksAsFriends": false,
+  "inferAllLinksAsFriends": true,
   "backgroundColor": "#1b2028ff",
   "graphDepth": 1,
   "maxItemCount": 50,
@@ -50,6 +50,7 @@
       "updated"
     ],
     "parents": [
+      "up",
       "Parent",
       "MOC"
     ],
@@ -59,13 +60,18 @@
     "leftFriends": [
       "Related",
       "Evidence",
-      "EvidenceFor"
+      "EvidenceFor",
+      "sources"
     ],
     "rightFriends": [
       "Contrasts"
     ],
-    "previous": ["BuildsOn"],
-    "next": ["DevelopedBy"],
+    "previous": [
+      "BuildsOn"
+    ],
+    "next": [
+      "DevelopedBy"
+    ],
     "hidden": [
       "hidden"
     ]
@@ -76,19 +82,14 @@
       "borderColor": "#65b4e8ff",
       "strokeWidth": 2
     },
-    "concept": {
-      "prefix": "Idea · ",
-      "borderColor": "#9dc8a2ff",
-      "strokeWidth": 2
-    },
-    "entity": {
-      "prefix": "Entidad · ",
-      "borderColor": "#b9a6e3ff",
-      "strokeWidth": 2
-    },
     "map": {
       "prefix": "Mapa/índice · ",
       "borderColor": "#dfc578ff",
+      "strokeWidth": 2
+    },
+    "note": {
+      "prefix": "Idea · ",
+      "borderColor": "#9dc8a2ff",
       "strokeWidth": 2
     }
   },
@@ -102,27 +103,12 @@
       "expression": "file.inFolder(\"examples/obsidian/Navigation\")"
     },
     {
-      "id": "core-review-stale",
-      "name": "Revisión anterior",
-      "enabled": false,
-      "scope": "node",
-      "mode": "style",
-      "expression": "note[\"review\"] == \"stale\"",
-      "style": {
-        "node": {
-          "borderColor": "#eaa08c",
-          "strokeWidth": 3,
-          "strokeStyle": "dashed"
-        }
-      }
-    },
-    {
       "id": "core-ideas-only",
       "name": "Solo ideas del vecindario",
       "enabled": false,
       "scope": "node",
       "mode": "include",
-      "expression": "note[\"role\"] == \"concept\""
+      "expression": "note[\"role\"] == \"note\""
     },
     {
       "id": "core-synthesis",
@@ -130,7 +116,7 @@
       "enabled": false,
       "scope": "node",
       "mode": "style",
-      "expression": "note[\"maturity\"] == \"developing\"",
+      "expression": "note[\"maturity\"] == \"synthesis\"",
       "style": {
         "node": {
           "borderColor": "#91c8b1",

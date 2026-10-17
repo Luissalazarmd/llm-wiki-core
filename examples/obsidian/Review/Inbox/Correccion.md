@@ -1,11 +1,9 @@
 ---
 id: demo:proposal:explanation-correction
 title: Corregir el alcance de la explicación
-role: concept
-review: changes_requested
+role: note
 tags:
 - demo
-relations: []
 maturity: evergreen
 created: '2026-09-03'
 proposed_target: Wiki/Concepts/Explicacion.md

@@ -46,7 +46,7 @@ class ObsidianExampleTests(unittest.TestCase):
         self.assertEqual(names['Panorama']['summaries']['formula.unidad'], 'Sum')
         self.assertNotIn('limit', names['Panorama'])
         self.assertEqual(names['Recientes']['limit'], 5)
-        self.assertIn('formula.categoria == "Conceptos"', str(names['Madurez']['filters']))
+        self.assertIn('formula.categoria == "Notas"', str(names['Madurez']['filters']))
         self.assertIn('Desconocida', base['formulas']['madurez'])
         self.assertIn('Conflicto', base['formulas']['fecha_estado'])
 
@@ -56,16 +56,16 @@ class ObsidianExampleTests(unittest.TestCase):
         self.assertNotIn('limit', view)
         self.assertIn('Review/Inbox', str(view['filters']))
         self.assertNotIn('file.mtime', str(view['sort']))
-        self.assertIn('accepted', str(view['filters']))
+        self.assertNotIn('review', str(view['filters']))
 
     def test_collection_formulas_do_not_confuse_capture_custody_with_idea_development(self):
         formulas = yaml.safe_load((EXAMPLE / 'Biblioteca.base').read_text())['formulas']
         self.assertNotIn('Sources") && role', formulas['categoria'])
         self.assertIn('Mapas e índices', formulas['categoria'])
-        self.assertIn('project', formulas['categoria'])
-        self.assertIn('diagram', formulas['categoria'])
-        self.assertIn('formula.categoria != "Conceptos"', formulas['madurez'])
-        self.assertNotIn('Desactualizada', formulas['revision'])
+        self.assertIn('role == "note"', formulas['categoria'])
+        self.assertNotIn('role == "entity"', formulas['categoria'])
+        self.assertIn('formula.categoria != "Notas"', formulas['madurez'])
+        self.assertNotIn('revision', formulas)
 
     def test_synthetic_custody_and_orthogonal_states_have_exact_partitions(self):
         files = sorted((EXAMPLE / 'Raw').rglob('*.md')) + sorted((EXAMPLE / 'Wiki').rglob('*.md'))
@@ -75,14 +75,13 @@ class ObsidianExampleTests(unittest.TestCase):
         api = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(api)
         before = {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in files}
-        data = api.catalog(EXAMPLE)
+        data = api.catalog(EXAMPLE, link_prefix='examples/obsidian')
         self.assertEqual(Counter(n['role'] for n in data['notes']),
-                         {'source': 2, 'concept': 4, 'entity': 1, 'map': 2})
-        concepts = [n for n in data['notes'] if n['role'] == 'concept']
+                         {'source': 2, 'note': 5, 'map': 2})
+        concepts = [n for n in data['notes'] if n['role'] == 'note']
         self.assertEqual(Counter(n['maturity'] for n in concepts),
-                         {'seed': 1, 'developing': 1, 'evergreen': 1, 'unknown': 1})
-        self.assertTrue(any(n['maturity'] == 'seed' and n['declared_review'] == 'accepted' for n in concepts))
-        self.assertTrue(any(n['maturity'] == 'evergreen' and n['declared_review'] == 'stale' for n in concepts))
+                         {'seed': 1, 'synthesis': 1, 'evergreen': 1, 'unknown': 2})
+        self.assertTrue(all(n['declared_review'] is None for n in data['notes']))
         self.assertTrue(all(not n['approval_available'] for n in data['notes']))
         proposals = list((EXAMPLE / 'Review/Inbox').glob('*.md'))
         self.assertEqual(len(proposals), 2)
@@ -202,15 +201,16 @@ class ObsidianExampleTests(unittest.TestCase):
 
     def test_fixture_contrast_keeps_its_kind_and_original_version(self):
         api = self.demo_api()
-        data = api.knowledge.catalog(EXAMPLE)
+        data = api.knowledge.catalog(EXAMPLE, link_prefix='examples/obsidian')
         contrasts = [e for e in data['edges'] if e['kind'] == 'contradicts']
         self.assertEqual(len(contrasts), 1)
-        self.assertEqual(contrasts[0]['evidence'][0]['sha256'],
-                         hashlib.sha256((EXAMPLE / 'Raw/Sources/Informe-A.md').read_bytes()).hexdigest())
+        self.assertEqual(contrasts[0]['basis'], 'native_declaration')
+        self.assertEqual(contrasts[0]['declared_sha256'],
+                         hashlib.sha256((EXAMPLE / 'Wiki/Concepts/Sintesis.md').read_bytes()).hexdigest())
         fields = api.knowledge.metadata_from(api.reading_view('demo:idea:synthesis'))
         self.assertEqual(fields['Contrasts'], ['[[examples/obsidian/Wiki/Concepts/Explicacion]]'])
         self.assertNotIn('Related', fields)
-        self.assertIn('related', api.reading_view('demo:idea:synthesis'))
+        self.assertNotIn(' → related → ', api.reading_view('demo:idea:synthesis'))
 
     def test_kplex_settings_match_the_typed_navigation_bridge(self):
         settings = json.loads((EXAMPLE / 'kplex.example.json').read_text())
@@ -239,6 +239,16 @@ class ObsidianExampleTests(unittest.TestCase):
                 text = path.read_text()
                 self.assertNotIn('/home/', text, path)
                 self.assertNotIn('dataviewjs', text, path)
+
+    def test_current_examples_have_no_review_metadata_or_legacy_relation_blocks(self):
+        api = self.demo_api().knowledge
+        for fixture in ('obsidian', 'kplex-minimal', 'numbered-notes'):
+            for path in (ROOT / 'examples' / fixture).rglob('*.md'):
+                metadata = api.metadata_from(path.read_text())
+                self.assertNotIn('review', metadata, path)
+                self.assertNotIn('relations', metadata, path)
+        settings = json.loads((EXAMPLE / 'kplex.example.json').read_text())
+        self.assertTrue(all('review' not in lens.get('expression', '') for lens in settings['graphLenses']))
 
 
 if __name__ == '__main__':

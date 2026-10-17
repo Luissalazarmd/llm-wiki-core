@@ -1,5 +1,10 @@
 # Optional Obsidian workbench
 
+For the proposed three-role navigation model, review the separate
+[minimal K-Plex candidate](../kplex-minimal/README.md). It does not replace this
+workbench or its current ontology; its native navigation results and remaining
+acceptance limits are recorded separately.
+
 An original, synthetic example of three complementary surfaces: a native Bases Home, K-Plex-oriented knowledge navigation and a native architecture Canvas. It is not a new knowledge engine, a required vault layout, an installer or an approval UI. Internal contracts remain English; sample UI and note prose are Spanish.
 
 ## Run safely
@@ -16,7 +21,7 @@ Alternatively, open this checkout in Obsidian and open the example Home, underst
 
 ## What is automatic
 
-`Biblioteca.base` consults only the selected example source, proposal and knowledge paths. Panorama counts every matching file. Capture custody is determined before role, so a malformed Raw role never increments Wiki concepts. Maps/indexes, projects, diagrams, entities, captures and concepts remain distinct. Atencion shows all Inbox proposals without declared acceptance, ordered by declared state and title, never clipped or mixed with retained stale notes. Unknown/case-invalid states remain visible, not normalized. Only Recientes is a labeled five-file sample. Madurez displays retained concepts only; captures and organizational maps do not display idea development. Technical observations are available in the Base, not another permanent Home queue.
+`Biblioteca.base` consults only the selected example source, proposal and knowledge paths. Panorama counts every matching file. Capture custody is determined before role, so a malformed Raw role never increments Wiki notes. Captures, notes and maps/indexes remain distinct; entity/project/diagram uses belong to notes. Atencion shows all Inbox proposals ordered by title. Keep only active proposals in that selected location through the library's permitted workflow; no review field or inferred acceptance is needed. Only Recientes is a labeled five-file sample. Madurez displays retained notes only; captures and organizational maps do not display idea development. Technical observations are available in the Base, not another permanent Home queue.
 
 `Incorporaciones` groups documentary creation dates. Missing/conflicting/invalid dates have separate labels. This is not historical vault size, review events or every edit; real longitudinal measurement is not started. `Recientes` means last filesystem modification, not admission or learning.
 
@@ -26,11 +31,13 @@ The two main panels are stable callouts, not fixed grid rows or exact human head
 
 ## K-Plex and relation meaning
 
-K-Plex is optional and not bundled. The reviewed interface target is 0.1.2 (minimum Obsidian 1.13). `kplex.example.json` is a small settings reference, not an overlay installer; merge only selected keys after inspecting current settings and obtaining permission. It contains no navigation history, personal paths or tokens.
+K-Plex is optional and not bundled. The native minimal-fixture interface tested is 0.1.3 (minimum Obsidian 1.13). `kplex.example.json` is a small settings reference, not an overlay installer; merge only selected keys after inspecting current settings and obtaining permission. It contains no navigation history, personal paths or tokens.
 
-A source's `moc` and a map's `parent` are primary organization: the read-only catalog derives inverse grouping instead of requiring matching authored `groups` and plugin `Children`. Authored map prose and additional curated selections remain. Equivalent symmetric related declarations collapse only in the projection, retaining provenance. The synthetic reading view uses typed adapter fields: Parent/Children for groups, Evidence/EvidenceFor for support, Contrasts for tension and BuildsOn/DevelopedBy for development. No scientific kind is automatically translated to child. All kinds, versions and reasons remain in text, including the explicitly fictional contrast fixture. A more specific visual role takes precedence over Related for the same node. K-Plex has one visual region per node, not universal rendering of every claim; opening an original node returns its ordinary link neighborhood, not a magically installed whole-library semantic graph.
+The example now stores `up` wikilinks and body Evidence/Contrasts/BuildsOn declarations in original notes. K-Plex can navigate those originals directly; the strict reader projects the same declarations without a parallel edge store. Maps retain their authored reading arguments and inverses derive from `up`. The fixture's redundant generic link on its contrast pair was replaced by explanatory prose so it does not mask the tension in K-Plex.
 
-The host can reproject one selected view using `knowledge.py --root ROOT --focus ID --format markdown --typed-navigation`; it writes stdout only. The materializer prepares that selection for the example. Saving/refreshing a real library view is a separately authorized host operation outside Raw/Review/Wiki, not a watcher or a compulsory view per article. No existing capture is rewritten.
+The disposable reading view remains available. It prefers specific adapter fields over Related, while K-Plex itself can resolve conflicting native roles into its friend region. The reader reports multiple relation kinds for inspection; source presence and graph position do not prove scientific support. See [native observations and limits](../kplex-minimal/VALIDATION.md). These observations do not certify the revised full Home/Base/Canvas layout.
+
+The host can reproject one selected view using `knowledge.py --root ROOT --focus ID --format markdown --typed-navigation`; it writes stdout only. The materializer prepares that selection for the example. Saving/refreshing a real library view is a separately authorized host operation outside Raw/Review/Wiki, not a watcher or a compulsory view per article. Only bundled synthetic fixtures were adapted; no personal capture is rewritten.
 
 Read-only navigation is a usage policy; K-Plex and Bases retain editing capabilities. Do not treat inferred graph links as agreement, proof, consent or an accepted state. No Dataview, chart plugin, server or updater is required. Bases Chart remains a separately reviewed optional enhancement, not installed by this helper.
 

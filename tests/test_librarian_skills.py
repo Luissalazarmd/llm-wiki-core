@@ -33,15 +33,14 @@ class LibrarianSkillTests(unittest.TestCase):
                         'Raw originals remain unchanged', 'publication permission is separate'):
             self.assertIn(concept, workflow)
         review = (BASE / 'skills/review-save/SKILL.md').read_text()
-        self.assertIn('current and proposed maturity', review)
+        self.assertIn('current and proposed maturity', ' '.join(review.split()))
         self.assertIn('new evidence undermines', review)
 
     def test_review_requires_readable_exact_content_before_confirmation(self):
-        for relative in ('skills/review-save/SKILL.md', 'docs/review-contract.md'):
-            text = (BASE / relative).read_text()
-            self.assertIn('full exact content', text, relative)
-            self.assertIn('titles, paths, hashes or summaries alone', text, relative)
-            self.assertIn('post-save review', text, relative)
+        contract = (BASE / 'docs/review-contract.md').read_text()
+        for phrase in ('full exact content', 'titles, paths, hashes or summaries alone', 'post-save review'):
+            self.assertIn(phrase, contract)
+        self.assertIn('docs/review-contract.md', (BASE / 'skills/review-save/SKILL.md').read_text())
 
     def test_entry_point_discovers_each_skill(self):
         for name in ('progressive-adoption', 'read-connect', 'capture-source', 'review-save'):
@@ -53,7 +52,7 @@ class LibrarianSkillTests(unittest.TestCase):
                      'authored articles', 'starting from scratch', 'ask one short question',
                      'do not search the device', 'unknown is not absent',
                      'no automatic folder creation', 'where they are'):
-            self.assertIn(rule, text, rule)
+            self.assertIn(rule, ' '.join(text.split()), rule)
         self.assertLess(text.index('## Identify the starting point'), text.index('1. **Observe a sample.**'))
         for relative in ('docs/onboarding.md', 'README.md'):
             self.assertIn('starting point', (BASE / relative).read_text(), relative)
@@ -67,7 +66,7 @@ class LibrarianSkillTests(unittest.TestCase):
                      'first useful case', 'mapping is not acceptance', 'do not move',
                      'actual confirmation', 'proposal-only', 'bytes and paths',
                      'no migration runtime', 'no whole-library completion claim'):
-            self.assertIn(rule, text, rule)
+            self.assertIn(rule, ' '.join(text.split()), rule)
         for relative in ('Librarian Profile.md', 'docs/onboarding.md', 'README.md'):
             self.assertIn('progressive-adoption/SKILL.md', (BASE / relative).read_text(), relative)
 
