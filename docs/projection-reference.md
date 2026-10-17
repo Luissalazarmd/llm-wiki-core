@@ -14,8 +14,10 @@ scope. Code/comments create no declarations. Current source/declaration hashes
 are provenance, not historical approval. Legacy evidence retains required
 source/hash/locator bindings; stale hashes fail.
 
-Legacy roles normalize to note and developing to synthesis only in output.
-IDs remain authoritative. Existing Reference-derived identities are preserved.
+Legacy roles normalize to note and developing to synthesis only in output. IDs
+remain authoritative. Reference-derived IDs incorporate optional Version; unchanged
+unversioned references retain their identity. Duplicate known versions fail;
+legacy distinct explicit IDs without Version remain readable without inferred editions.
 
 Focus is one hop, default eight/max fifty neighbors, 16 KiB output. Views are
 disposable. Proposals bind existing bytes or absent destinations, complete nonempty

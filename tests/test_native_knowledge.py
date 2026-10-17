@@ -125,6 +125,22 @@ class NativeKnowledgeTests(unittest.TestCase):
         self.assertEqual([edge['target_locator'] for edge in edges], ['#First', '#Second'])
         self.assertNotEqual(edges[0]['declared_line'], edges[1]['declared_line'])
 
+    def test_source_versions_coexist_without_changing_existing_ids(self):
+        original = (self.root / 'Raw/source.md').read_bytes()
+        old_id = next(n['id'] for n in API.catalog(self.root)['notes'] if n['role'] == 'source')
+        self.write('Raw/versioned.md', 'id: explicit-id\nrole: source',
+                   'Reference:: demo:versioned\nVersion:: v1')
+        self.write('Raw/later.md', 'role: source', 'Reference:: demo:versioned\nVersion:: v2')
+        data = API.catalog(self.root)
+        self.assertEqual(len([n for n in data['notes'] if n['role'] == 'source']), 3)
+        self.assertIn(old_id, {n['id'] for n in data['notes']})
+        self.assertEqual((self.root / 'Raw/source.md').read_bytes(), original)
+        self.write('Raw/later.md', 'id: another-explicit-id\nrole: source',
+                   'Reference:: demo:versioned\nVersion:: v1')
+        with self.assertRaisesRegex(ValueError, 'Duplicate identity'):
+            API.catalog(self.root)
+
+
 
 if __name__ == '__main__':
     unittest.main()
