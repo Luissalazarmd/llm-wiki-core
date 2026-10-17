@@ -41,3 +41,81 @@ Peripheral graph labels and contract prose require zoom. Overview previews can b
 - Optional chart plugins, Dataview or new agents/services. No commit, push or publication was performed.
 
 Private screenshots, machine paths and native probe receipts remain outside this public checkout. Reproduce the automated suite from the commands in [README](README.md); graphical acceptance must be observed separately in an explicitly authorized disposable environment.
+
+## Simplification follow-up — 2026-10-16
+
+Current local candidate, separately observed on **Obsidian 1.13.7**, Electron
+43.6.0 / Chrome 150.0.7871.250, **K-Plex 0.1.3**. Each launch was specifically
+authorized outside the command sandbox, using disposable vault/profile/config/cache
+under `/tmp`. Only the fixture plugin was enabled; the personal library/settings
+were never used. No sandbox-disabling flag or system permission change was used.
+Software graphics (`--disable-gpu`) was confined to these test commands.
+
+### Passed on the final copied inputs
+
+- Metadata readiness covered all eleven Raw/Wiki/Review fixture files before
+  Home acceptance. Panorama displayed 2 captures, 2 maps, 5 notes and 2 proposals.
+  Both proposal titles appeared in Atencion, without review-state metadata/filter.
+- Native Madurez displayed 5 notes: 2 unknown, 1 seed, 1 synthesis and 1 evergreen.
+  No capture or map acquired effective maturity. No visible Base error text.
+- K-Plex centered original Sintesis with Sombras above, Informe-A left and
+  Explicacion right. Original-note clicks followed Informe-A and returned to
+  Sintesis; clicking Sombras exposed Sintesis as an inverse child. The DOM checks
+  required those exact focal paths and semantic region classes, not a fixed delay.
+- Canvas rendered its 24 nodes and the revised contract references, including
+  the independent human-review explanation without the old five-state list.
+  Screenshots of Home, K-Plex and Canvas were visually inspected.
+- Exact Markdown, Base and Canvas input hashes matched afterward. The test window
+  closed normally; the launch process exited **0**, without forced group cleanup.
+
+### Failed attempts and narrower results
+
+Initial attempts did not validate the views. One forced Electron sandbox mode
+failed to reach the app/plugin readiness predicate. A software-graphics attempt
+reached the initial vault-trust dialog while the verifier was waiting for the
+plugin. Their final exit was **-5 (SIGTRAP)** and logs contained
+`GPU process isn't usable`; those harnesses killed the test process group during
+cleanup, so the records do not establish whether the fatal GPU message preceded
+cleanup. The user chose further isolated diagnostics before subsequent launches.
+No Omarchy/Core fault or repaired general startup reliability is inferred.
+
+A separately approved system **Chromium 152.0.7977.82** blank-page diagnostic with
+GPU disabled and its sandbox enabled returned `<html><head></head><body></body></html>`
+and exit 0 in 0.523 seconds. That is not an Obsidian test.
+
+After explicit approval to handle trust only for the exact disposable vault, the
+next app launch succeeded but the verifier used an incompatible reading-view API
+(`e.show is not a function`). Obsidian still closed with exit 0. The corrected
+native reading-view command worked in the following run, which also exercised
+K-Plex/Canvas. Its early Home snapshot showed partial metadata counts (3 notes,
+4 unclassified); it is excluded from final Home count acceptance. The final run
+waited for complete metadata and the correct rendered counts above. This is a
+readiness correction, not proof that every future refresh has no transient state.
+
+Private evidence: `/tmp/core-simplification-native-settled-20261016/` contains
+`result.json`, `input-hashes.json`, `home.png`, `kplex.png`, `canvas.png` and the
+bounded verifier. Earlier attempt directories and the blank-page diagnostic remain
+private scratch. No profiles, plugin binaries or diagnostic bundles are published.
+
+### Remaining boundaries
+
+The synthetic suite passes **165 tests**; it is separate from this native record.
+This run did not perform real source retrieval/capture, actual human note approval,
+managed apply, full Canvas reference-opening interaction, a note/settings update
+refresh experiment, mobile/other versions, concurrent writes or automatic selected-node
+delivery. Earlier connection-details, heading and incremental observations remain
+dated evidence in the [minimal record](../kplex-minimal/VALIDATION.md), not rerun here.
+
+### Recheck after the compact documentation cut
+
+The same settled-view journey passed again against the final compact contracts
+in a new, specifically approved disposable profile:
+`/tmp/core-simplification-native-final-20261016/`. Home retained the exact 2/2/5/2
+capture/map/note/proposal counts and 2/1/1/1 unknown/evergreen/seed/synthesis split;
+K-Plex's original-note semantic regions, source return and inverse map child passed.
+Canvas rendered the shortened live contract references with 24 nodes; its screenshot
+was visually inspected. No Base error text, changed input hashes or forced cleanup;
+the app exited 0. Current documentation count, including untracked Markdown outside
+examples, is 2,989 words, with one shared language declaration. The full suite
+passed 165 tests after the cut. No operational detail was moved into this example
+to meet the count; earlier detailed checkpoints remain in Git history/private backups.
