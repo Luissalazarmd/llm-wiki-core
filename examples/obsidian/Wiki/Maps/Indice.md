@@ -2,7 +2,6 @@
 id: demo:map:root
 title: Mi mapa de conocimiento
 role: map
-
 ---
 
 > Ejemplo ficticio. No es evidencia científica ni una aprobación real.

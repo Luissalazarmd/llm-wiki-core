@@ -1,11 +1,10 @@
 ---
 id: demo:idea:unknown
 title: Una idea todavía sin clasificar
-role: concept
-review: unreviewed
+role: note
 tags:
 - demo
-relations: []
+up: '[[examples/obsidian/Wiki/Maps/Sombras]]'
 ---
 
 > Ejemplo ficticio. No es evidencia científica ni una aprobación real.

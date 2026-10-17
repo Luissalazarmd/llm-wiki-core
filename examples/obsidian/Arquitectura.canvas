@@ -134,7 +134,7 @@
       "y": 820,
       "width": 340,
       "height": 280,
-      "text": "## Rol + desarrollo\n\nRol: fuente, concepto, entidad, mapa, proyecto o diagrama.\n\nDesarrollo: Semilla → Síntesis → Evergreen.\n\nUn MOC organiza; no hace madurar una idea.",
+      "text": "## Rol + desarrollo\n\nRol: fuente, nota o mapa.\n\nDesarrollo: Semilla → Síntesis → Evergreen.\n\nUn MOC organiza; no hace madurar una idea.",
       "color": "6"
     },
     {
@@ -144,7 +144,7 @@
       "y": 820,
       "width": 340,
       "height": 280,
-      "text": "## Revisión independiente\n\nSin revisar · Pendiente · Cambios solicitados · Aceptación declarada · Desactualizada.\n\nSemilla aceptada y Evergreen desactualizada son combinaciones posibles."
+      "text": "## Revisión independiente\n\nLa persona revisa y confirma una versión exacta.\n\nPuede conservar una Semilla; su madurez no prueba aprobación ni verdad.\n\nNo hace falta declarar otro estado en la nota."
     },
     {
       "id": "dimensiones-doc",
