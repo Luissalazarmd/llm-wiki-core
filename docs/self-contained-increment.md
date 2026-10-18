@@ -9,4 +9,4 @@ An external pilot's pre-save presentation remained unverified. A later separatel
 approved test-only correction preserved originals/readback/recovery; it never
 retroactively certified that pilot or approved personal-library writes.
 Older hierarchy requirements are superseded by [admission](raw-admission.md).
-Historical publication permissions do not cover the current [candidate](simplification-handoff.md).
+Earlier checkpoints do not certify later code; see the [delivered scope](simplification-handoff.md).
