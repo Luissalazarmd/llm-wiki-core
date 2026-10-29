@@ -415,6 +415,40 @@ with patch('os.fsync', side_effect=persist):
         rejected = self.cli('library.py', 'proposal-batch', '--evidence', 'Sources/source.md', draft=json.dumps(orphan))
         self.assert_refused_without_mutation(rejected, before, 'New thematic MOC must be proposed with a retained synthesis')
 
+    def block_history_move(self, newline):
+        self.put('m1', self.moc('map-one', '001'))
+        self.put('m2', self.moc('map-two', '002'))
+        original = self.note('same-note', '002-01', 'Notes/m2.md').replace(
+            'former_addresses: []', 'former_addresses:\n  - "001-01"\nauthor: Ada\ncustom: preserve')
+        original = original.replace('\n', newline)
+        note = self.library / 'Notes/one.md'
+        note.write_bytes(original.encode())
+        self.put('incoming', '[[Notes/one#Argument|001-01]]\n')
+        source = (self.library / 'Sources/source.md').read_bytes()
+        packet = self.prepared('one', original.replace('Notes/m2.md', 'Notes/m1.md'), False, '--move-primary')
+        proposal = next(p for p in packet['proposals'] if p['target']['path'] == 'Notes/one.md')
+        meta = yaml.safe_load(proposal['draft'].split('---', 2)[1])
+        self.assertEqual(meta['id'], 'same-note')
+        self.assertEqual(meta['address'], '001-02')
+        self.assertEqual(meta['former_addresses'], ['001-01', '002-01'])
+        self.assertEqual(meta['author'], 'Ada')
+        self.assertEqual(meta['custom'], 'preserve')
+        self.assertEqual(note.read_bytes(), original.encode())
+        self.assertEqual(proposal['draft'].split(newline + '---' + newline)[1], '# Argument' + newline)
+        checked = self.write('check')
+        self.assertEqual((checked.returncode, checked.stderr), (0, ''))
+        saved = self.write()
+        self.assertEqual((saved.returncode, saved.stderr), (0, ''))
+        self.assertEqual(note.read_bytes(), proposal['draft'].encode())
+        self.assertEqual((self.library / 'Sources/source.md').read_bytes(), source)
+        self.assertEqual((self.library / 'Notes/incoming.md').read_text(), '[[Notes/one#Argument|001-01]]\n')
+
+    def test_block_history_move_lf(self):
+        self.block_history_move('\n')
+
+    def test_block_history_move_crlf(self):
+        self.block_history_move('\r\n')
+
 
 if __name__ == '__main__':
     unittest.main()

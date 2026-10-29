@@ -115,7 +115,11 @@ def set_field(text, key, value):
     encoded = json.dumps(value, ensure_ascii=False)
     for name, current in node.value:
         if name.value == key:
-            header = header[:name.start_mark.index] + key + ': ' + encoded + header[current.end_mark.index:]
+            # Block collection end marks can include the next field's separator.
+            end = current.end_mark.index
+            while end > current.start_mark.index and header[end - 1] in ' \t\r\n':
+                end -= 1
+            header = header[:name.start_mark.index] + key + ': ' + encoded + header[end:]
             break
     else:
         newline = '\r\n' if text.startswith('---\r\n') else '\n'
