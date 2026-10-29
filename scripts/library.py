@@ -3,15 +3,16 @@
 from __future__ import annotations
 
 import argparse
+import importlib
 import json
 import os
 import posixpath
-from pathlib import Path
 import re
 import sys
+from pathlib import Path
 
 sys.dont_write_bytecode = True
-import knowledge
+knowledge = importlib.import_module('knowledge')
 
 
 def contained(root: Path, relative: str) -> Path:
@@ -50,9 +51,13 @@ def load_config(path: Path) -> dict:
                 raise ValueError('Duplicate configuration key')
             result[key] = value
         return result
-    data = json.loads(raw, object_pairs_hook=unique)
+    try:
+        data = json.loads(raw, object_pairs_hook=unique)
+    except json.JSONDecodeError as exc:
+        raise ValueError(str(exc)) from exc
     keys = {'version', 'library_root', 'authorized_paths', 'objectives', 'language',
-            'organization', 'initiative', 'layers', 'write_policy', 'recovery_directory', 'capture_policy'}
+            'organization', 'initiative', 'layers', 'write_policy', 'recovery_directory', 'capture_policy',
+            'living_synthesis'}
     if not isinstance(data, dict) or set(data) - keys:
         raise ValueError('Unknown configuration fields; no credentials or runtime settings allowed')
     if type(data.get('version')) is not int or data['version'] != 1:
@@ -110,6 +115,20 @@ def load_config(path: Path) -> dict:
         effective = {'moc': 'moc', 'parent': 'parent', 'role': 'role', 'tags': 'tags', **fields}
         if len({effective[k].casefold() for k in ('moc', 'parent', 'role', 'tags')}) != 4:
             raise ValueError('Capture fields for MOC, parent, role and tags must be distinct')
+    if 'living_synthesis' in data:
+        profile = data['living_synthesis']
+        if (not isinstance(profile, dict) or not {'scopes', 'history_complete'} <= set(profile)
+                or set(profile) - {'scopes', 'history_complete', 'references_complete'}
+                or ('references_complete' in profile and type(profile['references_complete']) is not bool)
+                or profile['history_complete'] is not True or not isinstance(profile['scopes'], list)
+                or not 1 <= len(profile['scopes']) <= 20
+                or any(not isinstance(s, str) for s in profile['scopes'])
+                or len(set(profile['scopes'])) != len(profile['scopes'])):
+            raise ValueError('Living synthesis requires bounded scopes and explicit complete history')
+        for scope in profile['scopes']:
+            selected = authorize(root, allowed, scope)
+            if selected.relative_to(root).as_posix() != scope:
+                raise ValueError('Numbering scopes must be exact authorized paths')
     if data.get('write_policy', 'read_only') not in ('read_only', 'canonical_engine', 'plain_files'):
         raise ValueError('Invalid write_policy')
     recovery = data.get('recovery_directory')
@@ -242,11 +261,15 @@ def main() -> int:
     proposal.add_argument('--target', required=True)
     proposal.add_argument('--create', action='store_true', help='propose an absent derived-note target')
     proposal.add_argument('--evidence', action='append', default=[])
+    proposal.add_argument('--move-primary', action='store_true', help='prepare a reviewed primary-MOC move with reserved history and map companion edits')
+    batch = sub.add_parser('proposal-batch', help='prepare up to 20 scoped numbered changes from a JSON array on stdin; not approval')
+    batch.add_argument('--evidence', action='append', default=[])
     args = parser.parse_args()
     try:
         settings = load_config(args.config)
         root = Path(settings['library_root'])
-        paths = [args.target, *args.evidence] if args.action == 'proposal' else args.scope
+        paths = ([args.target, *args.evidence] if args.action == 'proposal'
+                 else args.evidence if args.action == 'proposal-batch' else args.scope)
         for path in paths:
             authorize(root, settings['authorized_paths'], path,
                       create=args.action == 'proposal' and args.create and path == args.target)
@@ -265,7 +288,23 @@ def main() -> int:
             draft = sys.stdin.buffer.read(262145)
             if len(draft) > 262144:
                 raise ValueError('Draft exceeds byte limit')
-            data = knowledge.prepare_proposal(root, args.target, draft.decode('utf-8'), args.evidence, args.create)
+            numbering = importlib.import_module('numbering')
+            text = draft.decode('utf-8')
+            binding = None
+            if args.action == 'proposal-batch':
+                data = numbering.prepare_batch(settings, json.loads(text), args.evidence)
+                print(json.dumps(data, ensure_ascii=False, indent=2))
+                return 0
+            if args.move_primary:
+                data = numbering.prepare_batch(settings, [{'target': args.target, 'draft': text,
+                    'create': args.create, 'move_primary': True}], args.evidence)
+                print(json.dumps(data, ensure_ascii=False, indent=2))
+                return 0
+            if numbering.in_scope(settings, args.target):
+                text, binding = numbering.candidate(settings, args.target, text, args.create)
+            data = knowledge.prepare_proposal(root, args.target, text, args.evidence, args.create)
+            if binding is not None:
+                numbering.bind_packet(data, binding)
         print(json.dumps(data, ensure_ascii=False, indent=2))
         return 0
     except (OSError, ValueError, TypeError, RecursionError) as exc:

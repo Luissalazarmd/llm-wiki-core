@@ -1,7 +1,8 @@
 # Short addresses, readable titles
 
-An opt-in naming example using existing Core/K-Plex capabilities. No new runtime,
-number allocator, metadata field or registry is required. Existing libraries keep
+An opt-in fixed-ID naming example using existing Core/K-Plex capabilities. This
+example requires no allocator or registry; the separate optional MOC-scoped helper
+below does not change these fixtures. Existing libraries keep
 their names and IDs. These four notes are fictional, not scientific evidence.
 
 | Surface | Value |
@@ -70,6 +71,53 @@ The tested native settings are `alwaysUpdateLinks: true` and
 links that Core deliberately refuses. Change settings only with the library's
 permission; afterward recheck links and identity. Do not add a basename resolver
 or scan beyond the authorized scope to compensate.
+
+## MOC-scoped synthesis addresses (optional)
+
+For the [living-synthesis profile](../../docs/knowledge-workflow.md#optional-living-synthesis-profile),
+a library may agree a sequential human address within each thematic primary MOC.
+Illustratively, MOC `001` has syntheses `001-01` and `001-02`; MOC `002` has its own
+sequence. Seeds remain unnumbered. The [optional shared helper](../../docs/first-cut-tools.md#optional-living-synthesis-numbering)
+implements this convention for an explicitly opted-in bounded collection, without
+a separate number registry. Its field representation does not change the fictional
+`012a` fixtures above or prescribe their migration.
+
+Keep the technical identity stable and distinguish it from this organizational
+address. The earlier example deliberately uses one fixed ID/prefix; a library
+where these are inseparable must resolve that constraint before adopting mutable
+MOC-scoped addresses. Do not rewrite an existing ID to make the convention fit.
+Agree the address's permitted representation under local rules, without imposing
+a field, folder layout or host. Mere title, maturity or secondary-map changes
+never recode a synthesis. Secondary references link to the same note.
+
+### Deliberate primary-MOC move
+
+A true change of primary theme is an explicit reviewed organizational change,
+not maturity progression or routine renumbering. Before review, prepare the new
+primary association and next unused destination address, preserving technical
+identity. Show the exact affected content, old/new references and history treatment
+as one candidate. Keep the previous address reserved and interpretable under the
+library's existing history/reference mechanisms; do not recycle it or break old
+links. Reconcile source/destination maps and incoming section references through
+the permitted writer/rename path. If that cannot preserve identity and references,
+stop the move and remain proposal-only.
+
+This differs from replacement or retirement: a move keeps the same explanation
+and identity; a successor is a different note and follows
+[retirement in place](#retire-in-place-do-not-recycle-addresses). Do not retire or
+copy a live note merely to recode it. Continue the next unused sequence rather
+than filling gaps, including addresses held by retired notes or previous moves;
+incomplete custody/history means availability is unverified, not free.
+
+The shared mechanism prepares allocation before exact human review and rechecks
+scope, configuration, identity, bases, evidence and reservations before save.
+A collision or changed base invalidates the candidate; it never silently chooses
+a different reviewed address. Stable-path moves reserve former addresses on the
+same file and include any destination-map companion edit in the reviewed batch.
+Unsupported identity/rename/reference conventions remain proposal-only.
+The [adoption plan](../../docs/implementation.md#prospective-living-synthesis-adoption)
+still requires a separately authorized useful pilot. No concurrent allocation,
+atomic multi-file save, native rendering or automatic host rename is certified.
 
 ## Checks and rollback
 

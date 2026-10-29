@@ -16,7 +16,14 @@ Retain a useful correction/proposal or recover an authorized edit.
 1. Prepare complete content/evidence, reusing existing explanations.
 2. For [idea emergence](../../docs/knowledge-workflow.md#idea-emergence), explain current
    and proposed maturity; when new evidence undermines an argument, propose correction.
-3. Perform the [review contract](../../docs/review-contract.md): actual decision,
+3. If the bounded collection opts into [living-synthesis numbering](../../docs/first-cut-tools.md#optional-living-synthesis-numbering),
+   prepare through the shared proposal path before review. Show every numbered
+   draft/diff and companion map change; explicit primary moves retain the same ID,
+   preserve referenced sections and reserve old addresses. Do not allocate manually
+   or silently replace a reviewed address. Recheck the exact packet immediately
+   before permitted saving; changed scope/base/evidence requires a fresh candidate
+   and decision. Stop on partial batch save and inspect the reported private records.
+4. Perform the [review contract](../../docs/review-contract.md): actual decision,
    current inputs, permitted writer, recovery and exact readback.
 
 ## Pitfalls

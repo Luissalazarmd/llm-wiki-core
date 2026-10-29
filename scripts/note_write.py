@@ -4,16 +4,18 @@ import argparse
 import base64
 import difflib
 import hashlib
+import importlib
 import json
 import os
-from pathlib import Path
 import stat
 import sys
 import tempfile
 import uuid
+from pathlib import Path
 
 sys.dont_write_bytecode = True
-import library
+library = importlib.import_module('library')
+numbering = importlib.import_module('numbering')
 
 LIMIT = 262144
 
@@ -40,7 +42,10 @@ def read_json(path):
                 raise ValueError('Duplicate JSON key')
             data[key] = value
         return data
-    return json.loads(read_bytes(path, 2097152), object_pairs_hook=unique)
+    try:
+        return json.loads(read_bytes(path, 2097152), object_pairs_hook=unique)
+    except json.JSONDecodeError as exc:
+        raise ValueError(str(exc)) from exc
 
 
 def target_path(settings, relative, create=False):
@@ -62,7 +67,7 @@ def target_path(settings, relative, create=False):
     return path
 
 
-def check_packet(settings, packet):
+def check_packet(settings, packet, *, numbered=True):
     if not isinstance(packet, dict) or packet.get('status') != 'prepared_not_approved':
         raise ValueError('Expected an unapplied proposal packet')
     declared = packet.get('packet_sha256')
@@ -70,6 +75,15 @@ def check_packet(settings, packet):
     actual = digest(json.dumps(unsigned, sort_keys=True, ensure_ascii=False, separators=(',', ':')).encode())
     if declared != actual:
         raise ValueError('Packet content changed')
+    if packet.get('format') == numbering.BATCH:
+        if not numbered:
+            raise ValueError('Nested batches are unsupported')
+        numbering.check_batch(settings, packet)
+        for child in packet['proposals']:
+            check_packet(settings, child, numbered=False)
+        return None
+    if packet.get('format') is not None:
+        raise ValueError('Unsupported proposal format')
     draft = packet['draft'].encode('utf-8')
     if len(draft) > LIMIT or digest(draft) != packet['draft_sha256']:
         raise ValueError('Invalid draft binding')
@@ -95,10 +109,12 @@ def check_packet(settings, packet):
         evidence = library.authorize(Path(settings['library_root']), settings['authorized_paths'], anchor['path'])
         if evidence.suffix != '.md' or digest(read_bytes(evidence)) != anchor['sha256']:
             raise ValueError('Stale evidence; review again')
+    if numbered:
+        numbering.check(settings, packet)
     return path, previous, draft
 
 
-def replace_checked(path, expected, replacement):
+def replace_checked(path, expected, replacement, before_publish=None):
     """Atomic single-file replacement for a cooperative single-writer local session."""
     mode = stat.S_IMODE(path.stat().st_mode)
     fd, temporary = tempfile.mkstemp(prefix='.core-note-', dir=path.parent)
@@ -108,6 +124,8 @@ def replace_checked(path, expected, replacement):
             stream.flush()
             os.fsync(stream.fileno())
         os.chmod(temporary, mode)
+        if before_publish is not None:
+            before_publish()
         if read_bytes(path) != expected:
             raise ValueError('Note changed before save; preserve and review again')
         os.replace(temporary, path)
@@ -116,7 +134,7 @@ def replace_checked(path, expected, replacement):
             Path(temporary).unlink()
 
 
-def create_checked(path, draft):
+def create_checked(path, draft, before_publish=None):
     """Publish complete bytes with a no-clobber hard link in the same directory."""
     fd, temporary = tempfile.mkstemp(prefix='.core-note-', dir=path.parent)
     try:
@@ -124,13 +142,51 @@ def create_checked(path, draft):
             stream.write(draft)
             stream.flush()
             os.fsync(stream.fileno())
+        if before_publish is not None:
+            before_publish()
         os.link(temporary, path)  # Atomic absence requirement; never replace a competing entry.
     finally:
         Path(temporary).unlink()
 
 
-def save(settings, packet):
-    path, previous, draft = check_packet(settings, packet)
+class BatchSaveError(ValueError):
+    """A sequential batch may leave verified saves and private recovery records."""
+    def __init__(self, result):
+        super().__init__(result['error'])
+        self.result = result
+
+
+def save_batch(settings, packet):
+    check_packet(settings, packet)  # Every target, byte, diff and postimage before any write.
+    expected = packet['living_synthesis']
+    completed = []
+    recovery = Path(settings['recovery_directory'])
+    prior_records = set(recovery.iterdir())
+    try:
+        for child in packet['proposals']:
+            current, _ = numbering.snapshot(settings)
+            if current != expected:
+                raise ValueError('Numbering scope changed during sequential save; preserve partial work')
+            result = save(settings, child, numbered=False, expected_scope=expected)
+            completed.append({'target': child['target']['path'], **result})
+            expected = numbering.after_save(expected, child)
+        current, _ = numbering.snapshot(settings)
+        if current != expected:
+            raise ValueError('Numbering scope changed before final readback; preserve partial work')
+    except (OSError, ValueError, TypeError, KeyError) as exc:
+        raise BatchSaveError({'status': 'plain_batch_partial', 'error': str(exc),
+            'completed': completed, 'recovery_records': sorted(str(p) for p in set(recovery.iterdir()) - prior_records),
+            'human_authentication_verified': False}) from exc
+    return {'status': 'plain_batch_saved', 'completed': completed, 'human_authentication_verified': False}
+
+
+def save(settings, packet, *, numbered=True, expected_scope=None):
+    if packet.get('format') == numbering.BATCH:
+        return save_batch(settings, packet)
+    checked = check_packet(settings, packet, numbered=numbered)
+    if checked is None:
+        raise ValueError('Expected a single-file proposal')
+    path, previous, draft = checked
     record = {'format': 'plain-note-recovery-v1', 'library_root': settings['library_root'],
               'target': packet['target']['path'], 'before_exists': previous is not None,
               'before_sha256': digest(previous) if previous is not None else None,
@@ -144,11 +200,18 @@ def save(settings, packet):
         json.dump(record, stream, ensure_ascii=False)
         stream.flush()
         os.fsync(stream.fileno())
-    check_packet(settings, packet)
+    def before_publish():
+        check_packet(settings, packet, numbered=numbered)
+        if expected_scope is not None:
+            current, _ = numbering.snapshot(settings)
+            if current != expected_scope:
+                raise ValueError('Numbering scope changed before publication; preserve partial work')
+
+    before_publish()  # Recovery persistence itself may have exposed changed inputs.
     if previous is None:
-        create_checked(path, draft)
+        create_checked(path, draft, before_publish)
     else:
-        replace_checked(path, previous, draft)
+        replace_checked(path, previous, draft, before_publish)
     if read_bytes(path) != draft:
         raise ValueError('Saved output not verified; preserve recovery record')
     return {'status': 'plain_file_created' if previous is None else 'plain_file_saved',
@@ -172,6 +235,9 @@ def restore(settings, record_path):
     previous = base64.b64decode(record['before_base64'], validate=True)
     if len(previous) > LIMIT or digest(previous) != record['before_sha256']:
         raise ValueError('Invalid previous-content binding')
+    if record.get('proposal', {}).get('living_synthesis') is not None and not numbering.in_scope(settings, record['target']):
+        raise ValueError('Numbering profile or scope changed; restore refused')
+    numbering.check_restore(settings, record['target'], current, previous)
     replace_checked(path, current, previous)
     if read_bytes(path) != previous:
         raise ValueError('Restored output not verified')
@@ -202,7 +268,10 @@ def main():
                 result = save(settings, packet)
         print(json.dumps(result))
         return 0
-    except (OSError, ValueError, TypeError, KeyError, AttributeError) as exc:
+    except BatchSaveError as exc:
+        print(json.dumps(exc.result), file=sys.stderr)
+        return 2
+    except (OSError, ValueError, TypeError, KeyError, AttributeError, RecursionError) as exc:
         print(json.dumps({'error': str(exc)}), file=sys.stderr)
         return 2
 

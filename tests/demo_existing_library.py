@@ -4,11 +4,11 @@ import argparse
 import hashlib
 import json
 import os
-from pathlib import Path
 import shutil
 import subprocess
 import sys
 import tempfile
+from pathlib import Path
 
 
 def run(output_parent: Path) -> dict:
@@ -16,7 +16,7 @@ def run(output_parent: Path) -> dict:
     run_dir = Path(tempfile.mkdtemp(prefix='first-cut-', dir=output_parent))
     core = run_dir / 'core'
     library = run_dir / 'library'
-    for relative in ('scripts/knowledge.py', 'scripts/library.py', 'config/ontology.json'):
+    for relative in ('scripts/knowledge.py', 'scripts/library.py', 'scripts/numbering.py', 'config/ontology.json'):
         target = core / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source / relative, target)
