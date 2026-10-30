@@ -13,7 +13,9 @@ Retain a useful correction/proposal or recover an authorized edit.
 
 ## Procedure
 
-1. Prepare complete content/evidence, reusing existing explanations.
+1. Prepare complete content/evidence, reusing existing explanations. Apply the
+   [citations and lean metadata policy](../../docs/knowledge-workflow.md#citations-and-lean-metadata);
+   include the note's complete citations and actual consulted scope in the human preview.
 2. For [idea emergence](../../docs/knowledge-workflow.md#idea-emergence), explain current
    and proposed maturity; when new evidence undermines an argument, propose correction.
 3. If the bounded collection opts into [living-synthesis numbering](../../docs/first-cut-tools.md#optional-living-synthesis-numbering),

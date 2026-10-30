@@ -6,6 +6,14 @@ Select the current question, relevant notes and original passages. Explain the
 argument, comparable evidence, tensions and gaps. Reuse before proposing another
 explanation. Retention follows [review](review-contract.md); originals stay original.
 
+## Citations and lean metadata
+
+For new scientific derived notes, use numbered Vancouver citations such as [1] in order of first appearance, unless the owner or library requires another style. Reuse a source's number within the document; citation numbers are independent of MOC or synthesis addresses.
+
+Keep complete Vancouver references and verified, clickable DOI links when available in the document's References section, not a second formatted bibliography in frontmatter. Preserve original titles and identifiers. Use only verified bibliographic details; do not invent a DOI, journal abbreviation, volume or pages, and do not treat missing DOI as poor evidence. Identify what was actually consulted (abstract, section or full text). A citation of an article does not imply full-text review. Original captures remain unchanged.
+
+Keep only metadata required by the permitted writer, numbering profile, local views and useful provenance. Preserve stable identity, recognized maturity, primary association, reservations and existing evidence identifiers/version/locators in their supported structures. Do not invent a new citation registry or flatten a schema ad hoc. Omit unknown-author placeholders and generator-model fields by default in new notes; preserve real authorship and never remove protected legacy fields through a bypass. Do not generate a manually maintained updated field unless an explicit editorial-date purpose requires it; retain dates consumed by local views. Avoid a second fixed declaration of mutable address/primary association in prose; use ordinary navigation links instead. Existing notes change only through their library's exact-review/save boundary, never bulk conversion.
+
 ## Idea emergence
 
 Raw originals remain unchanged. Only authored notes develop:
