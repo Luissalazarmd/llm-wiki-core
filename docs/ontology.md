@@ -24,3 +24,7 @@ K-Plex position alone cannot show every meaning. Inspect arguments/details.
 without rewriting files. Review declarations are data, never approval. Notes/maps
 without IDs get temporary path locators. [Short addresses](../examples/numbered-notes/README.md)
 retain identities across changes and retirement.
+
+See [deterministic activity and connections](note-connections.md) for the optional,
+read-only v1 counter, explicit scope, exclusions and synthetic checks. Counts do
+not establish importance, maturity or acceptance.

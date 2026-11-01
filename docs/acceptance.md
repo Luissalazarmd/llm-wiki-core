@@ -15,3 +15,7 @@ useful synthesis from structural tests. Native acceptance observes settled
 K-Plex roles and counts, not delays. Use approved disposable launches under host
 rules. [Native results](../examples/obsidian/VALIDATION.md) record failures/limits;
 mobile, concurrency, managed approval and automatic focal-node delivery remain distinct.
+
+See [deterministic activity and connections](note-connections.md) for the optional,
+read-only v1 counter, explicit scope, exclusions and synthetic checks. Counts do
+not establish importance, maturity or acceptance.
