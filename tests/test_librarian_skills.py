@@ -8,6 +8,18 @@ BASE = Path(__file__).resolve().parents[1]
 
 
 class LibrarianSkillTests(unittest.TestCase):
+    def test_optional_connections_are_discoverable_from_work_entries(self):
+        reference = (BASE / 'docs/note-connections.md').resolve()
+        self.assertTrue(reference.is_file())
+        for relative in ('Librarian Profile.md', 'docs/knowledge-workflow.md',
+                         'skills/read-connect/SKILL.md'):
+            with self.subTest(entry=relative):
+                path = BASE / relative
+                targets = [path.parent / link.split('#')[0]
+                           for link in re.findall(r'\]\(([^)]+)\)', path.read_text())
+                           if '://' not in link]
+                self.assertIn(reference, [target.resolve() for target in targets])
+
     def test_four_skills_are_discoverable_and_portable(self):
         for name in ('progressive-adoption', 'read-connect', 'capture-source', 'review-save'):
             path = BASE / 'skills' / name / 'SKILL.md'

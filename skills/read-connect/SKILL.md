@@ -20,6 +20,14 @@ Understand, compare or navigate selected material.
    develop useful arguments under [idea emergence](../../docs/knowledge-workflow.md#idea-emergence).
 4. Answer clearly; send useful retention to [review/save](../review-save/SKILL.md).
 
+For optional read-only counts over an explicitly selected Wiki scope, use
+[deterministic activity and connections](../../docs/note-connections.md); only declared
+note/concept roles participate. In new authorized edits, prefer its supported explicit
+paths. Do not rewrite existing links or expand discovery to resolve them. Counts do
+not establish importance, maturity, acceptance, MOC creation or evidence. Saving or
+refreshing a report requires an actual user request and the library's writer/review
+rules, with current inputs checked before saving.
+
 ## Pitfalls
 
 Links/topic similarity do not establish scientific support. Follow [AGENTS](../../AGENTS.md).

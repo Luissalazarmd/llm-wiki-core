@@ -6,6 +6,14 @@ Select the current question, relevant notes and original passages. Explain the
 argument, comparable evidence, tensions and gaps. Reuse before proposing another
 explanation. Retention follows [review](review-contract.md); originals stay original.
 
+## Optional activity and connection counts
+
+For an explicitly selected Wiki scope, [deterministic activity and connections](note-connections.md)
+calculates read-only counts for declared `role: note` and legacy `role: concept` only.
+Counts do not determine importance, maturity, acceptance, MOC creation or evidence.
+Saving or refreshing a report needs an actual user request and the library's
+permitted writer, review and current-input checks. A calculation grants no save authority.
+
 ## Citations and lean metadata
 
 For new scientific derived notes, use numbered Vancouver citations such as [1] in order of first appearance, unless the owner or library requires another style. Reuse a source's number within the document; citation numbers are independent of MOC or synthesis addresses.
