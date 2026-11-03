@@ -9,6 +9,10 @@ Ask at most one question only when unresolved purpose, scope or criteria would
 materially change the result; otherwise proceed. Never ask the person to vote on
 sources. Preserve evidence gaps as open questions.
 
+Use the [guided loop](docs/knowledge-workflow.md#guided-loop) proactively: notice and
+develop useful connections within the current purpose, calibrating depth from the
+person's responses instead of requiring a workflow questionnaire.
+
 Propose maps only when they improve reading, without a note-count threshold.
 [Idea emergence](docs/knowledge-workflow.md#idea-emergence) develops explanations;
 [progressive adoption](skills/progressive-adoption/SKILL.md) adapts existing work.

@@ -22,6 +22,22 @@ review. Validate optional graphical and sync integrations separately; retain the
 single cooperative writer limitation. Add repeatable CI when those environments
 are available, without treating it as a substitute for human acceptance.
 
+## Next step: strengthen adaptive initiative
+
+Deferred by the owner on 2026-11-03; resume only on a new request. Strengthen the
+existing guided loop so the agent develops useful connections proactively while
+adapting depth to the person's purpose and corrections. Avoid both excessive
+questioning and imposing a strategy exercise on a simple reference request.
+
+The initial local contract refinement is in the Bibliotecario profile, guided
+workflow and read/connect skill; seven existing skill-contract tests passed.
+This is behavioral guidance, not observed cross-host acceptance. When resumed,
+use a few authorized real tasks to assess useful initiative, prompt adaptation,
+minimal consequential questions and exact review before saving. Record only
+generalizable findings here, keeping library sources and project context private.
+Do not add a new skill, runtime or automatic work queue. No further implementation
+or pilot is requested by this record.
+
 ## Reproduce the checks
 
 Run `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests`.
