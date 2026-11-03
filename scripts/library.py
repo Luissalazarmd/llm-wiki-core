@@ -145,9 +145,15 @@ def load_config(path: Path) -> dict:
         recovery_path = recovery_path.resolve(strict=True)
         if not recovery_path.is_dir() or recovery_path.is_relative_to(root):
             raise ValueError('Recovery directory must exist outside the library')
+        if recovery_path.is_relative_to(Path(__file__).resolve().parents[1]):
+            raise ValueError('Recovery directory is inside the Core checkout: recovery records contain '
+                             'private notes and this checkout is a public repository; pick a location outside')
         data['recovery_directory'] = str(recovery_path)
     if data.get('write_policy') == 'plain_files' and recovery is None:
         raise ValueError('plain_files requires an authorized recovery_directory')
+    if data.get('write_policy') == 'plain_files' and 'sources' not in layers:
+        raise ValueError('plain_files requires layers.sources: declare the existing original locations '
+                         'the writer must never touch, or "sources": [] to declare none')
     return {**{k: v for k, v in data.items() if k not in legacy}, 'library_root': str(root),
             'language': data.get('language', 'es'), 'layers': layers}
 

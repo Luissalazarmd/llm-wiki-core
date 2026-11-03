@@ -23,7 +23,7 @@ except ModuleNotFoundError:
     raise SystemExit(2)
 
 SKIPPED_NOTE_KINDS = ('unsafe_link_path', 'not_utf8', 'exceeds_byte_limit')
-ONTOLOGY = json.loads((Path(__file__).resolve().parents[1] / 'config/ontology.json').read_text())
+ONTOLOGY = json.loads((Path(__file__).resolve().parents[1] / 'config/ontology.json').read_text(encoding='utf-8'))
 LEGACY_ROLES = {'concept': 'note', 'entity': 'note', 'project': 'note', 'diagram': 'note'}
 LEGACY_RELATIONS = {'groups', 'related', 'supported_by', 'contradicts', 'extends'}
 BODY_RELATIONS = {'Evidence': 'supported_by', 'Contrasts': 'contradicts',

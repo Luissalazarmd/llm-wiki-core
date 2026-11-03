@@ -44,7 +44,9 @@ Illustrative private settings for an **existing, explicitly editable** library:
 
 Replace placeholders with authorized existing locations; this example creates no
 directories and grants no consent. `layers.sources` protects originals from the
-plain-note writer. In mixed folders, select exact source files for that layer.
+plain-note writer and is required with `plain_files` (`"sources": []` declares
+none); `recovery_directory` must be outside both the library and the Core checkout.
+In mixed folders, select exact source files for that layer.
 
 ```sh
 python3 scripts/knowledge.py --root /library --mode existing --scope Reading

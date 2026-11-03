@@ -75,6 +75,23 @@ def target_path(settings, relative, create=False):
         boundary = root / source
         if path == boundary or path.is_relative_to(boundary):
             raise ValueError('Captured sources are immutable')
+        # Lexical comparison misses case/normalization-insensitive filesystems; compare identities.
+        for candidate in (path, *path.parents):
+            if candidate == root or not candidate.is_relative_to(root):
+                break
+            try:
+                same = os.path.samefile(candidate, boundary)
+            except OSError:
+                same = False
+            if same:
+                raise ValueError('Captured sources are immutable')
+    if not create:
+        try:
+            role = library.knowledge.metadata_from(read_bytes(path).decode('utf-8')).get('role')
+        except (ValueError, RecursionError):
+            role = None
+        if role == 'source':
+            raise ValueError('Target declares role: source; captured sources are immutable')
     if path.name.casefold() in ('agents.md', 'skill.md', 'claude.md'):
         raise ValueError('This helper does not write known agent instruction files (AGENTS.md, SKILL.md, CLAUDE.md)')
     return path
@@ -155,6 +172,9 @@ def create_checked(path, draft, before_publish=None):
             stream.write(draft)
             stream.flush()
             os.fsync(stream.fileno())
+        mask = os.umask(0)  # mkstemp leaves 0600; give a note the process default mode.
+        os.umask(mask)
+        os.chmod(temporary, 0o666 & ~mask)
         if before_publish is not None:
             before_publish()
         os.link(temporary, path)  # Atomic absence requirement; never replace a competing entry.
@@ -209,7 +229,7 @@ def save(settings, packet, *, numbered=True, expected_scope=None):
     record_path = Path(settings['recovery_directory']) / (uuid.uuid4().hex + '.json')
     # Persist previous bytes and provenance BEFORE replacing the note. Not an apply receipt.
     fd = os.open(record_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-    with os.fdopen(fd, 'w') as stream:
+    with os.fdopen(fd, 'w', encoding='utf-8') as stream:
         json.dump(record, stream, ensure_ascii=False)
         stream.flush()
         os.fsync(stream.fileno())

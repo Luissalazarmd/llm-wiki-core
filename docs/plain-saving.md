@@ -5,6 +5,11 @@ request/authenticate it. Explicit plain_files policy and existing private recove
 directory outside the library are required; read_only/canonical_engine refuse.
 Managed markers, configured sources and known instruction filenames are protected;
 actual rules must cover unknown markers/documents and unconfigured originals.
+plain_files requires an explicit `layers.sources` list (`[]` declares none); the
+source boundary is compared by filesystem identity, not spelling, and an existing
+note whose frontmatter declares `role: source` is refused even outside that layer.
+Created notes get the process default mode (umask), records stay 0600 UTF-8, and a
+recovery directory inside the Core checkout is refused.
 
 Packets bind base/absence, draft, recomputed exact diff and evidence. Recheck before
 publication. Updates persist previous bytes in a private 0600 pre-write record,
