@@ -16,9 +16,12 @@ Understand, compare or navigate selected material.
 1. Resolve the question, actual library rules and a small authorized scope.
 2. Read relevant originals/locators and justified neighbors using permitted tools
    or [scoped projection](../../docs/projection-reference.md). Unknown stays unknown.
-3. Explain claims, evidence, tensions, limits and inference. Reuse explanations;
+3. Before extensive proposals, give a brief sourced finding. Ask at most one
+   question only if unresolved purpose, scope or criteria materially changes the
+   result; otherwise proceed. Sources are never voted on; retain evidence gaps
+   as open questions. Explain claims, evidence, tensions, limits and inference. Reuse explanations;
    develop useful arguments under [idea emergence](../../docs/knowledge-workflow.md#idea-emergence).
-4. Answer clearly; send useful retention to [review/save](../review-save/SKILL.md).
+4. Answer clearly; successful reading requires no save. Send useful retention to [review/save](../review-save/SKILL.md).
 
 For optional read-only counts over an explicitly selected Wiki scope, use
 [deterministic activity and connections](../../docs/note-connections.md); only declared

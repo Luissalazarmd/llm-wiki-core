@@ -25,7 +25,12 @@ Retain a useful correction/proposal or recover an authorized edit.
    or silently replace a reviewed address. Recheck the exact packet immediately
    before permitted saving; changed scope/base/evidence requires a fresh candidate
    and decision. Stop on partial batch save and inspect the reported private records.
-4. Perform the [review contract](../../docs/review-contract.md): actual decision,
+4. Foreground the changed passage and reason in the main chat; keep technical
+   hashes in helper operations. Explicitly explain changes to maturity, review,
+   identity or provenance. Before confirmation, use an actually supported host
+   presentation to make the full exact creation, or exact diff plus complete
+   readable resulting version, accessible. Conversation alone is not a saved edit.
+5. Perform the [review contract](../../docs/review-contract.md): actual decision,
    current inputs, permitted writer, recovery and exact readback.
 
 ## Pitfalls

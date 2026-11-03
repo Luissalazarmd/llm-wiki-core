@@ -51,7 +51,16 @@ def read_json(path):
 def target_path(settings, relative, create=False):
     root = Path(settings['library_root'])
     if settings.get('write_policy', 'read_only') != 'plain_files':
-        raise ValueError('Plain writing is disabled; use the library permitted writer')
+        if settings.get('write_policy', 'read_only') == 'canonical_engine':
+            raise ValueError(
+                'Plain writing is disabled; use the library permitted writer. '
+                'canonical_engine requires the existing permitted canonical writer; '
+                'if unavailable, continue authorized reading and proposals through host tools.')
+        raise ValueError(
+            'Plain writing is disabled; read_only means proposal-only. '
+            'Continue authorized reading and proposals through host tools. '
+            'Plain-file saving requires explicit library permission, exact human confirmation '
+            'and recovery; this helper does not enable writing.')
     # Compatibility refusal signals only: no vendor imports, installs or calls.
     if any(os.path.lexists(root / marker) for marker in ('.wanderloots-llm-wiki', '.private-engine-install.json')):
         raise ValueError('Managed library requires its library-permitted writer; Core does not install it')

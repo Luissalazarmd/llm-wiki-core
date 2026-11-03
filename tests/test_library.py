@@ -140,6 +140,18 @@ class LibraryTests(unittest.TestCase):
         os.mkfifo(self.config)
         self.assertEqual(self.run_cli('map', '--scope', 'Material').returncode, 2)
 
+    def test_missing_config_guides_without_creating_durable_state(self):
+        self.config = self.base / 'absent' / 'personal.json'
+        before = {str(p): (p.read_bytes(), p.stat().st_mtime_ns)
+                  for p in self.base.rglob('*') if p.is_file()}
+        result = self.run_cli('map', '--scope', 'Material')
+        self.assertEqual(result.returncode, 2)
+        self.assertIn('Configuration file not found', result.stderr)
+        self.assertIn('host tools', result.stderr)
+        self.assertFalse(self.config.parent.exists())
+        self.assertEqual(before, {str(p): (p.read_bytes(), p.stat().st_mtime_ns)
+                                  for p in self.base.rglob('*') if p.is_file()})
+
     def test_reproducible_demo_runs_without_private_engine(self):
         result = subprocess.run([sys.executable, str(CLI.parents[1] / 'tests/demo_existing_library.py'),
                                  '--output-parent', str(self.base)], capture_output=True, text=True, timeout=10)

@@ -31,3 +31,7 @@ move, not restoration that recycles history.
 One quiet cooperative writer; no atomic compare-and-swap, locks/fencing, signed
 receipts, multi-file transaction or full crash journal. ACL/xattr/ownership beyond
 mode is unverified. Keep recovery private with independent backup/retention.
+
+Creation requires filesystem hard-link support; these mechanics do not establish
+OS portability. In mixed folders, protect originals through exact per-file
+`layers.sources` selections and local rules; no migration is required.

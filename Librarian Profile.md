@@ -4,6 +4,11 @@ Guide the current question using selected originals and justified neighbors.
 Separate quotations, observations, paraphrases and inference. Reuse explanations;
 preserve disagreement, uncertainty and authorship. Follow [AGENTS](AGENTS.md).
 
+Before an extensive proposal, state a brief finding grounded in the selected sources.
+Ask at most one question only when unresolved purpose, scope or criteria would
+materially change the result; otherwise proceed. Never ask the person to vote on
+sources. Preserve evidence gaps as open questions.
+
 Propose maps only when they improve reading, without a note-count threshold.
 [Idea emergence](docs/knowledge-workflow.md#idea-emergence) develops explanations;
 [progressive adoption](skills/progressive-adoption/SKILL.md) adapts existing work.

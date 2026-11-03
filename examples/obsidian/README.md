@@ -19,6 +19,37 @@ Open the generated directory as a disposable vault and open `examples/obsidian/H
 
 Alternatively, open this checkout in Obsidian and open the example Home, understanding that Obsidian may create local UI state in the checkout. The disposable path is preferred for testing. Do not use the example as a place to put private notes in a public repository.
 
+## Walk through one proposed correction
+
+Use only the disposable export above. This demo is synthetic: its originals are
+not scientific evidence, and neither its cards nor running the helper supplies consent.
+
+1. Ask: “What does the shade explanation actually establish?” Read
+   [Sintesis](Wiki/Concepts/Sintesis.md), then its selected original
+   [Informe A, Observación](Raw/Sources/Informe-A.md#observación). The original
+   explicitly contains no real measurements; keep that limitation visible.
+2. Propose one manageable change to `examples/obsidian/Wiki/Concepts/Sintesis.md`:
+   append “Esta comparación imaginaria no permite estimar un efecto real.” to
+   the opening argument paragraph. This is a rehearsal candidate, not an applied edit.
+   Keep the original, citations, identity and maturity unchanged.
+3. The agent prepares the exact diff **and complete resulting file**, including
+   metadata, citations and consulted evidence, and presents both through the host
+   before asking for confirmation. Show the destination, reason and uncertainty;
+   this README's sentence alone is not that full preview.
+4. The person reviews that exact version and gives a real decision in the host.
+   [Inbox/Propuesta](Review/Inbox/Propuesta.md) and
+   [Inbox/Correccion](Review/Inbox/Correccion.md) are illustrative cards, not complete
+   exact drafts or runnable approved packets. Their labels cannot approve a save.
+5. Only after confirmation, recheck the exact base/evidence versions, local write
+   permission, conflicts and private recovery copy. Use the library's permitted
+   writer; unavailable permission/writer leaves a proposal. Read back the saved
+   file and compare its complete bytes with the confirmed version. Report what
+   was proposed, confirmed and saved separately.
+
+Recovery is a separate authorized action with current-version checks preserving
+later edits; do not automatically restore a backup. This rehearsal authorizes no
+changes to anyone's own library. Follow the [review contract](../../docs/review-contract.md).
+
 ## What is automatic
 
 `Biblioteca.base` consults only the selected example source, proposal and knowledge paths. Panorama counts every matching file. Capture custody is determined before role, so a malformed Raw role never increments Wiki notes. Captures, notes and maps/indexes remain distinct; entity/project/diagram uses belong to notes. Atencion shows all Inbox proposals ordered by title. Keep only active proposals in that selected location through the library's permitted workflow; no review field or inferred acceptance is needed. Only Recientes is a labeled five-file sample. Madurez displays retained notes only; captures and organizational maps do not display idea development. Technical observations are available in the Base, not another permanent Home queue.
@@ -51,7 +82,7 @@ Review short explanatory cards when contracts change; file references retain the
 
 Keep the existing library root, authored notes, metadata and tools. Replace the three example scope prefixes in the Base with the actual selected source/proposal/knowledge paths and review all formula mappings. Handle created versus Created explicitly and preserve conflicts; do not rewrite captures to standardize dates. Keep Home and navigation views outside source/proposal/maintained-knowledge inventories. Adapt Canvas reference paths to that library's active contracts. Keep a single existing Home; no parallel operational vault.
 
-Present exact Home/Base/Canvas/CSS/settings changes for actual review before deployment; preserve recovery, recheck base versions and avoid concurrent writes. This helper is not the Markdown plain writer and does not authenticate decisions. Source rights and plugin installation are separate gates. Core has no project redistribution license; optional third-party plugins retain their own licenses and are not shipped here.
+Present exact Home/Base/Canvas/CSS/settings changes for actual review before deployment; preserve recovery, recheck base versions and avoid concurrent writes. This helper is not the Markdown plain writer and does not authenticate decisions. Source rights and plugin installation are separate gates. Core and this synthetic example use the [MIT License](../../LICENSE); optional third-party plugins retain their own licenses and are not shipped here.
 
 ## Checks
 

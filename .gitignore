@@ -40,7 +40,6 @@ __pycache__/
 /Schema/librarian-reason-codes.json
 /Schema/librarian-settings.schema.json
 /_templates/
-/LICENSE
 /SOURCE_MANIFEST.json
 /.private-engine-install.json
 /LLM Wiki Settings.md

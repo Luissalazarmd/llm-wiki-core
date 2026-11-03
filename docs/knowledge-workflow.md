@@ -4,7 +4,8 @@
 
 Select the current question, relevant notes and original passages. Explain the
 argument, comparable evidence, tensions and gaps. Reuse before proposing another
-explanation. Retention follows [review](review-contract.md); originals stay original.
+explanation. Develop one manageable argument; maturity guides the rigor of claims,
+not length quotas. Conversation does not itself persist an edit. Retention follows [review](review-contract.md); originals stay original.
 
 ## Optional activity and connection counts
 

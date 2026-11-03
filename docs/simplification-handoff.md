@@ -1,5 +1,7 @@
 # Simplification delivery and closure — 2026-10-18
 
+Scope: historical delivery checkpoint, not a current task queue or authorization. The 165-test result and numbering limits below describe that checkpoint.
+
 Read [AGENTS](../AGENTS.md), [preflight](agent-preflight.md) and Git state before editing.
 Implementation base: 12ebc5201c86ff927d7207def259c5ae92b5c7a2.
 Delivered through [PR #8](https://github.com/Luissalazarmd/llm-wiki-core/pull/8),

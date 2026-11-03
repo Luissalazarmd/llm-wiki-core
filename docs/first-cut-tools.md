@@ -5,6 +5,37 @@ Use existing permitted host tools or these helpers; no automatic installation.
 permission. Declare actual library_root, authorized_paths and optional source/draft/
 knowledge layers. Defaults are read-only; configuration stays private.
 
+Python and PyYAML are needed only for these optional helpers; the dependency is
+pinned in [requirements.txt](../requirements.txt). No installation is automatic.
+The current suite was exercised on Linux with Python 3.14.8 and PyYAML 6.0.3.
+Older Python versions are not certified by that run; APIs such as
+`Path.is_relative_to` require at least 3.9, which is a code floor, not a tested
+minimum. Other operating systems and filesystems require their own validation.
+Without helper configuration or dependencies, use authorized host reading and
+proposals. Omitted `write_policy` defaults to `read_only`.
+
+Relative `library_root` and `recovery_directory` resolve against the JSON file's
+directory, not the shell directory. Authorized paths and layer selections are
+relative to that library root. A scope may be one exact selected file in a flat,
+mixed library; no folder migration is needed.
+
+Illustrative private settings for an **existing, explicitly editable** library:
+
+```json
+{
+  "version": 1,
+  "library_root": "../existing-library",
+  "authorized_paths": ["Notes", "Sources"],
+  "layers": {"sources": ["Sources"]},
+  "write_policy": "plain_files",
+  "recovery_directory": "../private-recovery"
+}
+```
+
+Replace placeholders with authorized existing locations; this example creates no
+directories and grants no consent. `layers.sources` protects originals from the
+plain-note writer. In mixed folders, select exact source files for that layer.
+
 ```sh
 python3 scripts/knowledge.py --root /library --mode existing --scope Reading
 python3 scripts/library.py --config /private.json map --scope Reading
@@ -12,6 +43,11 @@ python3 scripts/library.py --config /private.json proposal --create --target Not
 python3 scripts/capture_check.py --config /private.json --target Sources/new.md < /capture.md
 python3 scripts/note_write.py --config /private.json check --packet /proposal.json
 ```
+
+For the first save, prepare the packet and present exact content/diff plus the
+readable result; obtain the actual person’s approval under the [review contract](review-contract.md).
+Immediately recheck base/evidence, permission and conflicts; save with private
+recovery, then read back exact bytes. CLI flags cannot authenticate approval.
 
 Save uses save instead of check; recovery uses restore --record. Capture recheck
 uses --expected-sha256; readback adds --saved. Follow [review](review-contract.md),

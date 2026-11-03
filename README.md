@@ -2,7 +2,14 @@
 
 Read with purpose. Connect ideas. Keep what matters.
 
-Open [AGENTS.md](AGENTS.md) in your existing agent. Supply one starting point:
+Core gives your existing agent four reusable workflows: adopt selected material,
+read and connect ideas, capture sources, and review/save useful knowledge.
+It combines Markdown instructions, synthetic examples and optional Python helpers.
+Bring an existing library, collected articles, your own drafts or a first question;
+no dedicated agent service, migration or plugin is required.
+
+People: start with [onboarding](docs/onboarding.md). Agents: read
+[AGENTS.md](AGENTS.md) first. Supply one starting point:
 your library, an article, an authored draft or a question. Keep material where it
 is. The Bibliotecario handles permitted technical work; you think, correct and approve.
 
@@ -12,17 +19,32 @@ Before saving, show the complete proposed content or exact diff and readable res
 [Adopt](skills/progressive-adoption/SKILL.md) · [Workflow](docs/knowledge-workflow.md) · [Onboarding](docs/onboarding.md) ·
 [Tools](docs/first-cut-tools.md) · [Obsidian example](examples/obsidian/README.md)
 
-Validated simplification: **165 synthetic tests passed**. Separate
+Obsidian can provide the reading workspace: Bases shows inventories, Canvas shows
+the architecture, and optional K-Plex provides contextual knowledge navigation.
+The example includes settings references, not plugin installers. Ordinary Markdown
+remains usable without those interfaces; graph connections do not validate claims.
+
+Obtain Core from [GitHub](https://github.com/Luissalazarmd/llm-wiki-core), keeping your
+private library separate. See [getting and updating Core](docs/onboarding.md#get-and-update-core)
+and [storage, sync and backups](docs/sync.md) before choosing online storage.
+
+Current synthetic checks: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests`;
+see [acceptance and limits](docs/acceptance.md).
+
+Historical simplification checkpoint: **165 synthetic tests passed** (not the current suite). Separate
 [native evidence](examples/obsidian/VALIDATION.md#simplification-follow-up--2026-10-16)
 records Obsidian 1.13.7 / K-Plex 0.1.3 navigation, settled Home counts and Canvas.
 These do not prove scientific validity, human approval or universal compatibility.
 [Handoff](docs/simplification-handoff.md) records delivery and limits.
 
-Public preview; no project redistribution license is granted. Personal libraries,
-settings and recovery remain private. Publication requires separate permission.
+Core code, documentation and bundled synthetic examples are covered by the
+[MIT License](LICENSE). Using Core does not license or publish private user
+libraries, sources, credentials, settings or recovery records. Third-party
+dependencies retain their own licenses.
 
-Scoped reading needs no configuration:
+The optional Python helper below needs its dependencies (see [tools](docs/first-cut-tools.md)),
+but scoped reading through authorized host tools needs no configuration:
 
 ```sh
-python3 scripts/knowledge.py --root /path/to/library --mode existing --scope Reading
+python3 scripts/knowledge.py --root /path/to/library --mode existing --scope Notes/selected.md
 ```

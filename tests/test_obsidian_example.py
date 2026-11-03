@@ -166,6 +166,25 @@ class ObsidianExampleTests(unittest.TestCase):
                 api.materialize(target)
             self.assertEqual(before, (target / 'examples/obsidian/Home.md').read_bytes())
 
+    def test_export_contains_referenced_fixture_inputs(self):
+        api = self.demo_api()
+        with tempfile.TemporaryDirectory(prefix='core-export-references-') as directory:
+            target = api.materialize(Path(directory) / 'demo')
+            for fixture in ('kplex-minimal', 'numbered-notes'):
+                source = ROOT / 'examples' / fixture
+                exported = target / 'examples' / fixture
+                for original in source.rglob('*'):
+                    if original.is_file() and original.suffix in ('.md', '.json'):
+                        self.assertEqual((exported / original.relative_to(source)).read_bytes(),
+                                         original.read_bytes())
+                catalog = api.knowledge.catalog(exported, link_prefix=f'examples/{fixture}')
+                self.assertTrue(catalog['notes'])
+            self.assertEqual((target / 'LICENSE').read_bytes(), (ROOT / 'LICENSE').read_bytes())
+            for document in (target / 'examples/obsidian/README.md',):
+                for link in re.findall(r'\]\(([^)#]+)(?:#[^)]*)?\)', document.read_text()):
+                    if '://' not in link:
+                        self.assertTrue((document.parent / link).is_file(), link)
+
     def test_materialization_refuses_symlink_ancestors_and_source_tree_destinations(self):
         api = self.demo_api()
         with tempfile.TemporaryDirectory(prefix='core-obsidian-safety-') as directory:

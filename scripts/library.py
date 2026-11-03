@@ -38,7 +38,14 @@ def contained(root: Path, relative: str) -> Path:
 
 def load_config(path: Path) -> dict:
     """Validate personal settings; relative library root is relative to this file."""
-    if any(p.is_symlink() for p in [path, *path.absolute().parents]) or not path.is_file():
+    if any(p.is_symlink() for p in [path, *path.absolute().parents]):
+        raise ValueError('Configuration must be a regular non-symlink file')
+    if not path.exists():
+        raise ValueError(
+            'Configuration file not found. Continue authorized reading and proposals through host tools, '
+            'or explicitly configure the existing library under its rules. '
+            'This helper does not install tools, create configuration or enable writing.')
+    if not path.is_file():
         raise ValueError('Configuration must be a regular non-symlink file')
     with path.open('rb') as stream:
         raw = stream.read(65537)

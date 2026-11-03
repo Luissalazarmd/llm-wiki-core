@@ -85,7 +85,15 @@ class NoteWriteTests(unittest.TestCase):
     def test_default_and_managed_policies_cannot_use_plain_writer(self):
         for policy in ('read_only', 'canonical_engine'):
             self.config.write_text(json.dumps({**self.settings, 'write_policy': policy}))
-            self.assertEqual(self.call('save', '--packet', str(self.packet)).returncode, 2)
+            result = self.call('save', '--packet', str(self.packet))
+            self.assertEqual(result.returncode, 2)
+            if policy == 'canonical_engine':
+                self.assertIn('existing permitted canonical writer', result.stderr)
+                self.assertNotIn('plain_files', result.stderr)
+            else:
+                self.assertIn('read_only means proposal-only', result.stderr)
+                self.assertIn('exact human confirmation', result.stderr)
+            self.assertEqual(list((self.base / 'recovery').iterdir()), [])
         self.config.write_text(json.dumps(self.settings))
         (self.root / '.wanderloots-llm-wiki').mkdir()
         self.assertEqual(self.call('save', '--packet', str(self.packet)).returncode, 2)

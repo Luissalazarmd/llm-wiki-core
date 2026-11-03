@@ -1,5 +1,29 @@
 # Acceptance
 
+## Adoption readiness checkpoint — 2026-11-03
+
+The adoption update passed 209 synthetic tests on Linux with Python 3.14.8 and
+PyYAML 6.0.3, including missing-configuration refusal, writer-policy guidance
+and complete synthetic-example export with MIT notices. Local documentation
+targets and whitespace were checked. These results support a bounded pilot,
+not universal deployment or semantic approval.
+
+Not run for this update: clean-machine installation, macOS execution, a new
+human-reviewed end-to-end session, current native Obsidian/K-Plex interaction,
+cross-host compatibility or cloud-sync acceptance. Earlier native observations
+remain historical. No platform CI matrix is provided by this update.
+
+Before claiming a supported Linux/macOS configuration, record the exact revision,
+OS/architecture, filesystem and dependency versions; run the suite and disposable
+export from a clean setup. Check spaces/Unicode/case-sensitive path behavior,
+source preservation, stale-input refusal, no-clobber creation and recovery on
+that filesystem. Observe one actual agent-guided correction with exact human
+review. Validate optional graphical and sync integrations separately; retain the
+single cooperative writer limitation. Add repeatable CI when those environments
+are available, without treating it as a substitute for human acceptance.
+
+## Reproduce the checks
+
 Run `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests`.
 Synthetic cases cover bounded read-only discovery, native/legacy projection,
 identity/version/locator checks, capture duplicates/connections, proposal binding,

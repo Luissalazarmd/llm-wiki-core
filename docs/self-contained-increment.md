@@ -1,5 +1,7 @@
 # Verification history
 
+Scope: historical evidence only, not current authorization or an active task queue. Current checks are defined in [acceptance](acceptance.md).
+
 Historical checkpoints: 104 tests after integral corrections; 107 after readable
 review; 112 after progressive adoption; 138 at published
 [46a3c9c](https://github.com/Luissalazarmd/llm-wiki-core/commit/46a3c9cea57899c55811194f706c4dd958dd11c5);

@@ -34,10 +34,13 @@ def materialize(destination: Path, identity: str = 'demo:idea:synthesis') -> Pat
     destination = destination.resolve()
     if destination.is_relative_to(ROOT) or not destination.parent.is_dir():
         raise ValueError('Destination must be outside Core with an existing parent')
-    patterns = ('README.md', 'AGENTS.md', 'Librarian Profile.md', 'requirements.txt',
+    patterns = ('README.md', 'LICENSE', 'AGENTS.md', 'Librarian Profile.md', 'requirements.txt',
                 'docs/**/*.md', 'Agents/**/*.md', 'skills/**/SKILL.md',
                 'scripts/*.py', 'tests/*.py', 'config/ontology.json',
-                'config/personal.example.json', 'examples/obsidian/**/*')
+                'config/personal.example.json', 'examples/obsidian/**/*',
+                'examples/kplex-minimal/*.md', 'examples/kplex-minimal/*.json',
+                'examples/kplex-minimal/Raw/*.md', 'examples/kplex-minimal/Wiki/*.md',
+                'examples/numbered-notes/*.md', 'examples/numbered-notes/Wiki/*.md')
     sources = set()
     for pattern in patterns:
         for path in ROOT.glob(pattern):

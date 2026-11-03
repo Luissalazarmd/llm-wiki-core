@@ -1,5 +1,7 @@
 # Implementation
 
+Scope: prospective, optional profile adoption; this is not mandatory onboarding. Use [onboarding](onboarding.md) for the initial human path.
+
 Use [tools](first-cut-tools.md), [acceptance](acceptance.md) and the [handoff](simplification-handoff.md).
 
 ## Prospective living-synthesis adoption
