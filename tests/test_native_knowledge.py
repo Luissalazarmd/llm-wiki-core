@@ -5,6 +5,8 @@ from pathlib import Path
 import tempfile
 import unittest
 
+import support  # noqa: F401  real temp dir for symlink-refusing helpers
+
 ROOT = Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location('native_knowledge', ROOT / 'scripts/knowledge.py')
 API = importlib.util.module_from_spec(SPEC)

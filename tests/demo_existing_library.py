@@ -10,6 +10,8 @@ import sys
 import tempfile
 from pathlib import Path
 
+import support  # noqa: F401  real temp dir for symlink-refusing helpers
+
 
 def run(output_parent: Path) -> dict:
     source = Path(__file__).resolve().parents[1]
@@ -32,8 +34,7 @@ def run(output_parent: Path) -> dict:
     (library / 'unselected.md').write_text('Synthetic out-of-scope note')
     settings = {'version': 1, 'library_root': 'library',
                 'authorized_paths': ['Lecturas', 'Borradores', 'Explicaciones'],
-                'objectives': ['Compare fictional measurements'], 'language': 'es',
-                'organization': 'preserve', 'initiative': 'within_focus',
+                'language': 'es',
                 'layers': {'sources': ['Lecturas'], 'drafts': ['Borradores'], 'knowledge': ['Explicaciones']}}
     config = run_dir / 'personal.json'
     config.write_text(json.dumps(settings))
@@ -84,4 +85,5 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output-parent', type=Path, required=True)
     args = parser.parse_args()
-    print(json.dumps(run(args.output_parent), indent=2))
+    # A linked parent (macOS /tmp) would make every helper refuse the synthetic library.
+    print(json.dumps(run(Path(os.path.realpath(args.output_parent))), indent=2))

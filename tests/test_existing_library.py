@@ -3,6 +3,8 @@ import importlib.util
 from pathlib import Path
 import tempfile
 import unittest
+
+import support  # noqa: F401  real temp dir for symlink-refusing helpers
 import json
 import subprocess
 import sys
@@ -135,9 +137,35 @@ class ExistingLibraryTests(unittest.TestCase):
         module = api()
         with self.assertRaisesRegex(ValueError, 'note limit'):
             module.discover(self.root, ['Reading'], max_notes=1)
-        with self.assertRaisesRegex(ValueError, 'byte limit'):
-            module.discover(self.root, ['Reading'], max_file_bytes=10)
+        bounded = module.discover(self.root, ['Reading'], max_file_bytes=10)
+        self.assertEqual(bounded['notes'], [])
+        self.assertEqual({(i['path'], i['kind']) for i in bounded['issues']},
+                         {('Reading/one.md', 'exceeds_byte_limit'), ('Reading/two.md', 'exceeds_byte_limit')})
         self.assertEqual(len(module.discover(self.root, ['Reading', 'Reading/one.md'])['notes']), 2)
+
+    def test_one_unreadable_file_is_a_named_issue_not_a_scope_failure(self):
+        module = api()
+        (self.root / 'Reading' / 'odd[1].md').write_text('# Unsafe name for a link')
+        (self.root / 'Reading' / 'latin1.md').write_bytes(b'# Caf\xe9\n')
+        (self.root / 'Reading' / 'huge.md').write_bytes(b'x' * 262145)
+        data = module.discover(self.root, ['Reading'])
+        self.assertEqual({n['path'] for n in data['notes']}, {'Reading/one.md', 'Reading/two.md'})
+        self.assertEqual({(i['path'], i['kind']) for i in data['issues']},
+                         {('Reading/odd[1].md', 'unsafe_link_path'), ('Reading/latin1.md', 'not_utf8'),
+                          ('Reading/huge.md', 'exceeds_byte_limit')})
+        for path, kind in (('Reading/latin1.md', 'not_utf8'), ('Reading/huge.md', 'exceeds_byte_limit')):
+            with self.assertRaisesRegex(ValueError, kind) as refused:
+                module.prepare_proposal(self.root, path, 'draft', [])
+            self.assertIn(path, str(refused.exception))
+            with self.assertRaisesRegex(ValueError, path.replace('[', '\\[')):
+                module.prepare_proposal(self.root, 'Reading/one.md', 'draft', [path])
+        (self.root / 'Reading' / 'total.md').write_bytes(b'x' * 16777217)
+        with self.assertRaisesRegex(ValueError, 'total byte limit'):
+            module.discover(self.root, ['Reading'], max_file_bytes=20_000_000)
+        (self.root / 'Reading' / 'total.md').unlink()
+        (self.root / 'Reading' / 'link.md').symlink_to(self.root / 'private.md')
+        with self.assertRaisesRegex(ValueError, 'Symlink in scope rejected: Reading/link.md'):
+            module.discover(self.root, ['Reading'])
 
     def test_cli_existing_mode_focus_and_markdown(self):
         for extra in [[], ['--focus', 'path:Reading/one.md', '--format', 'markdown']]:

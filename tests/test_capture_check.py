@@ -7,6 +7,8 @@ import sys
 import tempfile
 import unittest
 
+import support  # noqa: F401  real temp dir for symlink-refusing helpers
+
 BASE = Path(__file__).resolve().parents[1]
 
 
@@ -227,7 +229,61 @@ class CaptureCheckTests(unittest.TestCase):
         self.assertEqual(self.call(draft=draft).returncode, 2)
         (self.root / 'Inputs/linked.md').unlink()
         (self.root / 'Inputs/huge.md').write_bytes(b'x' * 262145)
-        self.assertEqual(self.call(draft=draft).returncode, 2)
+        result = self.call(draft=draft)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout)['duplicate_check_not_checked'], ['Inputs/huge.md'])
+
+    def test_unreadable_existing_source_limits_duplicate_scope_without_blocking(self):
+        import hashlib
+        draft = self.simple()
+        files = {'Inputs/huge.md': b'x' * 262145, 'Inputs/latin1.md': b'Reference:: caf\xe9\n',
+                 'Inputs/broken.md': b'---\ntitle: a\ntitle: b\n---\nReference:: fixture:one\n'}
+        for relative, raw in files.items():
+            (self.root / relative).write_bytes(raw)
+        result = self.call(draft=draft)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        data = json.loads(result.stdout)
+        self.assertEqual(data['duplicate_check_not_checked'], sorted(files))
+        entries = {e['path']: e for e in data['source_inventory'] if e.get('duplicate_check') == 'not_checked'}
+        self.assertEqual(set(entries), set(files))
+        for relative, raw in files.items():
+            self.assertEqual(entries[relative]['sha256'], hashlib.sha256(raw).hexdigest())
+            self.assertIn(relative, entries[relative]['reason'])
+        self.assertIn('byte limit', entries['Inputs/huge.md']['reason'])
+        self.assertIn('UTF-8', entries['Inputs/latin1.md']['reason'])
+        self.assertIn('frontmatter', entries['Inputs/broken.md']['reason'].casefold())
+        (self.root / 'Inputs/huge.md').write_bytes(b'y' * 262145)
+        self.assertEqual(self.call('--expected-sha256', data['check_sha256'], draft=draft).returncode, 2)
+        oversized = self.call(draft=draft + 'x' * 262145)
+        self.assertEqual(oversized.returncode, 2)
+        self.assertIn('262144', oversized.stderr)
+        self.assertIn('excerpt', oversized.stderr)
+        (self.root / 'Maps/topic.md').write_bytes(b'\xff\xfe')
+        broken = self.call(draft=draft)
+        self.assertEqual(broken.returncode, 2)
+        self.assertIn('Maps/topic.md', broken.stderr)
+
+    def test_links_inside_preserved_original_do_not_block_a_contextualized_capture(self):
+        context = '## Contexto de captura\nSe conserva para comparar el método.\n\n'
+        originals = ('## Original\nSee [[1]](https://example.org) and [[Other Note]].',
+                     '## Original\n[[Maps/missing]] [[Inputs/a]]',
+                     '## Original\n' + '[[Maps/topic]]\n' * 51)
+        for original in originals:
+            with self.subTest(original=original):
+                result = self.call(draft=self.simple(context + original))
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(json.loads(result.stdout)['connection']['kind'], 'persisted_question')
+                bare = self.call(draft=self.simple(original))
+                self.assertEqual(bare.returncode, 2)
+                self.assertIn('Capture context', bare.stderr)
+                self.assertIn('preserved original', bare.stderr)
+        self.assertIn('Link [[1]] in the draft', self.call(draft=self.simple(originals[0])).stderr)
+        self.assertIn('[[Maps/missing]]', self.call(draft=self.simple(originals[1])).stderr)
+        both = self.call(draft=self.simple(context + 'Related:: [[Maps/topic]]'))
+        self.assertEqual(json.loads(both.stdout)['connection']['kind'], 'existing_notes')
+        none = self.call(draft=self.simple('Only text.'))
+        self.assertEqual(none.returncode, 2)
+        self.assertIn('one line stating why it is being retained', none.stderr)
 
     def test_capture_connection_reads_have_a_fixed_link_limit(self):
         for count in (50, 51):

@@ -2,11 +2,14 @@
 import hashlib
 import importlib.util
 import json
+import os
 from pathlib import Path
 import tempfile
 import subprocess
 import sys
 import unittest
+
+import support  # noqa: F401  real temp dir for symlink-refusing helpers
 
 import yaml
 
@@ -47,6 +50,52 @@ class KnowledgeTests(unittest.TestCase):
                               lambda: api.prepare_proposal(root, 'Raw/a.md', 'draft', [])):
                 with self.assertRaisesRegex(ValueError, 'Symlink library root'):
                     operation()
+
+    def test_symlink_root_refusal_names_the_link_and_a_retry_path(self):
+        self.note('Raw/a.md', {'id': 's1'})
+        link = self.root / 'alias'
+        link.symlink_to(self.root, target_is_directory=True)
+        with self.assertRaisesRegex(ValueError, 'Symlink library root') as refused:
+            load_module().catalog(link / 'sub')
+        self.assertIn(f'{link} is a link', str(refused.exception))
+        self.assertIn(f'retry with {self.root / "sub"}', str(refused.exception))
+
+    def test_strict_file_errors_name_the_offending_path(self):
+        api = load_module()
+        self.note('Raw/a.md', {'id': 's1'})
+        (self.root / 'Raw/latin1.md').write_bytes(b'---\nid: l\n---\n\xe9')
+        with self.assertRaisesRegex(ValueError, 'not UTF-8: Raw/latin1.md'):
+            api.catalog(self.root)
+        (self.root / 'Raw/latin1.md').unlink()
+        self.note('Raw/large.md', {'id': 'l'}, 'x' * 100)
+        with self.assertRaisesRegex(ValueError, r'byte limit \(50 bytes\): Raw/large.md'):
+            api.catalog(self.root, max_file_bytes=50)
+        (self.root / 'Raw/large.md').unlink()
+        self.note('Raw/b|c.md', {'id': 'b'})
+        with self.assertRaisesRegex(ValueError, r'link path: Raw/b\|c.md'):
+            api.catalog(self.root)
+        (self.root / 'Raw/b|c.md').unlink()
+        (self.root / 'Raw/escape.md').symlink_to(self.root / 'Raw/a.md')
+        with self.assertRaisesRegex(ValueError, 'Symlink inside knowledge stage rejected: Raw/escape.md'):
+            api.catalog(self.root)
+
+    def test_missing_pyyaml_explains_optional_dependency_instead_of_a_traceback(self):
+        scripts = ROOT / 'scripts'
+        for name, args in (('knowledge.py', ['--root', str(self.root)]),
+                           ('library.py', ['--config', str(self.root / 'none.json'), 'map', '--scope', 'x']),
+                           ('note_write.py', ['--config', str(self.root / 'none.json'), 'check', '--packet', 'p']),
+                           ('capture_check.py', ['--config', str(self.root / 'none.json'), '--target', 'x.md']),
+                           ('connections.py', ['--help'])):
+            with self.subTest(script=name):
+                result = subprocess.run([sys.executable, '-S', str(scripts / name), *args], cwd=str(ROOT),
+                                        capture_output=True, text=True, input='',
+                                        env={'PATH': os.environ.get('PATH', ''), 'PYTHONDONTWRITEBYTECODE': '1'})
+                self.assertEqual(result.returncode, 2, result.stderr)
+                self.assertNotIn('Traceback', result.stderr)
+                error = json.loads(result.stderr)['error']
+                self.assertIn('PyYAML', error)
+                self.assertIn('requirements.txt', error)
+                self.assertIn('host tools', error)
 
     def test_crlf_metadata_is_parsed_without_changing_original_hashes(self):
         raw = b'---\r\nid: crlf\r\ntitle: Shade method\r\nmaturity: developing\r\n---\r\nSynthetic.\r\n'

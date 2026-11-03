@@ -48,8 +48,7 @@ def read_json(path):
         raise ValueError(str(exc)) from exc
 
 
-def target_path(settings, relative, create=False):
-    root = Path(settings['library_root'])
+def check_policy(settings):
     if settings.get('write_policy', 'read_only') != 'plain_files':
         if settings.get('write_policy', 'read_only') == 'canonical_engine':
             raise ValueError(
@@ -61,6 +60,11 @@ def target_path(settings, relative, create=False):
             'Continue authorized reading and proposals through host tools. '
             'Plain-file saving requires explicit library permission, exact human confirmation '
             'and recovery; this helper does not enable writing.')
+
+
+def target_path(settings, relative, create=False):
+    root = Path(settings['library_root'])
+    check_policy(settings)
     # Compatibility refusal signals only: no vendor imports, installs or calls.
     if any(os.path.lexists(root / marker) for marker in ('.wanderloots-llm-wiki', '.private-engine-install.json')):
         raise ValueError('Managed library requires its library-permitted writer; Core does not install it')
@@ -229,6 +233,11 @@ def save(settings, packet, *, numbered=True, expected_scope=None):
 
 
 def restore(settings, record_path):
+    try:
+        check_policy(settings)
+    except ValueError as exc:
+        raise ValueError(f'{exc} Recovery requires write_policy plain_files with an existing private '
+                         'recovery_directory.') from None
     directory = Path(settings['recovery_directory'])
     if record_path.parent.resolve() != directory or record_path.is_symlink():
         raise ValueError('Record must be directly inside the configured recovery directory')

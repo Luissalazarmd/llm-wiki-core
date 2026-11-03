@@ -7,6 +7,8 @@ import sys
 import tempfile
 import unittest
 
+import support  # noqa: F401  real temp dir for symlink-refusing helpers
+
 ROOT = Path(__file__).resolve().parents[1]
 
 

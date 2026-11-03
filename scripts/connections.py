@@ -148,15 +148,18 @@ def measure(root, scopes):
     for path in paths:
         relative = path.relative_to(root).as_posix()
         if any(c in relative for c in '[]|#\n\r\\'):
-            raise ValueError('Unsafe note path')
+            raise ValueError('Unsafe note path: ' + relative)
         with path.open('rb') as stream:
             raw = stream.read(262145)
         total += len(raw)
         if len(raw) > 262144 or total > 16777216:
-            raise ValueError('Selection exceeds byte limits')
+            raise ValueError('Selection exceeds byte limits (256 KiB/file, 16 MiB total) at ' + relative)
         snapshots[relative] = digest(raw)
-        text = raw.decode('utf-8')
-        properties = knowledge.metadata_from(text)
+        try:
+            text = raw.decode('utf-8')
+            properties = knowledge.metadata_from(text)
+        except ValueError as exc:
+            raise ValueError(f'{relative}: {exc}') from None
         if properties.get('role') not in ('note', 'concept'):
             continue
         notes[relative] = {'path': relative, 'activity': activity(text, properties),

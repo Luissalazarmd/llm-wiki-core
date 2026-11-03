@@ -7,6 +7,8 @@ import sys
 import tempfile
 import unittest
 
+import support  # noqa: F401  real temp dir for symlink-refusing helpers
+
 BASE = Path(__file__).resolve().parents[1]
 WRITER = BASE / 'scripts/note_write.py'
 
@@ -54,6 +56,18 @@ class NoteWriteTests(unittest.TestCase):
         self.assertEqual(restored.returncode, 0, restored.stderr)
         self.assertEqual((self.root / 'Notes/one.md').read_bytes(), original)
 
+
+    def test_restore_under_read_only_policy_explains_instead_of_key_error(self):
+        saved = self.call('save', '--packet', str(self.packet))
+        record = json.loads(saved.stdout)['record']
+        self.config.write_text(json.dumps({k: v for k, v in self.settings.items()
+                                           if k not in ('write_policy', 'recovery_directory')}))
+        result = self.call('restore', '--record', record)
+        self.assertEqual(result.returncode, 2)
+        self.assertNotEqual(result.stderr.strip(), json.dumps({'error': 'recovery_directory'}))
+        self.assertIn('read_only means proposal-only', result.stderr)
+        self.assertIn('plain_files with an existing private recovery_directory', result.stderr)
+        self.assertIn('Proposed fictional', (self.root / 'Notes/one.md').read_text())
 
     def test_rehashed_packet_with_misleading_diff_is_rejected(self):
         import hashlib

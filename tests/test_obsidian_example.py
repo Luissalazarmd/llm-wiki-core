@@ -9,6 +9,8 @@ import subprocess
 import sys
 import tempfile
 import unittest
+
+import support  # noqa: F401  real temp dir for symlink-refusing helpers
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -193,8 +195,10 @@ class ObsidianExampleTests(unittest.TestCase):
             real.mkdir()
             linked = parent / 'linked'
             linked.symlink_to(real, target_is_directory=True)
-            with self.assertRaisesRegex(ValueError, 'Symlink'):
+            with self.assertRaisesRegex(ValueError, 'Symlink') as refused:
                 api.materialize(linked / 'new')
+            self.assertIn(f'{linked} is a link', str(refused.exception))
+            self.assertIn(f'retry with {real / "new"}', str(refused.exception))
             self.assertEqual(list(real.iterdir()), [])
         with self.assertRaisesRegex(ValueError, 'outside Core'):
             api.materialize(EXAMPLE / 'must-not-be-created')

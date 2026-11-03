@@ -7,6 +7,8 @@ import sys
 import tempfile
 import unittest
 
+import support  # noqa: F401  real temp dir for symlink-refusing helpers
+
 CLI = Path(__file__).resolve().parents[1] / 'scripts/library.py'
 
 
@@ -24,8 +26,7 @@ class LibraryTests(unittest.TestCase):
         (self.root / 'private.md').write_text('Synthetic unselected note')
         self.config = self.base / 'personal.json'
         self.settings = {'version': 1, 'library_root': 'library', 'authorized_paths': ['Material'],
-                         'objectives': ['Compare fictional methods'], 'language': 'en',
-                         'organization': 'preserve', 'initiative': 'on_request',
+                         'language': 'en',
                          'layers': {'sources': ['Material']}}
         self.config.write_text(json.dumps(self.settings))
 
@@ -99,14 +100,84 @@ class LibraryTests(unittest.TestCase):
         self.assertEqual(self.run_cli('map', '--scope', 'Material').returncode, 2)
 
     def test_invalid_configuration_is_not_silently_repaired(self):
-        for field, value in [('version', True), ('language', 'xx'), ('initiative', 'background'),
-                             ('organization', 'automatic-migration'), ('authorized_paths', ['.']),
-                             ('password', 'synthetic-not-a-secret'), ('objectives', 'not a list'),
+        for field, value in [('version', True), ('language', 'xx'), ('authorized_paths', ['.']),
+                             ('password', 'synthetic-not-a-secret'),
                              ('layers', {'sources': ['private.md']})]:
             self.config.write_text(json.dumps({**self.settings, field: value}))
             self.assertEqual(self.run_cli('map', '--scope', 'Material').returncode, 2, field)
         self.config.write_text('{"version":1,"version":1}')
         self.assertEqual(self.run_cli('map', '--scope', 'Material').returncode, 2)
+
+    def test_legacy_preference_fields_are_accepted_and_ignored(self):
+        sys.path.insert(0, str(CLI.parent))
+        self.addCleanup(lambda: sys.path.remove(str(CLI.parent)))
+        import library
+        self.config.write_text(json.dumps({**self.settings, 'objectives': ['Compare'], 'organization': 'grouped',
+                                           'initiative': 'background'}))
+        settings = library.load_config(self.config)
+        self.assertFalse({'objectives', 'organization', 'initiative'} & set(settings))
+        self.assertEqual(self.run_cli('map', '--scope', 'Material').returncode, 0)
+
+    def test_map_skips_unreadable_notes_as_named_issues(self):
+        (self.root / 'Material/odd#1.md').write_text('# Unsafe link name')
+        (self.root / 'Material/latin1.md').write_bytes(b'# Caf\xe9\n![[chart.png]]\n')
+        (self.root / 'Material/huge.md').write_bytes(b'x' * 262145)
+        result = self.run_cli('map', '--scope', 'Material')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        data = json.loads(result.stdout)
+        self.assertEqual(data['summary']['notes'], 3)
+        self.assertEqual({(i['path'], i['kind']) for i in data['issues'] if i['path'] != 'Material/a.md'},
+                         {('Material/odd#1.md', 'unsafe_link_path'), ('Material/latin1.md', 'not_utf8'),
+                          ('Material/huge.md', 'exceeds_byte_limit')})
+        proposal = self.run_cli('proposal', '--target', 'Material/a.md', '--evidence', 'Material/huge.md', draft='# A\n')
+        self.assertEqual(proposal.returncode, 2)
+        self.assertIn('Material/huge.md (exceeds_byte_limit)', proposal.stderr)
+        (self.root / 'Material/escape').symlink_to(self.root / 'private.md')
+        escaped = self.run_cli('map', '--scope', 'Material')
+        self.assertEqual(escaped.returncode, 2)
+        self.assertIn('Material/escape', escaped.stderr)
+
+    def test_symlinked_ancestors_are_refused_with_a_retry_path(self):
+        real = self.base / 'real'
+        real.mkdir()
+        link = self.base / 'link'
+        link.symlink_to(real, target_is_directory=True)
+        (real / 'personal.json').write_text(json.dumps({**self.settings, 'library_root': str(self.root)}))
+        self.config = link / 'personal.json'
+        result = self.run_cli('map', '--scope', 'Material')
+        self.assertEqual(result.returncode, 2)
+        self.assertIn(f'{link} is a link', result.stderr)
+        self.assertIn(str(real / 'personal.json'), result.stderr)
+        self.assertNotIn('regular non-symlink file', result.stderr)
+        self.config = self.base / 'personal.json'
+        for field, value, expected in (('library_root', str(link / 'lib'), 'Symlink library root'),
+                                       ('recovery_directory', str(link / 'rec'), 'Symlink recovery directory')):
+            (real / Path(value).name).mkdir()
+            self.config.write_text(json.dumps({**self.settings, field: value}))
+            result = self.run_cli('map', '--scope', 'Material')
+            self.assertEqual(result.returncode, 2)
+            self.assertIn(expected, result.stderr)
+            self.assertIn(f'{link} is a link', result.stderr)
+            self.assertIn(str(real / Path(value).name), result.stderr)
+        linked_config = self.base / 'linked.json'
+        linked_config.symlink_to(self.base / 'personal.json')
+        self.config = linked_config
+        result = self.run_cli('map', '--scope', 'Material')
+        self.assertIn('Configuration file is a symlink', result.stderr)
+
+    def test_demo_and_suite_tolerate_a_linked_temporary_parent(self):
+        real = self.base / 'real-tmp'
+        real.mkdir()
+        link = self.base / 'linked-tmp'
+        link.symlink_to(real, target_is_directory=True)
+        result = subprocess.run([sys.executable, str(CLI.parents[1] / 'tests/demo_existing_library.py'),
+                                 '--output-parent', str(link)], capture_output=True, text=True, timeout=10)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue(json.loads(result.stdout)['artifacts'].startswith(str(real)))
+        probe = subprocess.run([sys.executable, '-c', 'import support, tempfile; print(tempfile.gettempdir())'],
+                               cwd=str(CLI.parents[1] / 'tests'), capture_output=True, text=True,
+                               env=dict(os.environ, TMPDIR=str(link), PYTHONDONTWRITEBYTECODE='1'))
+        self.assertEqual(probe.stdout.strip(), str(real))
 
     def test_inventory_entry_limit_covers_attachments(self):
         for n in range(501):

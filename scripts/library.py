@@ -38,8 +38,11 @@ def contained(root: Path, relative: str) -> Path:
 
 def load_config(path: Path) -> dict:
     """Validate personal settings; relative library root is relative to this file."""
-    if any(p.is_symlink() for p in [path, *path.absolute().parents]):
-        raise ValueError('Configuration must be a regular non-symlink file')
+    if path.is_symlink():
+        raise ValueError(f'Configuration file is a symlink: {path}; retry with {os.path.realpath(path)} '
+                         'if that is the intended configuration')
+    if knowledge.linked_ancestor(path.absolute().parent) is not None:
+        raise knowledge.symlink_refusal('Symlink configuration ancestor', path.absolute(), 'configuration')
     if not path.exists():
         raise ValueError(
             'Configuration file not found. Continue authorized reading and proposals through host tools, '
@@ -62,9 +65,9 @@ def load_config(path: Path) -> dict:
         data = json.loads(raw, object_pairs_hook=unique)
     except json.JSONDecodeError as exc:
         raise ValueError(str(exc)) from exc
-    keys = {'version', 'library_root', 'authorized_paths', 'objectives', 'language',
-            'organization', 'initiative', 'layers', 'write_policy', 'recovery_directory', 'capture_policy',
-            'living_synthesis'}
+    legacy = {'objectives', 'organization', 'initiative'}  # Accepted and ignored for compatibility; never a control.
+    keys = {'version', 'library_root', 'authorized_paths', 'language', 'layers', 'write_policy',
+            'recovery_directory', 'capture_policy', 'living_synthesis', *legacy}
     if not isinstance(data, dict) or set(data) - keys:
         raise ValueError('Unknown configuration fields; no credentials or runtime settings allowed')
     if type(data.get('version')) is not int or data['version'] != 1:
@@ -75,8 +78,8 @@ def load_config(path: Path) -> dict:
     if not root.is_absolute():
         root = path.resolve().parent / root
     # Resolve parents only after rejecting symlinks in the configured root chain.
-    if any(p.is_symlink() for p in [root, *root.parents]):
-        raise ValueError('Symlink library root rejected')
+    if knowledge.linked_ancestor(root) is not None:
+        raise knowledge.symlink_refusal('Symlink library root', root, 'library')
     root = root.resolve(strict=True)
     if not root.is_dir():
         raise ValueError('library_root must be a directory')
@@ -85,16 +88,8 @@ def load_config(path: Path) -> dict:
         raise ValueError('authorized_paths requires 1 to 100 selected paths')
     for relative in allowed:
         contained(root, relative)
-    objectives = data.get('objectives', [])
-    if not isinstance(objectives, list) or len(objectives) > 20 or any(
-            not isinstance(v, str) or not v.strip() or len(v) > 1024 for v in objectives):
-        raise ValueError('Invalid objectives')
     if data.get('language', 'es') not in ('es', 'en'):
         raise ValueError('Supported languages: es, en')
-    if data.get('organization', 'preserve') not in ('preserve', 'flat', 'grouped'):
-        raise ValueError('Invalid organization preference')
-    if data.get('initiative', 'within_focus') not in ('on_request', 'within_focus'):
-        raise ValueError('Invalid initiative preference; no background mode')
     layers = data.get('layers', {})
     if not isinstance(layers, dict) or set(layers) - {'sources', 'drafts', 'knowledge'}:
         raise ValueError('Invalid layer correspondence')
@@ -145,17 +140,16 @@ def load_config(path: Path) -> dict:
         recovery_path = Path(recovery)
         if not recovery_path.is_absolute():
             recovery_path = path.resolve().parent / recovery_path
-        if any(p.is_symlink() for p in [recovery_path, *recovery_path.parents]):
-            raise ValueError('Symlink recovery directory rejected')
+        if knowledge.linked_ancestor(recovery_path) is not None:
+            raise knowledge.symlink_refusal('Symlink recovery directory', recovery_path, 'recovery directory')
         recovery_path = recovery_path.resolve(strict=True)
         if not recovery_path.is_dir() or recovery_path.is_relative_to(root):
             raise ValueError('Recovery directory must exist outside the library')
         data['recovery_directory'] = str(recovery_path)
     if data.get('write_policy') == 'plain_files' and recovery is None:
         raise ValueError('plain_files requires an authorized recovery_directory')
-    return {**data, 'library_root': str(root), 'language': data.get('language', 'es'),
-            'organization': data.get('organization', 'preserve'),
-            'initiative': data.get('initiative', 'within_focus'), 'layers': layers}
+    return {**{k: v for k, v in data.items() if k not in legacy}, 'library_root': str(root),
+            'language': data.get('language', 'es'), 'layers': layers}
 
 
 def authorize(root: Path, allowed: list[str], relative: str, create: bool = False) -> Path:
@@ -180,14 +174,15 @@ def inventory(root: Path, scopes: list[str], max_entries: int = 500) -> list[Pat
                 for name in dirs + sorted(f for f in files if not f.startswith('.')):
                     item = Path(directory) / name
                     if item.is_symlink():
-                        raise ValueError('Symlink in selection rejected')
+                        raise ValueError('Symlink in selection rejected: ' + item.relative_to(root).as_posix())
                     if not item.is_dir() and not item.is_file():
-                        raise ValueError('Only regular files and directories are supported')
+                        raise ValueError('Only regular files and directories are supported: '
+                                         + item.relative_to(root).as_posix())
                     paths.add(item)
                     if len(paths) > max_entries:
-                        raise ValueError('Inventory exceeds entry limit; narrow scope')
+                        raise ValueError(f'Inventory exceeds entry limit ({max_entries}) at {scope}; narrow scope')
         if len(paths) > max_entries:
-            raise ValueError('Inventory exceeds entry limit; narrow scope')
+            raise ValueError(f'Inventory exceeds entry limit ({max_entries}) at {scope}; narrow scope')
     return sorted(paths)
 
 
@@ -203,7 +198,10 @@ def map_library(root: Path, scopes: list[str], layers: dict) -> dict:
                    for p in entries if p.is_file() and p.suffix != '.md']
     keys, without_metadata, attachment_links = set(), 0, []
     attachment_paths = {item['path'] for item in attachments}
+    skipped = {issue['path'] for issue in data['issues'] if issue['kind'] in knowledge.SKIPPED_NOTE_KINDS}
     for relative in note_paths:
+        if relative in skipped:
+            continue
         with (root / relative).open('rb') as stream:
             text = stream.read(262145).decode('utf-8')
         body = re.sub(r'(?ms)^\s*(`{3,}|~{3,})[^\n]*\n.*?^\s*\1\s*$', '', text)

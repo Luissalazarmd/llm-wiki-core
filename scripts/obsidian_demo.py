@@ -29,8 +29,8 @@ def materialize(destination: Path, identity: str = 'demo:idea:synthesis') -> Pat
     destination = destination.absolute()
     if destination.exists() or destination.is_symlink():
         raise ValueError('Destination exists; preserve it and choose a new path')
-    if any(parent.is_symlink() for parent in destination.parents):
-        raise ValueError('Symlink destination ancestor rejected')
+    if knowledge.linked_ancestor(destination.parent) is not None:
+        raise knowledge.symlink_refusal('Symlink destination ancestor', destination, 'destination')
     destination = destination.resolve()
     if destination.is_relative_to(ROOT) or not destination.parent.is_dir():
         raise ValueError('Destination must be outside Core with an existing parent')

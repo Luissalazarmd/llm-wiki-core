@@ -13,8 +13,16 @@ import re
 import sys
 
 sys.dont_write_bytecode = True
-import yaml
+try:
+    import yaml
+except ModuleNotFoundError:
+    print(json.dumps({'error': 'PyYAML is not installed. It is required only for these optional helpers: '
+                      'after the person agrees, install requirements.txt in an environment outside Core '
+                      'and the library (see docs/first-cut-tools.md), or continue with authorized host tools.'}),
+          file=sys.stderr)
+    raise SystemExit(2)
 
+SKIPPED_NOTE_KINDS = ('unsafe_link_path', 'not_utf8', 'exceeds_byte_limit')
 ONTOLOGY = json.loads((Path(__file__).resolve().parents[1] / 'config/ontology.json').read_text())
 LEGACY_ROLES = {'concept': 'note', 'entity': 'note', 'project': 'note', 'diagram': 'note'}
 LEGACY_RELATIONS = {'groups', 'related', 'supported_by', 'contradicts', 'extends'}
@@ -179,22 +187,36 @@ def note_paths(root: Path, max_notes: int = 2000):
         for current, directories, files in os.walk(folder, followlinks=False):
             for name in directories + files:
                 if (Path(current) / name).is_symlink():
-                    raise ValueError('Symlink inside knowledge stage rejected')
+                    raise ValueError('Symlink inside knowledge stage rejected: '
+                                     + (Path(current) / name).relative_to(root).as_posix())
             for name in sorted(files):
                 if name.endswith('.md'):
                     if not (Path(current) / name).is_file():
-                        raise ValueError('Only regular Markdown files are supported')
+                        raise ValueError('Only regular Markdown files are supported: '
+                                         + (Path(current) / name).relative_to(root).as_posix())
                     count += 1
                     if count > max_notes:
                         raise ValueError('Catalog exceeds note limit')
                     yield stage, Path(current) / name
 
 
+def linked_ancestor(path: Path) -> Path | None:
+    """Return the first symbolic link among a path and its ancestors, if any."""
+    return next((p for p in (path, *path.parents) if p.is_symlink()), None)
+
+
+def symlink_refusal(label: str, path: Path, intended: str) -> ValueError:
+    """Fail closed on linked ancestors but name the link and a retry path (macOS /tmp, /var)."""
+    linked = linked_ancestor(path)
+    return ValueError(f'{label} rejected: {linked} is a link; retry with {os.path.realpath(path)} '
+                      f'if that is the intended {intended}')
+
+
 def library_root(root: Path) -> Path:
     """Reject linked root/ancestors before resolving, consistently across helpers."""
     root = root.absolute()
-    if any(path.is_symlink() for path in (root, *root.parents)):
-        raise ValueError('Symlink library root rejected')
+    if linked_ancestor(root) is not None:
+        raise symlink_refusal('Symlink library root', root, 'library')
     root = root.resolve(strict=True)
     if not root.is_dir():
         raise ValueError('Library root must be a directory')
@@ -223,15 +245,18 @@ def catalog(root: Path, max_file_bytes: int = 262144, max_notes: int = 2000,
             raise ValueError('Catalog exceeds note limit')
         relative = path.relative_to(root).as_posix()
         if any(char in relative for char in '[]|#\n\r\\'):
-            raise ValueError('Unsafe Markdown link path')
+            raise ValueError('Unsafe Markdown link path: ' + relative)
         with path.open('rb') as stream:
             raw = stream.read(max_file_bytes + 1)
         if len(raw) > max_file_bytes:
-            raise ValueError('Note exceeds byte limit')
+            raise ValueError(f'Note exceeds byte limit ({max_file_bytes} bytes): {relative}')
         total_bytes += len(raw)
         if total_bytes > 16777216:
             raise ValueError('Catalog exceeds total byte limit')
-        text = raw.decode('utf-8')
+        try:
+            text = raw.decode('utf-8')
+        except UnicodeDecodeError:
+            raise ValueError('Note is not UTF-8: ' + relative) from None
         metadata = metadata_from(text)
         body = visible_body(text)
         reference, version = source_reference(metadata, body)
@@ -414,7 +439,7 @@ def discover(root: Path, scopes: list[str], max_notes: int = 200,
                 raise ValueError('Hidden scope is not permitted')
             current = current / part
             if current.is_symlink():
-                raise ValueError('Symlink scope rejected')
+                raise ValueError('Symlink scope rejected: ' + current.relative_to(root).as_posix())
         if not current.exists():
             raise ValueError('Scope does not exist')
         if not current.is_dir() and not current.is_file():
@@ -427,11 +452,13 @@ def discover(root: Path, scopes: list[str], max_notes: int = 200,
                 dirs[:] = sorted(d for d in dirs if not d.startswith('.'))
                 for name in dirs + files:
                     if (Path(directory) / name).is_symlink():
-                        raise ValueError('Symlink in scope rejected')
+                        raise ValueError('Symlink in scope rejected: '
+                                         + (Path(directory) / name).relative_to(root).as_posix())
                 for name in files:
                     if not name.startswith('.') and name.endswith('.md'):
                         if not (Path(directory) / name).is_file():
-                            raise ValueError('Only regular Markdown files are supported')
+                            raise ValueError('Only regular Markdown files are supported: '
+                                             + (Path(directory) / name).relative_to(root).as_posix())
                         candidates.append(Path(directory) / name)
                         if len(candidates) > max_notes:
                             raise ValueError('Discovery exceeds note limit; narrow scope')
@@ -442,16 +469,23 @@ def discover(root: Path, scopes: list[str], max_notes: int = 200,
     total = 0
     for path in sorted(paths):
         relative = path.relative_to(root).as_posix()
+        # One unreadable file becomes a named issue; scope-wide limits stay hard errors.
         if any(char in relative for char in '[]|#\n\r\\'):
-            raise ValueError('Unsafe Markdown link path')
+            issues.append({'path': relative, 'kind': 'unsafe_link_path'})
+            continue
         with path.open('rb') as stream:
             raw = stream.read(max_file_bytes + 1)
         if len(raw) > max_file_bytes:
-            raise ValueError('Note exceeds byte limit')
+            issues.append({'path': relative, 'kind': 'exceeds_byte_limit'})
+            continue
         total += len(raw)
         if total > 16777216:
             raise ValueError('Discovery exceeds total byte limit')
-        text = raw.decode('utf-8')
+        try:
+            text = raw.decode('utf-8')
+        except UnicodeDecodeError:
+            issues.append({'path': relative, 'kind': 'not_utf8'})
+            continue
         try:
             properties = metadata_from(text)
         except (ValueError, RecursionError):
@@ -543,8 +577,12 @@ def prepare_proposal(root: Path, target: str, draft: str, evidence: list[str], c
             raise ValueError('New derived notes require explicit evidence')
     data = discover(root, evidence if create else [target, *evidence])
     notes = {n['path']: n for n in data['notes']}
-    if (not create and target not in notes) or any(path not in notes for path in evidence):
-        raise ValueError('Proposal target and evidence must be existing Markdown files')
+    missing = [p for p in ([] if create else [target]) + list(evidence) if p not in notes]
+    if missing:
+        skipped = {i['path']: i['kind'] for i in data['issues'] if i['kind'] in SKIPPED_NOTE_KINDS}
+        detail = ', '.join(f'{p} ({skipped[p]})' for p in missing if p in skipped)
+        raise ValueError('Proposal target and evidence must be existing Markdown files'
+                         + (': ' + detail if detail else ''))
     original_bytes = b''
     if not create:
         with (root.resolve(strict=True) / target).open('rb') as stream:

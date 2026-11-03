@@ -5,6 +5,8 @@ import shutil
 import tempfile
 import unittest
 
+import support  # noqa: F401  real temp dir for symlink-refusing helpers
+
 ROOT = Path(__file__).resolve().parents[1]
 EXAMPLE = ROOT / 'examples/numbered-notes'
 SPEC = importlib.util.spec_from_file_location('numbered_reader', ROOT / 'scripts/knowledge.py')

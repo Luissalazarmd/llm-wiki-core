@@ -5,6 +5,8 @@ import subprocess
 import sys
 import tempfile
 import unittest
+
+import support  # noqa: F401  real temp dir for symlink-refusing helpers
 from pathlib import Path
 
 import yaml

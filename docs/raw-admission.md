@@ -13,7 +13,9 @@ The read-only checker binds absent destination, draft, dependencies, scope and
 source inventory. Exact Reference/Version duplicates or unknown-version ambiguity
 require reuse/reconciliation; source IDs also remain unique within that scope.
 No semantic/global uniqueness is claimed. Bounds: 50 links, 2,000 inventory entries,
-256 KiB/file, 16 MiB source text; unsafe/malformed inputs fail.
+256 KiB/file, 16 MiB source text; a malformed draft or dependency fails, while an
+oversized, non-UTF-8 or unparsable existing source is listed as `not_checked` so the
+agent reports a limited duplicate scope.
 
 Recheck, use the permitted create-only writer, then verify exact saved bytes with
 the pre-write hash. No overwrite, locking or rights/consent certification.

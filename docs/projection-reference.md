@@ -3,7 +3,9 @@
 Read-only helpers require existing Python/PyYAML. Existing mode reads explicitly
 selected foreign files/folders; metadata stays unknown. Strict mode scans only
 known Raw/Wiki collections. Limits: existing 200 notes, strict 2,000; 256 KiB/file,
-16 MiB total. Empty strict scope needs explicit opt-in. Symlinks/unsafe paths fail.
+16 MiB total. Empty strict scope needs explicit opt-in. Symlinks fail; strict mode
+also fails on unsafe names, oversized or non-UTF-8 files, while existing mode skips
+each such file as a named issue (`unsafe_link_path`, `exceeds_byte_limit`, `not_utf8`).
 
 ## Native relation grammar
 

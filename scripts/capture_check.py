@@ -18,16 +18,36 @@ def digest(raw):
     return hashlib.sha256(raw).hexdigest()
 
 
+def stream_digest(path):
+    """Hash a complete file without holding it in memory; binds oversized sources too."""
+    digester = hashlib.sha256()
+    with path.open('rb') as stream:
+        for chunk in iter(lambda: stream.read(65536), b''):
+            digester.update(chunk)
+    return digester.hexdigest()
+
+
+def parse_note(path, relative):
+    with path.open('rb') as stream:
+        raw = stream.read(LIMIT + 1)
+    if len(raw) > LIMIT:
+        raise ValueError(f'Capture dependency exceeds byte limit ({LIMIT} bytes): {relative}')
+    try:
+        text = raw.decode('utf-8')
+    except UnicodeDecodeError:
+        raise ValueError('Capture dependency is not UTF-8: ' + relative) from None
+    try:
+        return raw, knowledge.metadata_from(text.replace('\r\n', '\n'))
+    except ValueError as exc:
+        raise ValueError(f'{exc}: {relative}') from None
+
+
 def read_note(settings, relative):
     path = library.authorize(Path(settings['library_root']), settings['authorized_paths'], relative)
     if (path.suffix != '.md' or not path.is_file()
             or path.relative_to(Path(settings['library_root'])).as_posix() != relative):
-        raise ValueError('Capture dependencies must be exact regular Markdown files')
-    with path.open('rb') as stream:
-        raw = stream.read(LIMIT + 1)
-    if len(raw) > LIMIT:
-        raise ValueError('Capture dependency exceeds byte limit')
-    return raw, knowledge.metadata_from(raw.decode('utf-8').replace('\r\n', '\n'))
+        raise ValueError('Capture dependency must be an exact regular Markdown file: ' + relative)
+    return parse_note(path, relative)
 
 
 def hierarchy(settings, metadata):
@@ -75,8 +95,8 @@ def hierarchy(settings, metadata):
     return {'chain': chain, 'tags': tags, 'dependencies': dependencies, 'policy': policy}
 
 
-def connection(settings, body, target):
-    """Bind real outgoing note links or persist chat context in the capture itself."""
+def linked_notes(settings, body, target):
+    """Resolve every outgoing wikilink of the draft to an authorized note, or name the first failure."""
     dependencies, links = [], []
     text = '\n'.join(body)
     for match in re.finditer(r'(?<!!)\[\[[^\]\n]+\]\]', text):
@@ -85,17 +105,22 @@ def connection(settings, body, target):
         link = match[0]
         destination = link[2:-2].split('|', 1)[0].split('#', 1)[0]
         relative = destination if destination.endswith('.md') else destination + '.md'
-        if relative == target:
-            raise ValueError('A capture cannot connect only to itself')
-        raw, _ = read_note(settings, relative)
-        note = {'id': relative, 'path': relative}
-        knowledge.resolve_native_link(link, {relative: note},
-                                      {relative: knowledge.visible_body(raw.decode('utf-8'))}, '')
+        try:
+            if relative == target:
+                raise ValueError('A capture cannot connect only to itself')
+            raw, _ = read_note(settings, relative)
+            note = {'id': relative, 'path': relative}
+            knowledge.resolve_native_link(link, {relative: note},
+                                          {relative: knowledge.visible_body(raw.decode('utf-8'))}, '')
+        except ValueError as exc:
+            raise ValueError(f'Link {link} in the draft does not resolve to an authorized note ({exc})') from None
         dependencies.append({'path': relative, 'sha256': digest(raw)})
         links.append(link)
-    if links:
-        return {'kind': 'existing_notes', 'links': links}, dependencies
-    # Context is authored annotation, separated from the preserved original.
+    return links, dependencies
+
+
+def capture_context(body):
+    """Context is authored annotation, separated from the preserved original."""
     for index, line in enumerate(body):
         if line not in ('## Capture context', '## Contexto de captura'):
             continue
@@ -106,8 +131,27 @@ def connection(settings, body, target):
             paragraph.append(following)
         context = '\n'.join(paragraph).strip()
         if context and re.search(r'[^\W\d_]', context):
+            return context
+    return None
+
+
+def connection(settings, body, target):
+    """Bind real outgoing note links or persist chat context in the capture itself."""
+    context = capture_context(body)
+    try:
+        links, dependencies = linked_notes(settings, body, target)
+    except ValueError as exc:
+        # Links inside a preserved original are its text, not a binding; context explains the capture.
+        if context is not None:
             return {'kind': 'persisted_question', 'context': context}, []
-    raise ValueError('Capture requires an existing note link or a persistent capture-context question and contribution')
+        raise ValueError(f'{exc}; add a "## Capture context" section explaining the purpose of this capture '
+                         'rather than altering the preserved original') from None
+    if links:
+        return {'kind': 'existing_notes', 'links': links}, dependencies
+    if context is not None:
+        return {'kind': 'persisted_question', 'context': context}, []
+    raise ValueError('Capture requires an existing note link or a "## Capture context" section; '
+                     'one line stating why it is being retained suffices')
 
 
 def source_inventory(settings, target, reference, version, identifier):
@@ -121,12 +165,18 @@ def source_inventory(settings, target, reference, version, identifier):
         relative = path.relative_to(root).as_posix()
         if path.is_dir() or path.suffix != '.md' or relative == target:
             continue
-        raw, metadata = read_note(settings, relative)
+        try:
+            raw, metadata = parse_note(path, relative)  # inventory() already refused symlinks/special files
+            previous_ref, previous_version = knowledge.source_reference(
+                metadata, knowledge.visible_body(raw.decode('utf-8')))
+        except (ValueError, RecursionError) as exc:
+            # Keep the scope checkable; the binding still covers the complete bytes of this file.
+            inventory.append({'path': relative, 'sha256': stream_digest(path),
+                              'duplicate_check': 'not_checked', 'reason': str(exc)})
+            continue
         total += len(raw)
         if total > 16777216:
             raise ValueError('Capture duplicate search exceeds total byte limit; use a verified library equivalent')
-        previous_ref, previous_version = knowledge.source_reference(
-            metadata, knowledge.visible_body(raw.decode('utf-8')))
         if identifier is not None and metadata.get('id') == identifier:
             raise ValueError('Duplicate source id at ' + relative + '; preserve existing identity')
         if previous_ref == reference:
@@ -147,7 +197,8 @@ def check(settings, target, draft, saved=False, expected=None):
     if destination.name.casefold() in ('agents.md', 'skill.md', 'claude.md'):
         raise ValueError('Capture cannot create agent instructions')
     if len(draft) > LIMIT or not draft.strip():
-        raise ValueError('Capture draft must be nonempty and bounded')
+        raise ValueError(f'Capture draft must be nonempty and at most {LIMIT} bytes; '
+                         'preserve a permitted excerpt plus a reference to the complete original')
     text = draft.decode('utf-8')
     metadata = knowledge.metadata_from(text)
     if metadata.get('role', 'source') != 'source':
@@ -180,6 +231,7 @@ def check(settings, target, draft, saved=False, expected=None):
         if raw != draft:
             raise ValueError('Saved capture bytes do not match the reviewed draft')
     return {**binding, 'check_sha256': check_hash, 'approval_available': False,
+            'duplicate_check_not_checked': [e['path'] for e in inventory if e.get('duplicate_check') == 'not_checked'],
             'capture_available': False, 'semantic_validation': False,
             'status': 'capture_structure_and_saved_bytes_verified' if saved else 'capture_structure_checked_not_saved'}
 
