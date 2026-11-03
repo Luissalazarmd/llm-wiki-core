@@ -15,7 +15,7 @@ Start with [preflight](docs/agent-preflight.md), the sole
 Raw preserves originals; Review holds proposals; Wiki retains reviewed knowledge.
 These are responsibilities compatible with existing locations. Use
 [source/note/map](docs/ontology.md), independent note maturity and connections
-beside arguments. Keep identities and authorship; optional
+beside arguments; projections are disposable views. Keep identities and authorship; optional
 [short addresses/retirement](examples/numbered-notes/README.md) retain their conventions;
 [optional MOC-scoped numbering](docs/first-cut-tools.md#optional-living-synthesis-numbering)
 uses the same proposal/check/save path, never a new writer or approval engine.
@@ -46,5 +46,5 @@ uses the same proposal/check/save path, never a new writer or approval engine.
 ## Language contract
 
 Internal instructions/contracts are English; replies follow the user's language.
-Wiki prose follows preference, default `wiki_language: es`. Preserve exact source
+Wiki prose follows the `language` setting (default `es`). Preserve exact source
 titles, citations, identifiers and quotations; label translations and retain provenance.

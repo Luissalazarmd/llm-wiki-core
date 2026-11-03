@@ -1,9 +1,8 @@
 # Navigate original notes with three roles
 
-This synthetic example tests source, note and map directly in K-Plex.
-The strict reader now accepts it with `--root examples/kplex-minimal --link-prefix examples/kplex-minimal`.
-This implements the first schema/navigation slice for issues #1 and #4; the current [handoff](../../docs/simplification-handoff.md) records the subsequent
-capture/review candidate. No personal migration is implied.
+This synthetic example uses source, note and map directly in K-Plex.
+The strict reader accepts it with `--root examples/kplex-minimal --link-prefix examples/kplex-minimal`.
+No personal migration is implied.
 
 ## Read the example
 
@@ -15,7 +14,7 @@ third-party code or plugin binaries are included.
 | Responsibility | Representation in this example |
 | --- | --- |
 | Raw | One preserved original with identity, version and claim locators. |
-| Review | This candidate and the exact repository diff; no claimed human acceptance. |
+| Review | The exact repository diff; no claimed human acceptance. |
 | Wiki | Two illustrative derived notes and one authored reading map. |
 | Maturity | One synthesis; one unknown; no maturity on source or map. |
 
@@ -25,7 +24,7 @@ Follow the existing [review contract](../../docs/review-contract.md) for real
 library writes. This fixture does not admit a real capture; actual retention follows
 [current admission](../../docs/raw-admission.md) and the library's stronger rules.
 
-## Navigation candidate
+## Navigation model
 
 | Declaration, stored once | Intended K-Plex behavior |
 | --- | --- |
@@ -69,12 +68,6 @@ Automated structural checks:
 These check fixture roles, links, section locators and declared relationship
 coverage. They do not execute K-Plex or duplicate its parser/layout engine.
 
-Observed on 2026-10-15: focused suite 3/3 passed; complete suite 141/141 passed
-with no failures, errors or skips (`python3 -m unittest discover -s tests`).
-Relative documentation links, JSON parsing and `git diff --check` passed.
-Publication scope reviewed: original synthetic content and public upstream
-references only; no personal library data or third-party implementation copied.
-
 Native navigation was exercised with K-Plex 0.1.3 on 2026-10-15 (Bogota);
 see [observed results and limits](VALIDATION.md). The acceptance route is:
 
@@ -87,7 +80,7 @@ see [observed results and limits](VALIDATION.md). The acceptance route is:
 
 Connection-details inspection and Go to source passed in the follow-up native
 session, separately from the earlier heading-link test. Automatic transfer of
-the selected K-Plex node to the agent is outside this candidate.
+the selected K-Plex node to the agent is outside this example.
 
 Rollback boundary: remove this directory, its focused test and the discovery
 link in the existing workbench README. The reader has separate v2 tests; removing this demonstration does not roll back

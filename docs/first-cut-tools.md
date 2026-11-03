@@ -5,12 +5,22 @@ Use existing permitted host tools or these helpers; no automatic installation.
 permission. Declare actual library_root, authorized_paths and optional source/draft/
 knowledge layers. Defaults are read-only; configuration stays private.
 
-Python and PyYAML are needed only for these optional helpers; the dependency is
-pinned in [requirements.txt](../requirements.txt). No installation is automatic.
-The current suite was exercised on Linux with Python 3.14.8 and PyYAML 6.0.3.
-Older Python versions are not certified by that run; APIs such as
-`Path.is_relative_to` require at least 3.9, which is a code floor, not a tested
-minimum. Other operating systems and filesystems require their own validation.
+Python 3.10+ and PyYAML are needed only for these optional helpers (numbering uses
+`zip(strict=True)`); the dependency is pinned in [requirements.txt](../requirements.txt).
+No installation is automatic. The current suite was exercised on Linux with Python
+3.14.8 and PyYAML 6.0.3; 3.10 is a code floor, not a tested minimum. Other
+operating systems and filesystems require their own validation.
+
+After the person agrees, set up an environment outside Core and the library:
+
+```sh
+python3 -m venv /path/outside/core-env
+/path/outside/core-env/bin/python -m pip install -r requirements.txt
+```
+
+Keep the private JSON config outside the Core checkout too. Relative `../` example
+paths resolve against the JSON's own directory, so put the JSON beside the library,
+not in `config/`.
 Without helper configuration or dependencies, use authorized host reading and
 proposals. Omitted `write_policy` defaults to `read_only`.
 

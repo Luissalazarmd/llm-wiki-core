@@ -158,7 +158,7 @@ class ObsidianExampleTests(unittest.TestCase):
             api.materialize(target)
             self.assertTrue((target / 'examples/obsidian/Home.md').is_file())
             self.assertTrue((target / 'examples/obsidian/Navigation/Lectura.md').is_file())
-            self.assertTrue((target / 'docs/architecture.md').is_file())
+            self.assertTrue((target / 'docs/ontology.md').is_file())
             self.assertFalse((target / '.git').exists())
             self.assertFalse((target / '.obsidian/plugins').exists())
             before = (target / 'examples/obsidian/Home.md').read_bytes()

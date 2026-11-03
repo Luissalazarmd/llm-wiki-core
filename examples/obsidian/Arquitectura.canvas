@@ -114,8 +114,8 @@
       "y": 390,
       "width": 730,
       "height": 260,
-      "file": "docs/architecture.md",
-      "subpath": "#Knowledge architecture"
+      "file": "AGENTS.md",
+      "subpath": "#Model"
     },
     {
       "id": "g-dimensiones",
@@ -231,8 +231,8 @@
       "y": 1170,
       "width": 730,
       "height": 260,
-      "file": "docs/architecture.md",
-      "subpath": "#Knowledge architecture"
+      "file": "docs/sync.md",
+      "subpath": "#Storage, optional sync and backups"
     }
   ],
   "edges": [

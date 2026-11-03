@@ -15,7 +15,7 @@ class EngineIndependenceTests(unittest.TestCase):
             self.assertFalse((ROOT / path).exists(), path)
 
     def test_active_startup_does_not_request_specific_engine_installation(self):
-        for path in ('AGENTS.md', 'README.md', 'docs/onboarding.md', 'docs/runtime.md',
+        for path in ('AGENTS.md', 'README.md', 'docs/onboarding.md',
                      'docs/implementation.md', 'docs/acceptance.md', 'docs/review-contract.md', 'docs/sync.md'):
             text = (ROOT / path).read_text()
             for token in ('LIBRARIAN_ENGINE_SOURCE', 'install_private_engine.py',

@@ -1,9 +1,9 @@
 # Optional Obsidian workbench
 
-For the proposed three-role navigation model, review the separate
-[minimal K-Plex candidate](../kplex-minimal/README.md). It does not replace this
-workbench or its current ontology; its native navigation results and remaining
-acceptance limits are recorded separately.
+The separate [minimal K-Plex example](../kplex-minimal/README.md) shows the
+three-role (source, note, map) navigation model used by the current ontology. It
+does not replace this workbench; its native results and limits are recorded in
+its validation file.
 
 An original, synthetic example of three complementary surfaces: a native Bases Home, K-Plex-oriented knowledge navigation and a native architecture Canvas. It is not a new knowledge engine, a required vault layout, an installer or an approval UI. Internal contracts remain English; sample UI and note prose are Spanish.
 

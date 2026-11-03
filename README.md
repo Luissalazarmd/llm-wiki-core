@@ -20,9 +20,11 @@ Before saving, show the complete proposed content or exact diff and readable res
 [Tools](docs/first-cut-tools.md) · [Obsidian example](examples/obsidian/README.md)
 
 Obsidian can provide the reading workspace: Bases shows inventories, Canvas shows
-the architecture, and optional K-Plex provides contextual knowledge navigation.
+the architecture, and optional [K-Plex](https://github.com/zsviczian/kplex) provides contextual knowledge navigation.
 The example includes settings references, not plugin installers. Ordinary Markdown
 remains usable without those interfaces; graph connections do not validate claims.
+
+Status: early pilot. Exercised on Linux; in other environments your agent checks the [requirements](docs/agent-preflight.md#requirements).
 
 Obtain Core from [GitHub](https://github.com/Luissalazarmd/llm-wiki-core), keeping your
 private library separate. See [getting and updating Core](docs/onboarding.md#get-and-update-core)
@@ -31,11 +33,8 @@ and [storage, sync and backups](docs/sync.md) before choosing online storage.
 Current synthetic checks: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests`;
 see [acceptance and limits](docs/acceptance.md).
 
-Historical simplification checkpoint: **165 synthetic tests passed** (not the current suite). Separate
-[native evidence](examples/obsidian/VALIDATION.md#simplification-follow-up--2026-10-16)
-records Obsidian 1.13.7 / K-Plex 0.1.3 navigation, settled Home counts and Canvas.
-These do not prove scientific validity, human approval or universal compatibility.
-[Handoff](docs/simplification-handoff.md) records delivery and limits.
+Passing checks and native observations are not proof of scientific validity, human
+approval or universal compatibility; see [acceptance](docs/acceptance.md).
 
 Core code, documentation and bundled synthetic examples are covered by the
 [MIT License](LICENSE). Using Core does not license or publish private user
