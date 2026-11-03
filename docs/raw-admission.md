@@ -8,6 +8,8 @@ Connect to an existing question/note with an explicit wikilink and explanation.
 For chat-only questions, persist the question and contribution/limits under
 `## Capture context` or `## Contexto de captura` in the wrapper. This is reading
 context, not a typed K-Plex edge or placeholder note. MOC/tags are optional.
+Draft this context from the person's stated purpose instead of questioning them;
+one line such as "reference to consult later" is valid.
 
 The read-only checker binds absent destination, draft, dependencies, scope and
 source inventory. Exact Reference/Version duplicates or unknown-version ambiguity

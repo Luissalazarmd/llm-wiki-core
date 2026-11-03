@@ -20,6 +20,13 @@ class LibrarianSkillTests(unittest.TestCase):
                            if '://' not in link]
                 self.assertIn(reference, [target.resolve() for target in targets])
 
+    def test_initiative_guidance_has_one_owner_reached_from_work_entries(self):
+        workflow = (BASE / 'docs/knowledge-workflow.md').read_text()
+        self.assertIn('## Guided loop', workflow)
+        self.assertEqual(workflow.count('Take initiative'), 1)
+        for relative in ('Librarian Profile.md', 'skills/read-connect/SKILL.md'):
+            self.assertIn('knowledge-workflow.md#guided-loop', (BASE / relative).read_text(), relative)
+
     def test_four_skills_are_discoverable_and_portable(self):
         for name in ('progressive-adoption', 'read-connect', 'capture-source', 'review-save'):
             path = BASE / 'skills' / name / 'SKILL.md'

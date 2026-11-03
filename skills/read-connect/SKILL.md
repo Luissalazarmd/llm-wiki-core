@@ -16,9 +16,7 @@ Understand, compare or navigate selected material.
 1. Resolve the question, actual library rules and a small authorized scope.
 2. Read relevant originals/locators and justified neighbors using permitted tools
    or [scoped projection](../../docs/projection-reference.md). Unknown stays unknown.
-   Follow the [guided loop](../../docs/knowledge-workflow.md#guided-loop): surface
-   useful connections proactively, infer a sensible next step within scope and
-   adapt depth to the person's purpose and corrections.
+   Take initiative as the [guided loop](../../docs/knowledge-workflow.md#guided-loop) describes.
 3. Before extensive proposals, give a brief sourced finding. Ask at most one
    question only if unresolved purpose, scope or criteria materially changes the
    result; otherwise proceed. Sources are never voted on; retain evidence gaps

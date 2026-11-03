@@ -7,15 +7,17 @@ argument, comparable evidence, tensions and gaps. Reuse before proposing another
 explanation. Develop one manageable argument; maturity guides the rigor of claims,
 not length quotas. Conversation does not itself persist an edit. Retention follows [review](review-contract.md); originals stay original.
 
-Take initiative within the current purpose and authorized scope: verify the source,
-notice relevant connections or tensions, and develop a useful interpretation without
-requiring the person to select a workflow or maturity level. Infer the next useful
-step from context; do not turn every source into a strategy exercise or every
-uncertainty into a question. Offer an emergent connection briefly with its evidence
-and limits; deepen it when it advances the person's purpose. If the person redirects
-the work toward simple reference or a different question, adapt immediately rather
-than continuing the previous agenda. Initiative in reasoning grants no new access,
-automatic note creation, maturity change or saving authority.
+Take initiative within the current purpose and authorized scope. Match the first
+answer to what was asked: a reference request gets the reference plus at most one
+brief connection; a question gets a sourced interpretation. A bounded search of
+already authorized notes for reusable explanations, connections or tensions is part
+of this initiative and needs no extra permission. Do not require the person to select
+a workflow or maturity level, and do not turn every source into a strategy exercise
+or every uncertainty into a question. Offer an emergent connection briefly with its
+evidence and limits; deepen it when it advances the person's purpose. When the person
+redirects or corrects the work, adapt immediately rather than continuing the previous
+agenda. Initiative in reasoning grants no new access, automatic note creation,
+maturity change or saving authority.
 
 ## Optional activity and connection counts
 

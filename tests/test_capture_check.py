@@ -37,6 +37,14 @@ class CaptureCheckTests(unittest.TestCase):
                               input=self.draft if draft is None else draft, text=True, capture_output=True,
                               timeout=5, env=dict(os.environ, PYTHONDONTWRITEBYTECODE='1'))
 
+    def test_one_line_reason_is_enough_for_a_simple_reference(self):
+        del self.settings['capture_policy']
+        self.config.write_text(json.dumps(self.settings))
+        draft = '---\nReference: synthetic:source-b\n---\n# Fictional source\nPreserved input.\n\n## Capture context\nReference to consult later.\n'
+        result = self.call(draft=draft)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout)['connection']['kind'], 'persisted_question')
+
     def test_hierarchy_depth_accepts_32_nodes_and_rejects_33(self):
         for count in (32, 33):
             for index in range(count):

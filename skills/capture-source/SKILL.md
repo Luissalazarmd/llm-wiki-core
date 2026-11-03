@@ -15,7 +15,8 @@ Retain a supplied original through existing permitted retrieval/create-only tool
 
 1. Read [AGENTS](../../AGENTS.md), actual library rules and [admission](../../docs/raw-admission.md).
 2. Identify provenance/version/rights and search authorized sources for duplicates.
-3. Prepare preserved content/reference and its persistent useful connection. Show
+3. Prepare preserved content/reference and its persistent useful connection, drafted
+   from the stated purpose; a simple reference needs no strategy discussion. Show
    the exact draft; follow [review](../../docs/review-contract.md) and library custody.
 4. Recheck unchanged inputs; use the permitted writer without overwrite. Read back
    exact bytes, identity, attachment and connection; verify against the pre-write hash.

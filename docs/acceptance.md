@@ -2,11 +2,12 @@
 
 ## Adoption readiness checkpoint — 2026-11-03
 
-The adoption update passed 209 synthetic tests on Linux with Python 3.14.8 and
-PyYAML 6.0.3, including missing-configuration refusal, writer-policy guidance
-and complete synthetic-example export with MIT notices. Local documentation
-targets and whitespace were checked. These results support a bounded pilot,
-not universal deployment or semantic approval.
+This update passed 233 synthetic tests on Linux with Python 3.14.8 and PyYAML
+6.0.3, from a copy in a path with spaces and accents and again with the temp directory
+under a symlink (a simulation of macOS `/tmp` and `/var`, not a macOS run). Disabling
+23 safety guards one at a time made the suite fail each time. Local documentation
+targets and whitespace were checked. These results support a bounded pilot, not
+universal deployment or semantic approval.
 
 Not run for this update: clean-machine installation, macOS execution, a new
 human-reviewed end-to-end session, current native Obsidian/K-Plex interaction,
@@ -22,21 +23,14 @@ review. Validate optional graphical and sync integrations separately; retain the
 single cooperative writer limitation. Add repeatable CI when those environments
 are available, without treating it as a substitute for human acceptance.
 
-## Next step: strengthen adaptive initiative
+## Next step: observe adaptive initiative
 
-Deferred by the owner on 2026-11-03; resume only on a new request. Strengthen the
-existing guided loop so the agent develops useful connections proactively while
-adapting depth to the person's purpose and corrections. Avoid both excessive
-questioning and imposing a strategy exercise on a simple reference request.
-
-The initial local contract refinement is in the Bibliotecario profile, guided
-workflow and read/connect skill; seven existing skill-contract tests passed.
-This is behavioral guidance, not observed cross-host acceptance. When resumed,
-use a few authorized real tasks to assess useful initiative, prompt adaptation,
-minimal consequential questions and exact review before saving. Record only
-generalizable findings here, keeping library sources and project context private.
-Do not add a new skill, runtime or automatic work queue. No further implementation
-or pilot is requested by this record.
+The [guided loop](knowledge-workflow.md#guided-loop) states the intended behavior; it
+has not been observed across hosts. Assess it with a few authorized real tasks: a
+simple reference, a purposeful reading and a correction. Look for useful initiative,
+adaptation to the request, only consequential questions and exact review before
+saving. Record only generalizable findings, keeping library sources and project
+context private.
 
 ## Reproduce the checks
 
