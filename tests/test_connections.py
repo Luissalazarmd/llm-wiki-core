@@ -29,6 +29,17 @@ class ConnectionsTests(unittest.TestCase):
     def measure(self):
         return c.measure(self.root, ['Wiki'])
 
+    def test_scope_is_not_tied_to_a_folder_name(self):
+        (self.root / 'Notas').mkdir()
+        (self.root / 'Notas/a b.md').write_text('---\nrole: note\n---\n[[Notas/c]]\n')
+        (self.root / 'Notas/c.md').write_text('---\nrole: note\n---\n# C\n')
+        data = c.measure(self.root, ['Notas'])
+        self.assertEqual({n['path']: n['outgoing'] for n in data['notes']},
+                         {'Notas/a b.md': ['Notas/c.md'], 'Notas/c.md': []})
+        for scope in ('.', '..', '../x', '/tmp', '.hidden'):
+            with self.assertRaisesRegex(ValueError, 'library-relative'):
+                c.measure(self.root, [scope])
+
     def test_agreed_graph_and_read_only(self):
         self.note('A', '[[Wiki/B]] [[Wiki/B|Alias]] [[Wiki/B#Section]] [[Wiki/C]]')
         self.note('B', '[[Wiki/A]]')

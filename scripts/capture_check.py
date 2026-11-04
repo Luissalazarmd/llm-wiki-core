@@ -226,7 +226,8 @@ def check(settings, target, draft, saved=False, expected=None):
                          'authorized_paths': settings['authorized_paths']}, 'stronger_policy': stronger}
     check_hash = digest(json.dumps(binding, sort_keys=True, ensure_ascii=False, separators=(',', ':')).encode())
     if expected is not None and expected != check_hash:
-        raise ValueError('Capture draft, connection, duplicate scope or policy changed; review again')
+        raise ValueError('Capture draft, connection, duplicate scope or policy changed, or this is not its check_sha256 '
+                         '(--expected-sha256 needs check_sha256, not draft_sha256); do not save, review again')
     if saved:
         if expected is None:
             raise ValueError('Saved capture verification requires the pre-write check hash')

@@ -35,10 +35,22 @@ agent reports a limited duplicate scope.
 An existing source with an ambiguous Reference or Version stops the check until it
 is reconciled.
 
-Core has no source writer, and `note_write.py` refuses sources by design. After the
-check, the host creates the file with its own permitted create-only tool, then
-verifies exact saved bytes with the pre-write hash (`capture_check.py --saved
---expected-sha256`). No overwrite, locking or rights/consent certification.
+Core has no source writer, and `note_write.py` refuses sources by design. The check
+prints `check_sha256`; `--expected-sha256` takes that value, never `draft_sha256`.
+Each `capture_check.py` call reads the same draft on stdin. Run the steps one at a
+time, in this order, and check each exit code directly (a pipe can hide it). A failed
+recheck means no save:
+
+```sh
+# 1. Before writing: recheck
+capture_check.py --config /private.json --target Sources/new.md --expected-sha256 <check_sha256> < /capture.md
+# 2. Only if step 1 passed: create, or use the host's own create-only tool
+(set -o noclobber; cat /capture.md > /library/Sources/new.md)
+# 3. After writing: verify the saved bytes
+capture_check.py --config /private.json --target Sources/new.md --saved --expected-sha256 <check_sha256> < /capture.md
+```
+
+Create an independent file, not a hard link to the draft. No overwrite, locking or rights/consent certification.
 
 ## Optional stronger policy
 

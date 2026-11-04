@@ -241,6 +241,14 @@ class CaptureCheckTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(json.loads(result.stdout)['duplicate_check_not_checked'], ['Inputs/huge.md'])
 
+    def test_wrong_hash_recheck_names_the_right_one_and_says_do_not_save(self):
+        draft = self.simple()
+        checked = json.loads(self.call(draft=draft).stdout)
+        result = self.call('--expected-sha256', checked['draft_sha256'], draft=draft)
+        self.assertEqual(result.returncode, 2)
+        self.assertIn('check_sha256', result.stderr)
+        self.assertIn('do not save', result.stderr)
+
     def test_ambiguous_reference_in_existing_source_blocks_the_check(self):
         draft = self.simple()
         (self.root / 'Inputs/twice.md').write_text('Reference:: fixture:one\nReference:: fixture:one\n')

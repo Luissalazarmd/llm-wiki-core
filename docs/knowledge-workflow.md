@@ -21,7 +21,7 @@ maturity change or saving authority.
 
 ## Optional activity and connection counts
 
-For an explicitly selected Wiki scope, [deterministic activity and connections](note-connections.md)
+For an explicitly selected scope, [deterministic activity and connections](note-connections.md)
 calculates read-only counts for declared `role: note` and legacy `role: concept` only.
 Counts do not determine importance, maturity, acceptance, MOC creation or evidence.
 Saving or refreshing a report needs an actual user request and the library's

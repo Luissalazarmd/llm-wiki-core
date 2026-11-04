@@ -67,8 +67,12 @@ Save uses save instead of check; recovery uses restore --record. Capture recheck
 uses --expected-sha256; readback adds --saved. Follow [review](review-contract.md),
 [capture](raw-admission.md), [plain saving](plain-saving.md) and [projection](projection-reference.md).
 Mapping bounds inventory to 500 entries and reads attachment metadata, never binary content.
+Existing-library `map` and `knowledge.py --mode existing` deliberately report `role:
+unknown` and path-based IDs: read the note for what it declares. `--focus` takes that
+ID, as in `path:Notes/x.md`. `library_rules_path: null` means only that there is no root
+`AGENTS.md`; the library's rules may have another name, so look for them.
 Helpers follow wikilinks with library-relative paths; Markdown links such as
-`[x](Other.md)` are not counted, so report them instead of assuming a connection.
+`[x](Other.md)` are not counted here, so report them instead of assuming a connection.
 
 ## Optional living-synthesis numbering
 

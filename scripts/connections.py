@@ -107,8 +107,8 @@ def inventory(root, scopes):
     paths = set()
     for scope in sorted(set(scopes)):
         relative = Path(scope)
-        if relative.is_absolute() or not relative.parts or relative.parts[0] != 'Wiki' or any(p in ('.', '..') or p.startswith('.') for p in relative.parts):
-            raise ValueError('Select explicit Wiki files or folders')
+        if relative.is_absolute() or not relative.parts or any(p in ('.', '..') or p.startswith('.') for p in relative.parts):
+            raise ValueError('Select explicit library-relative files or folders')
         current = root
         for part in relative.parts:
             current /= part

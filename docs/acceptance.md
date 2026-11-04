@@ -2,10 +2,10 @@
 
 ## Adoption readiness checkpoint — 2026-11-03
 
-This update passed 238 synthetic tests on Linux with Python 3.14.8 and PyYAML
+This update passed 240 synthetic tests on Linux with Python 3.14.8 and PyYAML
 6.0.3, from a copy in a path with spaces and accents, with the temp directory itself in
 such a path, and with it under a symlink (a simulation of macOS `/tmp` and `/var`, not
-a macOS run). Disabling 28 safety guards one at a time made the suite fail 27 times;
+a macOS run). Disabling 30 safety guards one at a time made the suite fail 29 times;
 the lexical source boundary alone is backed by the identity check, and disabling both
 fails. Local documentation
 targets and whitespace were checked. These results support a bounded pilot, not

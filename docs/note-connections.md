@@ -1,6 +1,7 @@
 # Deterministic activity and connections
 
-Use `scripts/connections.py` for an explicitly selected Wiki scope. It emits JSON
+Use `scripts/connections.py` for explicitly selected files or folders, whatever the
+library calls them; `Wiki` below is only an example. It emits JSON
 or Spanish Markdown to stdout; it never saves notes, starts histories or approves
 content. Existing custody and nested rules must be read before running it.
 
