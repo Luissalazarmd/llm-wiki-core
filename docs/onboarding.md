@@ -6,6 +6,10 @@ Ask: “Start read-only. Help me understand this and show me what is worth keepi
 Use [AGENTS](../AGENTS.md), its preflight and one of the four action skills.
 Markdown and authorized host tools suffice; Obsidian and K-Plex are optional.
 
+In plain terms: your agent reads what you point it to, explains it and suggests what
+to keep. It changes a file only after you see the exact text and agree, and it keeps
+the previous version so that the change can be undone.
+
 Core is the tools checkout. Your actual library is independently located and may
 already exist elsewhere. The host must actually access both locations and read
 that library’s rules before its content. Access is not consent to write or share;

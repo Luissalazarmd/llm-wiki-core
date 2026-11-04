@@ -146,9 +146,9 @@ class LibraryTests(unittest.TestCase):
         self.config = link / 'personal.json'
         result = self.run_cli('map', '--scope', 'Material')
         self.assertEqual(result.returncode, 2)
-        self.assertIn(f'{link} is a link', result.stderr)
-        self.assertIn(str(real / 'personal.json'), result.stderr)
-        self.assertNotIn('regular non-symlink file', result.stderr)
+        self.assertIn(f'{link} is a link', json.loads(result.stderr)['error'])
+        self.assertIn(str(real / 'personal.json'), json.loads(result.stderr)['error'])
+        self.assertNotIn('regular non-symlink file', json.loads(result.stderr)['error'])
         self.config = self.base / 'personal.json'
         for field, value, expected in (('library_root', str(link / 'lib'), 'Symlink library root'),
                                        ('recovery_directory', str(link / 'rec'), 'Symlink recovery directory')):
@@ -156,14 +156,14 @@ class LibraryTests(unittest.TestCase):
             self.config.write_text(json.dumps({**self.settings, field: value}))
             result = self.run_cli('map', '--scope', 'Material')
             self.assertEqual(result.returncode, 2)
-            self.assertIn(expected, result.stderr)
-            self.assertIn(f'{link} is a link', result.stderr)
-            self.assertIn(str(real / Path(value).name), result.stderr)
+            self.assertIn(expected, json.loads(result.stderr)['error'])
+            self.assertIn(f'{link} is a link', json.loads(result.stderr)['error'])
+            self.assertIn(str(real / Path(value).name), json.loads(result.stderr)['error'])
         linked_config = self.base / 'linked.json'
         linked_config.symlink_to(self.base / 'personal.json')
         self.config = linked_config
         result = self.run_cli('map', '--scope', 'Material')
-        self.assertIn('Configuration file is a symlink', result.stderr)
+        self.assertIn('Configuration file is a symlink', json.loads(result.stderr)['error'])
 
     def test_demo_and_suite_tolerate_a_linked_temporary_parent(self):
         real = self.base / 'real-tmp'
@@ -232,6 +232,13 @@ class LibraryTests(unittest.TestCase):
         self.assertEqual(receipt['before'], receipt['after'])
         self.assertTrue(receipt['out_of_scope_denied'])
         self.assertFalse(receipt['private_engine_present'])
+
+    def test_contained_refuses_parent_segments_before_any_scope_check(self):
+        sys.path.insert(0, str(CLI.parent))
+        self.addCleanup(lambda: sys.path.remove(str(CLI.parent)))
+        import library
+        with self.assertRaisesRegex(ValueError, 'inside the library'):
+            library.contained(self.root, 'Notes/../../outside.md')
 
 
 if __name__ == '__main__':

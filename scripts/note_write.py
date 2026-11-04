@@ -62,7 +62,7 @@ def check_policy(settings):
             'and recovery; this helper does not enable writing.')
 
 
-def target_path(settings, relative, create=False):
+def target_path(settings, relative, create=False, restoring=False):
     root = Path(settings['library_root'])
     check_policy(settings)
     # Compatibility refusal signals only: no vendor imports, installs or calls.
@@ -85,7 +85,8 @@ def target_path(settings, relative, create=False):
                 same = False
             if same:
                 raise ValueError('Captured sources are immutable')
-    if not create:
+    # Restore is proven by the record's after_sha256 and must stay available.
+    if not create and not restoring:
         try:
             role = library.knowledge.metadata_from(read_bytes(path).decode('utf-8')).get('role')
         except (ValueError, RecursionError):
@@ -126,6 +127,13 @@ def check_packet(settings, packet, *, numbered=True):
                    or not packet['evidence'] or not packet['draft'].strip()):
         raise ValueError('Creation requires an absent-target binding and explicit evidence')
     path = target_path(settings, packet['target']['path'], create=create)
+    try:
+        declared_role = library.knowledge.metadata_from(packet['draft']).get('role')
+    except (ValueError, RecursionError):
+        declared_role = None
+    if declared_role == 'source':
+        raise ValueError('Draft declares role: source; this writer saves notes only. '
+                         'Capture sources with the host create-only tool and capture_check.py')
     previous = None if create else read_bytes(path)
     if not create and digest(previous) != packet['target']['base_sha256']:
         raise ValueError('Stale proposal base; preserve current note and review again')
@@ -230,7 +238,7 @@ def save(settings, packet, *, numbered=True, expected_scope=None):
     # Persist previous bytes and provenance BEFORE replacing the note. Not an apply receipt.
     fd = os.open(record_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     with os.fdopen(fd, 'w', encoding='utf-8') as stream:
-        json.dump(record, stream, ensure_ascii=False)
+        json.dump(record, stream)  # ASCII escapes keep non-UTF-8 locale paths writable.
         stream.flush()
         os.fsync(stream.fileno())
     def before_publish():
@@ -266,7 +274,7 @@ def restore(settings, record_path):
         raise ValueError('Recovery record belongs to a different library')
     if record.get('before_exists') is False:
         raise ValueError('Creation has no previous bytes; deletion requires separate review and is unsupported')
-    path = target_path(settings, record['target'])
+    path = target_path(settings, record['target'], restoring=True)
     current = read_bytes(path)
     if digest(current) != record['after_sha256']:
         raise ValueError('Note changed since save; restore would overwrite subsequent work')

@@ -43,7 +43,8 @@ Illustrative private settings for an **existing, explicitly editable** library:
 ```
 
 Replace placeholders with authorized existing locations; this example creates no
-directories and grants no consent. `layers.sources` protects originals from the
+directories and grants no consent, so `recovery_directory` must exist first. Use this
+shape to write; [`config/personal.example.json`](../config/personal.example.json) is read-only. `layers.sources` protects originals from the
 plain-note writer and is required with `plain_files` (`"sources": []` declares
 none); `recovery_directory` must be outside both the library and the Core checkout.
 In mixed folders, select exact source files for that layer.
@@ -52,6 +53,7 @@ In mixed folders, select exact source files for that layer.
 python3 scripts/knowledge.py --root /library --mode existing --scope Reading
 python3 scripts/library.py --config /private.json map --scope Reading
 python3 scripts/library.py --config /private.json proposal --create --target Notes/new.md --evidence Sources/a.md < /draft.md
+python3 scripts/library.py --config /private.json proposal --target Notes/existing.md --evidence Sources/a.md < /draft.md
 python3 scripts/capture_check.py --config /private.json --target Sources/new.md < /capture.md
 python3 scripts/note_write.py --config /private.json check --packet /proposal.json
 ```
@@ -65,6 +67,8 @@ Save uses save instead of check; recovery uses restore --record. Capture recheck
 uses --expected-sha256; readback adds --saved. Follow [review](review-contract.md),
 [capture](raw-admission.md), [plain saving](plain-saving.md) and [projection](projection-reference.md).
 Mapping bounds inventory to 500 entries and reads attachment metadata, never binary content.
+Helpers follow wikilinks with library-relative paths; Markdown links such as
+`[x](Other.md)` are not counted, so report them instead of assuming a connection.
 
 ## Optional living-synthesis numbering
 

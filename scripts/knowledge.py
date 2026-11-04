@@ -471,7 +471,8 @@ def discover(root: Path, scopes: list[str], max_notes: int = 200,
         relative = path.relative_to(root).as_posix()
         # One unreadable file becomes a named issue; scope-wide limits stay hard errors.
         if any(char in relative for char in '[]|#\n\r\\'):
-            issues.append({'path': relative, 'kind': 'unsafe_link_path'})
+            issues.append({'path': relative, 'kind': 'unsafe_link_path',
+                           'fix': 'Characters []|# and backslash cannot be linked here; read it with host tools or rename it with the person'})
             continue
         with path.open('rb') as stream:
             raw = stream.read(max_file_bytes + 1)
@@ -516,7 +517,7 @@ def discover(root: Path, scopes: list[str], max_notes: int = 200,
             target = target.removesuffix('.md')
             if '/' not in target:
                 issues.append({'path': note['path'], 'kind': 'basename_link_requires_explicit_path',
-                               'target': target})
+                               'target': target, 'fix': 'Link with the library-relative path, such as [[Notes/' + target + ']]'})
                 continue
             if target.startswith(('./', '../')):
                 target = posixpath.normpath(posixpath.join(posixpath.dirname(note['path']), target))

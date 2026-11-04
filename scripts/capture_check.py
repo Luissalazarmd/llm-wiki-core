@@ -167,13 +167,16 @@ def source_inventory(settings, target, reference, version, identifier):
             continue
         try:
             raw, metadata = parse_note(path, relative)  # inventory() already refused symlinks/special files
-            previous_ref, previous_version = knowledge.source_reference(
-                metadata, knowledge.visible_body(raw.decode('utf-8')))
+            body = knowledge.visible_body(raw.decode('utf-8'))
         except (ValueError, RecursionError) as exc:
             # Keep the scope checkable; the binding still covers the complete bytes of this file.
             inventory.append({'path': relative, 'sha256': stream_digest(path),
                               'duplicate_check': 'not_checked', 'reason': str(exc)})
             continue
+        try:
+            previous_ref, previous_version = knowledge.source_reference(metadata, body)
+        except ValueError as exc:
+            raise ValueError(f'{exc}: {relative}; reconcile this source before checking duplicates') from None
         total += len(raw)
         if total > 16777216:
             raise ValueError('Capture duplicate search exceeds total byte limit; use a verified library equivalent')

@@ -122,8 +122,8 @@ atomic multi-file save, native rendering or automatic host rename is certified.
 ## Checks and rollback
 
 Run `python3 -m unittest discover -s tests -p test_numbered_notes.py -v`.
-Observed: three focused tests passed; the complete suite passed 153 tests with
-zero failures, errors or skips. Relative documentation links and whitespace checks passed.
+Observed when this example was added: three focused tests passed; the complete
+suite of that time passed 153 tests with zero failures, errors or skips. Relative documentation links and whitespace checks passed.
 The fixture must retain quoted, unique IDs and resolve all links. Native checks
 must separately verify explorer order, title display and link-preserving rename.
 Removing this directory and its test removes the example without changing Core.

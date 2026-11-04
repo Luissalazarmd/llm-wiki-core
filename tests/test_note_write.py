@@ -248,6 +248,57 @@ class NoteWriteTests(unittest.TestCase):
                 self.assertEqual(saved.returncode, 0, saved.stderr)
                 self.assertEqual(note.read_text(), text + 'Proposed addition.\n')
 
+    def test_update_cannot_strip_role_source_from_an_existing_note(self):
+        note = self.root / 'Notes/one.md'
+        text = '---\nrole: source\n---\n# One\nCaptured original.\n'
+        note.write_text(text)
+        result = subprocess.run([sys.executable, str(BASE / 'scripts/knowledge.py'), '--root', str(self.root),
+            '--proposal-target', 'Notes/one.md', '--evidence', 'Sources/a.md'],
+            input='---\nrole: note\n---\n# One\nRewritten.\n', capture_output=True, text=True, check=True)
+        self.packet.write_text(result.stdout)
+        saved = self.call('save', '--packet', str(self.packet))
+        self.assertEqual(saved.returncode, 2)
+        self.assertIn('Target declares role: source', saved.stderr)
+        self.assertEqual(note.read_text(), text)
+
+    def test_draft_introducing_role_source_is_refused(self):
+        note = self.root / 'Notes/one.md'
+        original = note.read_bytes()
+        cases = (('Notes/one.md', [], '---\nrole: source\n---\n# One\n'),
+                 ('Notes/new.md', ['--create'], '---\nrole: source\n---\n# New\n'))
+        for target, flags, draft in cases:
+            result = subprocess.run([sys.executable, str(BASE / 'scripts/knowledge.py'), '--root', str(self.root),
+                '--proposal-target', target, *flags, '--evidence', 'Sources/a.md'],
+                input=draft, capture_output=True, text=True, check=True)
+            self.packet.write_text(result.stdout)
+            for action in ('check', 'save'):
+                refused = self.call(action, '--packet', str(self.packet))
+                self.assertEqual(refused.returncode, 2)
+                self.assertIn('Draft declares role: source', refused.stderr)
+        self.assertEqual(note.read_bytes(), original)
+        self.assertFalse((self.root / 'Notes/new.md').exists())
+
+    def test_restore_is_not_blocked_by_a_role_source_postimage(self):
+        """An existing record is proven by after_sha256, even if an older save produced a source role."""
+        import hashlib
+        note = self.root / 'Notes/one.md'
+        original = note.read_bytes()
+        result = subprocess.run([sys.executable, str(BASE / 'scripts/knowledge.py'), '--root', str(self.root),
+            '--proposal-target', 'Notes/one.md', '--evidence', 'Sources/a.md'],
+            input='# One\nUpdated.\n', capture_output=True, text=True, check=True)
+        self.packet.write_text(result.stdout)
+        saved = self.call('save', '--packet', str(self.packet))
+        self.assertEqual(saved.returncode, 0, saved.stderr)
+        record_path = Path(json.loads(saved.stdout)['record'])
+        postimage = b'---\nrole: source\n---\n# One\nUpdated.\n'
+        note.write_bytes(postimage)
+        record = json.loads(record_path.read_text())
+        record['after_sha256'] = hashlib.sha256(postimage).hexdigest()
+        record_path.write_text(json.dumps(record))
+        restored = self.call('restore', '--record', str(record_path))
+        self.assertEqual(restored.returncode, 0, restored.stderr)
+        self.assertEqual(note.read_bytes(), original)
+
     def test_source_boundary_uses_filesystem_identity_not_spelling(self):
         from unittest.mock import patch
         module = self.writer()

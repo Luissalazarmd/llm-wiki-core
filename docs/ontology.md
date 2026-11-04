@@ -17,7 +17,7 @@ BuildsOn:: [[Wiki/question]]
 ```
 
 Related:: provides useful reading; avoid generic redundancy while retaining distinct
-meanings. Optional sources lists need not duplicate Evidence. Plain links navigate;
+meanings, such as Related beside Contrasts for the same note. Optional sources lists need not duplicate Evidence. Plain links navigate;
 K-Plex position alone cannot show every meaning. Inspect arguments/details.
 
 [Projection](projection-reference.md) retains legacy roles/developing/review/relations

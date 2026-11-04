@@ -241,6 +241,14 @@ class CaptureCheckTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(json.loads(result.stdout)['duplicate_check_not_checked'], ['Inputs/huge.md'])
 
+    def test_ambiguous_reference_in_existing_source_blocks_the_check(self):
+        draft = self.simple()
+        (self.root / 'Inputs/twice.md').write_text('Reference:: fixture:one\nReference:: fixture:one\n')
+        result = self.call(draft=draft)
+        self.assertEqual(result.returncode, 2)
+        self.assertIn('Reference must have one declaration', result.stderr)
+        self.assertIn('Inputs/twice.md', result.stderr)
+
     def test_unreadable_existing_source_limits_duplicate_scope_without_blocking(self):
         import hashlib
         draft = self.simple()
