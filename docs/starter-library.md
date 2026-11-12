@@ -86,10 +86,12 @@ Obsidian and hand the draft to the agent, or keep their own file in `Raw/Sources
 Core does not check a file the person creates by hand. A template is shape, not
 approval: a filled wrapper still needs the owner's decision on its exact text.
 
-`_templates/` is outside `authorized_paths` and every layer, so the helpers refuse to
-read or write it and never count a template as a note, a source or a duplicate; the
-Base lists only `Raw/Sources`, `Review/Inbox` and `Wiki`. Agents do not edit templates;
-changing them is the owner's choice.
+`_templates/` is outside `authorized_paths` and every layer, so the note and capture
+helpers refuse to read or write it and never count a template as a note, a source or a
+duplicate; the Base lists only `Raw/Sources`, `Review/Inbox` and `Wiki`. Adding or
+changing a template is the owner's choice: on their request the agent shows the exact
+template and saves it through [`template_write.py`](raw-admission.md#templates), which
+never overwrites one without the hash of its current version.
 
 ## Limits
 

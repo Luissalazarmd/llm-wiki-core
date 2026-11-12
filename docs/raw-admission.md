@@ -88,6 +88,62 @@ inside the source folder's filesystem. A killed process cannot roll back: hidden
 `.core-capture-*` temporaries or attachments without their wrapper may remain, and the
 record names what was intended. Rights and consent are not certified.
 
+## Templates
+
+A template is a blank shape for a capture wrapper: shape, not approval, and never
+sources. Creating one ("make a podcast template") or changing one ("add a DOI field to
+the article one") is part of capture, and goes through `template_write.py` rather than
+an improvised script. It needs the same settings as the capture writer.
+
+```sh
+# New template. 1. Bind the exact text; writes nothing.
+template_write.py --config /private.json prepare --name Fuente-podcast.md < /template.md > /template.json
+# 2. Show the exact template (`draft`) and its `draft_sha256`; obtain the decision for this packet.
+# 3. Recheck, create without overwrite, read back.
+template_write.py --config /private.json save --packet /template.json
+
+# Change. 1. Read the current file and its hash (`current_sha256`); writes nothing.
+template_write.py --config /private.json check --name Fuente-articulo.md < /library/_templates/Fuente-articulo.md
+# 2. Bind the complete new text to that current version.
+template_write.py --config /private.json prepare --name Fuente-articulo.md --expected-sha256 <current_sha256> < /changed.md > /template.json
+# 3. Show the `diff` and the complete resulting template; obtain the decision for this packet.
+template_write.py --config /private.json save --packet /template.json
+```
+
+The owner asks, sees the exact template and approves once. `check --name` validates a
+text on stdin without writing, and without write permission. A template declares
+`role: source` with `Title` (empty or `{{title}}`) and an empty `Reference`, keeps
+`Version` and `id` empty, has a `## Contexto de captura` or `## Capture context` section
+and uses only the placeholders of Obsidian's core Templates plugin, written exactly:
+`{{title}}`, `{{date}}`, `{{time}}`, `{{date:FORMAT}}` and `{{time:FORMAT}}`. A concrete
+Reference or a link to an attachment or local file makes it a source in disguise:
+capture that instead. The helper then fills the placeholders, a Reference and a context
+line into a copy in memory and runs the capture checker on it, so every template still
+fills into a valid wrapper; a `capture_policy` is checked per capture, not here.
+
+The target is a plain `.md` filename directly inside the library's templates folder:
+`folder` in `.obsidian/templates.json` when that file exists, else `_templates`. The
+folder stays inside the library and outside `authorized_paths` and every layer (Raw,
+Review, Wiki); symlinks and traversal are refused. Where the setting names a folder
+that does not exist yet, the first approved save creates it. Core writes nothing else
+under `.obsidian`: enabling the Templates core plugin (`core-plugins.json`) and pointing
+it at a folder are the owner's manual steps in Obsidian.
+
+`save` rederives the packet, writes the private record `template-<template_id>.json`
+first and reads back the saved bytes. A new template is created no-clobber. A change
+requires `--expected-sha256` of the current file: the previous version is first copied
+to `template-<template_id>.previous.md` in the private recovery directory, then replaced
+atomically. Without that hash an existing template is never overwritten, and there is
+no delete command. A failure leaves the library as it was (`template_not_saved`), or
+reports `template_partial` with the kept copy. A packet saves once, and one decision
+covers one template write.
+
+An existing library adopts templates through
+[progressive adoption](../skills/progressive-adoption/SKILL.md): read what the owner
+already uses, propose one template at a time and never replace the owner's existing
+templates with Core's. Changing one of theirs is their request, shown as an exact diff.
+The helper authenticates no consent and takes no lock; pause concurrent editing and sync.
+
 ## Retiring a capture: an owner exception
 
 Custody of originals is create-only. Removing one is an exception only the library

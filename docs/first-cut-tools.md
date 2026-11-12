@@ -57,6 +57,8 @@ python3 scripts/library.py --config /private.json proposal --target Notes/existi
 python3 scripts/capture_check.py --config /private.json --target Sources/new.md < /capture.md
 python3 scripts/capture_write.py --config /private.json prepare --target Sources/new.md --attach /downloads/paper.pdf Sources/new.pdf < /capture.md > /capture.json
 python3 scripts/capture_write.py --config /private.json save --packet /capture.json
+python3 scripts/template_write.py --config /private.json prepare --name Fuente-podcast.md < /template.md > /template.json
+python3 scripts/template_write.py --config /private.json save --packet /template.json
 python3 scripts/note_write.py --config /private.json check --packet /proposal.json
 ```
 
@@ -94,7 +96,9 @@ optional PDF, image, EPUB or audio attachments, goes through `capture_write.py`
 prepare → review → save, which rechecks, creates independent copies without overwrite
 and verifies them; it is not an approval engine. `capture_write.py retire` is the
 owner's explicit exception to create-only custody, never routine: it prints a plan,
-then moves the capture to private recovery under `--expected-sha256`. Follow [review](review-contract.md),
+then moves the capture to private recovery under `--expected-sha256`. `template_write.py`
+creates or changes a blank [source template](raw-admission.md#templates) the same way,
+outside every layer. Follow [review](review-contract.md),
 [capture](raw-admission.md), [plain saving](plain-saving.md) and [projection](projection-reference.md).
 Mapping bounds inventory to 500 entries and reads attachment metadata, never binary content.
 Existing-library `map` and `knowledge.py --mode existing` deliberately report `role:

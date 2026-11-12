@@ -27,12 +27,15 @@ existing permitted create-only tools. Retire one only as the owner's exception.
    plain-file permission, use the host's create-only tool and `capture_check.py`.
 6. Retire a capture only when the owner asks in this conversation: name the create-only
    rule being excepted, show the `retire` plan and its linking notes, then run it.
+7. Create or change a source template only on the owner's request, through
+   `template_write.py` [prepare → show the exact template → save](../../docs/raw-admission.md#templates).
 
 ## Pitfalls
 
 Core supplies no downloader. Unknown versions need reconciliation. Approval of an
 earlier capture, retired or deleted, never covers a new one: prepare and show it again,
-and never rewrite a recorded decision. Do not write your own capture or removal script.
+and never rewrite a recorded decision. Do not write your own capture, removal or
+template script, and never replace an owner's template without its current hash.
 Retirement never edits the notes that link to the source; tell the owner about them.
 
 ## Verification
