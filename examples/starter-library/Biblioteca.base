@@ -1,0 +1,147 @@
+filters:
+  and:
+    - 'file.ext == "md"'
+    - or:
+        - 'file.inFolder("Raw/Sources")'
+        - 'file.inFolder("Review/Inbox")'
+        - 'file.inFolder("Wiki")'
+formulas:
+  categoria: 'if(file.inFolder("Review/Inbox"), "Propuestas", if(file.inFolder("Raw/Sources"), "Capturas", if(role == "note", "Notas", if(role == "map", "Mapas e índices", "Sin clasificar"))))'
+  unidad: '1'
+  estado: 'if(formula.categoria != "Propuestas", "—", if(proposal_status == "accepted", "Aceptada", if(proposal_status == "rejected", "Rechazada", if(proposal_status == "withdrawn", "Retirada", "Pendiente"))))'
+  origen: 'if(origin, origin, "—")'
+  destino: 'if(proposed_target, proposed_target, "—")'
+  nota: 'file.asLink(if(title, title, if(Title, Title, file.basename)))'
+  madurez: 'if(formula.categoria != "Notas", "—", if(maturity == "seed", "Semilla", if(maturity == "synthesis", "Síntesis", if(maturity == "evergreen", "Evergreen", "Desconocida"))))'
+  fecha_estado: 'if(created && Created && created != Created, "Conflicto", if(created || Created, if(date(if(created, created, Created)), "Fecha declarada", "Fecha inválida"), "Sin fecha"))'
+  fecha: 'if(formula.fecha_estado == "Fecha declarada", date(if(created, created, Created)), null)'
+  periodo: 'if(formula.fecha, formula.fecha.format("YYYY-MM"), formula.fecha_estado)'
+  editada: 'file.mtime.relative()'
+  incidencia: 'if(file.inFolder("Raw/Sources") && role && role != "source", "Rol de captura por comprobar", if(file.inFolder("Wiki") && role == "source", "Rol y ubicación por comprobar", ""))'
+properties:
+  formula.categoria:
+    displayName: Colección
+  formula.unidad:
+    displayName: Objetos
+  formula.nota:
+    displayName: Nota
+  formula.madurez:
+    displayName: Desarrollo
+  formula.estado:
+    displayName: Estado de la propuesta
+  formula.origen:
+    displayName: Origen
+  formula.destino:
+    displayName: Destino propuesto
+  formula.fecha:
+    displayName: Fecha documental
+  formula.fecha_estado:
+    displayName: Cobertura de fechas
+  formula.periodo:
+    displayName: Periodo documental
+  formula.editada:
+    displayName: Editada
+  formula.incidencia:
+    displayName: Observación técnica
+views:
+  - type: table
+    name: Panorama
+    groupBy:
+      property: formula.categoria
+      direction: ASC
+    order:
+      - formula.nota
+      - formula.unidad
+    summaries:
+      formula.unidad: Sum
+  - type: table
+    name: Atencion
+    columnSize:
+      formula.nota: 270
+    filters:
+      and:
+        - 'formula.estado == "Pendiente"'
+    order:
+      - formula.nota
+      - formula.origen
+      - formula.destino
+    sort:
+      - property: formula.nota
+        direction: ASC
+  - type: table
+    name: Propuestas
+    filters:
+      and:
+        - 'formula.categoria == "Propuestas"'
+    groupBy:
+      property: formula.estado
+      direction: ASC
+    order:
+      - formula.nota
+      - formula.origen
+      - formula.destino
+  - type: table
+    name: Recientes
+    columnSize:
+      formula.nota: 270
+      formula.editada: 110
+    limit: 5
+    order:
+      - formula.nota
+      - formula.editada
+    sort:
+      - property: file.mtime
+        direction: DESC
+  - type: table
+    name: Madurez
+    filters:
+      and:
+        - 'formula.categoria == "Notas"'
+    groupBy:
+      property: formula.madurez
+      direction: ASC
+    order:
+      - formula.nota
+      - formula.unidad
+    summaries:
+      formula.unidad: Sum
+  - type: table
+    name: Comprobar
+    filters:
+      and:
+        - 'formula.incidencia != ""'
+    order:
+      - formula.nota
+      - formula.incidencia
+  - type: table
+    name: Capturas
+    filters:
+      and:
+        - 'formula.categoria == "Capturas"'
+    order:
+      - formula.nota
+      - formula.fecha
+      - formula.fecha_estado
+  - type: table
+    name: Inventario
+    groupBy:
+      property: formula.categoria
+      direction: ASC
+    order:
+      - formula.nota
+      - formula.madurez
+      - formula.unidad
+    summaries:
+      formula.unidad: Sum
+  - type: table
+    name: Incorporaciones
+    groupBy:
+      property: formula.periodo
+      direction: ASC
+    order:
+      - formula.nota
+      - formula.categoria
+      - formula.fecha_estado
+      - formula.unidad
+    summaries:
+      formula.unidad: Sum

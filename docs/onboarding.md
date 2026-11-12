@@ -29,7 +29,9 @@ See [progressive adoption](../skills/progressive-adoption/SKILL.md) for existing
 If you have no library, start with your question or source in chat. Only when you
 ask to retain something should the host propose a minimal private destination.
 It may prepare an explicitly authorized location; no automatic folders,
-placeholder notes or required Raw/Review/Wiki folder names follow.
+placeholder notes or required Raw/Review/Wiki folder names follow. If you want a
+ready layout, the [starter library](starter-library.md) is copied once, with one
+decision from you on its rules and private settings.
 
 For a first capture, preserve the source and explain why it helps your question.
 MOC and tags are optional. A chat question can persist as `Capture context` in

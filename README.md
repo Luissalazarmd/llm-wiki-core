@@ -17,7 +17,7 @@ Ask: “Start read-only; help me understand this question. Reuse existing explan
 Before saving, show the complete proposed content or exact diff and readable result.”
 
 [Adopt](skills/progressive-adoption/SKILL.md) · [Workflow](docs/knowledge-workflow.md) · [Onboarding](docs/onboarding.md) ·
-[Tools](docs/first-cut-tools.md) · [Obsidian example](examples/obsidian/README.md)
+[Tools](docs/first-cut-tools.md) · [Starter library](docs/starter-library.md) · [Obsidian example](examples/obsidian/README.md)
 
 Obsidian can provide the reading workspace: Bases shows inventories, Canvas shows
 the architecture, and optional [K-Plex](https://github.com/zsviczian/kplex) provides contextual knowledge navigation.

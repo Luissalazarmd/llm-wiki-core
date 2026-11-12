@@ -3,7 +3,7 @@
 Use existing permitted host tools or these helpers; no automatic installation.
 [Private settings](../config/personal.example.json) restrict operations, never grant
 permission. Declare actual library_root, authorized_paths and optional source/draft/
-knowledge layers. Defaults are read-only; configuration stays private.
+knowledge/proposal layers. Defaults are read-only; configuration stays private.
 
 Python 3.10+ and PyYAML are needed only for these optional helpers (numbering uses
 `zip(strict=True)`); the dependency is pinned in [requirements.txt](../requirements.txt).
@@ -62,6 +62,18 @@ For the first save, prepare the packet and present exact content/diff plus the
 readable result; obtain the actual person’s approval under the [review contract](review-contract.md).
 Immediately recheck base/evidence, permission and conflicts; save with private
 recovery, then read back exact bytes. CLI flags cannot authenticate approval.
+
+A proposal that arrives while the person is away may be parked, never accepted,
+when the library rules permit [custody](review-contract.md#proposal-custody) and
+the settings declare `layers.proposals` beside `sources` and `knowledge`:
+
+```sh
+python3 scripts/library.py --config /private.json proposal --park --target Review/Inbox/new.md --origin "agent: reader" --proposed-target Wiki/Notes/new.md < /received.md > /parked.json
+python3 scripts/note_write.py --config /private.json save --packet /parked.json
+```
+
+See [parked proposals](plain-saving.md#parked-proposals). Someone starting without a
+library can copy the [starter library](starter-library.md).
 
 Save uses save instead of check; recovery uses restore --record. Capture recheck
 uses --expected-sha256; readback adds --saved. Follow [review](review-contract.md),

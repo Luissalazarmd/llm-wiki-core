@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "library_root": "library",
+  "authorized_paths": ["Raw", "Review", "Wiki"],
+  "language": "es",
+  "layers": {
+    "sources": ["Raw"],
+    "proposals": ["Review/Inbox"],
+    "knowledge": ["Wiki"]
+  },
+  "write_policy": "plain_files",
+  "recovery_directory": "recovery"
+}
