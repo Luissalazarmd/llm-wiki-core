@@ -1,5 +1,20 @@
 # Acceptance
 
+## Template writer — 2026-11-12
+
+This update passed 332 synthetic tests on Linux with Python 3.14.8 and PyYAML 6.0.3,
+run from a clean clone of the branch. Disabling each of the 26 refusal conditions in
+`template_write.py` one at a time made the new tests fail. The earlier guard runs and
+path variants were not repeated.
+
+Not run for this update: an actual host creating or changing a template with its owner
+reviewing the exact text; Obsidian inserting a template written this way, or reading a
+custom `templates.json` folder; a filesystem without hard links; a process killed
+mid-save; macOS; Python 3.10–3.13. Tests show that a template is a blank source wrapper
+that still passes the capture checker once filled, that an existing template is replaced
+only under the hash of its current version and after a verified private copy, and that a
+packet saves once; they cannot show that the owner saw the template or asked for it.
+
 ## Capture writer, retirement and source templates — 2026-11-12
 
 This update passed 306 synthetic tests on Linux with Python 3.14.8 and PyYAML 6.0.3,
@@ -87,7 +102,7 @@ identity/version/locator checks, capture duplicates/connections, proposal bindin
 stale/diff refusal, managed/source/instruction protection, no-clobber creation,
 proposal custody confined to its declared layer, owner-authored seeds, the copied
 starter library and its source templates, whole-or-nothing capture with attachments,
-owner-exception retirement,
+owner-exception retirement, template creation and hash-bound change,
 injected failures and recovery preserving later edits. Fixtures preserve originals.
 
 `python3 tests/demo_existing_library.py --output-parent /tmp` independently
