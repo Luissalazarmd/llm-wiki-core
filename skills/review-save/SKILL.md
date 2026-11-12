@@ -36,7 +36,8 @@ Retain a useful correction/proposal or recover an authorized edit.
 ## Pitfalls
 
 [Plain mechanics](../../docs/plain-saving.md) authenticate no consent; missing writer
-means proposal-only. Follow [AGENTS](../../AGENTS.md).
+means proposal-only. A parked proposal is [custody](../../docs/review-contract.md#proposal-custody),
+not acceptance: review its exact text as any other before saving. Follow [AGENTS](../../AGENTS.md).
 
 ## Verification
 

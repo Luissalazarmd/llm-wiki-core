@@ -33,6 +33,61 @@ identity, primary association or current/former reservations. Creation still has
 no automatic deletion recovery. A primary recoding reversal is another reviewed
 move, not restoration that recycles history.
 
+## Parked proposals
+
+[Custody](review-contract.md#proposal-custody) needs the library rules to permit it
+and an explicit `layers.proposals` list of existing folders. That declaration also
+requires explicit `layers.sources` and `layers.knowledge`, and refuses any overlap
+with either by spelling or filesystem identity, so custody has no path into
+originals or retained knowledge. `library.py proposal --park --target ... --origin
+... --proposed-target ...` wraps literal stdin; `note_write.py save` publishes it with
+the same no-clobber creation and private record, and reports `proposal_parked`,
+`custody_only: true`, `accepted: false`.
+
+```markdown
+---
+proposal_status: pending
+origin: "agent: reader"
+conversation: "thread 7"
+received: "2026-11-11"
+proposed_target: "Wiki/Notes/shade.md"
+evidence:
+  - path: "Raw/Sources/a.md"
+    sha256: "..."
+  - reference: "doi:10.0000/example v2"
+    verified: "no"
+text_sha256: "..."
+---
+# Propuesta en custodia
+
+> Custodia, no aceptación: ...
+
+## Historial
+
+- 2026-11-11 · pendiente · recibida de agent: reader
+
+## Texto propuesto
+
+(the literal text, unchanged to the end of the file)
+```
+
+`conversation` and `evidence` are optional; `--evidence` binds library files by hash
+and `--external-evidence` records the origin's own statement unverified. Labels
+follow `language`. The writer parks only this shape with `pending`, the bound text
+hash and no `role`, `maturity` or `review` of its own. Only this operation creates
+without evidence, and only inside the proposals layer: creation anywhere else,
+Wiki included, keeps every existing requirement.
+
+Close with an ordinary `proposal` update after the decision exists: change
+`proposal_status`, append a history line and, when accepted, name the saved note. The
+writer refuses an update that alters the literal text, origin, reception or earlier
+history lines, or drops the format. The file stays in place; no deletion or rename
+is supplied, and restoring the update returns it to its previous status.
+
+The helper wraps what it is given: it cannot prove that stdin equals the original
+message or that the origin is who it claims, and it reads no library rules. Edits
+made outside the helper remain possible, as for every plain file.
+
 One quiet cooperative writer; no atomic compare-and-swap, locks/fencing, signed
 receipts, multi-file transaction or full crash journal. ACL/xattr/ownership beyond
 mode is unverified. Keep recovery private with independent backup/retention.

@@ -119,14 +119,19 @@ def check_packet(settings, packet, *, numbered=True):
     if len(draft) > LIMIT or digest(draft) != packet['draft_sha256']:
         raise ValueError('Invalid draft binding')
     operation = packet['target'].get('operation', 'update')
-    if operation not in ('update', 'create'):
+    if operation not in ('update', 'create', 'park'):
         raise ValueError('Unsupported proposal operation')
-    create = operation == 'create'
+    create = operation in ('create', 'park')
     if create and (packet['target'].get('expected_absent') is not True
                    or packet['target'].get('base_sha256') is not None
-                   or not packet['evidence'] or not packet['draft'].strip()):
+                   or (operation == 'create' and not packet['evidence']) or not packet['draft'].strip()):
         raise ValueError('Creation requires an absent-target binding and explicit evidence')
+    if packet.get('custody') != (library.knowledge.CUSTODY if operation == 'park' else None):
+        raise ValueError('Only a custody packet parks, and it parks only')
     path = target_path(settings, packet['target']['path'], create=create)
+    if operation == 'park':
+        # Custody, not acceptance: literal pending text, only inside the declared proposals layer.
+        library.check_custody(settings, path, packet)
     try:
         declared_role = library.knowledge.metadata_from(packet['draft']).get('role')
     except (ValueError, RecursionError):
@@ -137,6 +142,8 @@ def check_packet(settings, packet, *, numbered=True):
     previous = None if create else read_bytes(path)
     if not create and digest(previous) != packet['target']['base_sha256']:
         raise ValueError('Stale proposal base; preserve current note and review again')
+    if not create and library.in_proposals(settings, path):
+        library.check_closure(previous.decode('utf-8'), packet['draft'])
     expected_diff = ''.join(difflib.unified_diff((previous or b'').decode('utf-8').splitlines(keepends=True),
                                                packet['draft'].splitlines(keepends=True),
                                                fromfile='/dev/null' if create else packet['target']['path'],
@@ -255,6 +262,10 @@ def save(settings, packet, *, numbered=True, expected_scope=None):
         replace_checked(path, previous, draft, before_publish)
     if read_bytes(path) != draft:
         raise ValueError('Saved output not verified; preserve recovery record')
+    if packet['target'].get('operation') == 'park':
+        return {'status': 'proposal_parked', 'custody_only': True, 'accepted': False,
+                'record': str(record_path), 'sha256': digest(draft),
+                'human_authentication_verified': False}
     return {'status': 'plain_file_created' if previous is None else 'plain_file_saved',
             'record': str(record_path), 'sha256': digest(draft),
             'human_authentication_verified': False}

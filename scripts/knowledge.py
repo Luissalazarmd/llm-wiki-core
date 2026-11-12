@@ -545,6 +545,9 @@ def discover(root: Path, scopes: list[str], max_notes: int = 200,
             'mode': 'existing_library_read_only', 'approval_available': False}
 
 
+CUSTODY = 'literal_proposal_not_accepted'  # Parked in the proposals layer; never a human decision.
+
+
 def new_target_path(root: Path, target: str) -> Path:
     """Validate an absent Markdown leaf under existing visible directories."""
     root = library_root(root)
@@ -565,18 +568,27 @@ def new_target_path(root: Path, target: str) -> Path:
     return path
 
 
-def prepare_proposal(root: Path, target: str, draft: str, evidence: list[str], create: bool = False) -> dict:
-    """Bind an existing base or absent destination and evidence; never write."""
+def prepare_proposal(root: Path, target: str, draft: str, evidence: list[str], create: bool = False,
+                     custody: bool = False) -> dict:
+    """Bind an existing base or absent destination and evidence; never write.
+
+    custody marks a literal parked proposal: an absent target whose evidence is
+    optional. The caller and the writer confine it to the declared proposals layer.
+    """
     if len(draft.encode('utf-8')) > 262144:
         raise ValueError('Draft exceeds byte limit')
+    if custody and create:
+        raise ValueError('Custody is its own operation; do not combine it with create')
+    create = create or custody
     # Discovery enforces path containment, link safety and bounded input reads.
     if create:
         new_target_path(root, target)
         if not draft.strip():
             raise ValueError('New derived note draft must be nonempty')
-        if not evidence:
+        if not evidence and not custody:
             raise ValueError('New derived notes require explicit evidence')
-    data = discover(root, evidence if create else [target, *evidence])
+    data = (discover(root, evidence if create else [target, *evidence]) if evidence or not create
+            else {'notes': [], 'issues': []})
     notes = {n['path']: n for n in data['notes']}
     missing = [p for p in ([] if create else [target]) + list(evidence) if p not in notes]
     if missing:
@@ -590,7 +602,8 @@ def prepare_proposal(root: Path, target: str, draft: str, evidence: list[str], c
             original_bytes = stream.read(262145)
         if len(original_bytes) > 262144 or hashlib.sha256(original_bytes).hexdigest() != notes[target]['sha256']:
             raise ValueError('Proposal base changed during preparation')
-    target_binding = ({'path': target, 'operation': 'create', 'expected_absent': True, 'base_sha256': None}
+    target_binding = ({'path': target, 'operation': 'park' if custody else 'create',
+                       'expected_absent': True, 'base_sha256': None}
                       if create else {'path': target, 'base_sha256': notes[target]['sha256']})
     original = original_bytes.decode('utf-8')
     packet = {'status': 'prepared_not_approved', 'approval_available': False,
@@ -602,6 +615,8 @@ def prepare_proposal(root: Path, target: str, draft: str, evidence: list[str], c
                                                  draft.splitlines(keepends=True),
                                                  fromfile='/dev/null' if create else target,
                                                  tofile=target + ' (proposed)'))}
+    if custody:
+        packet['custody'] = CUSTODY
     packet['packet_sha256'] = hashlib.sha256(json.dumps(packet, sort_keys=True,
         ensure_ascii=False, separators=(',', ':')).encode()).hexdigest()
     return packet

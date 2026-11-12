@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+import datetime
+import hashlib
 import importlib
 import json
 import os
@@ -34,6 +36,124 @@ def contained(root: Path, relative: str) -> Path:
     if not current.is_dir() and not current.is_file():
         raise ValueError('Only regular files and directories are supported')
     return current
+
+
+PROPOSAL_STATUSES = ('pending', 'accepted', 'rejected', 'withdrawn')
+PARKED_LABELS = {
+    'es': {'title': '# Propuesta en custodia', 'history': '## Historial', 'text': '## Texto propuesto',
+           'notice': '> Custodia, no aceptación: texto literal recibido de su origen, sin revisar ni aprobar. '
+                     'Guardarlo en su destino exige la revisión humana completa.',
+           'received': 'pendiente · recibida de'},
+    'en': {'title': '# Parked proposal', 'history': '## History', 'text': '## Proposed text',
+           'notice': '> Custody, not acceptance: literal text received from its origin, neither reviewed nor '
+                     'approved. Saving it at its destination requires the complete human review.',
+           'received': 'pending · received from'},
+}
+
+
+def overlaps(root: Path, first: str, second: str) -> bool:
+    """True when two selections share any location, by spelling or filesystem identity."""
+    a, b = root / first, root / second
+    if a == b or a.is_relative_to(b) or b.is_relative_to(a):
+        return True
+    for inner, outer in ((a, b), (b, a)):
+        for candidate in (inner, *inner.parents):
+            if candidate == root or not candidate.is_relative_to(root):
+                break
+            try:
+                if os.path.samefile(candidate, outer):
+                    return True
+            except OSError:
+                continue
+    return False
+
+
+def in_proposals(settings: dict, path: Path) -> bool:
+    """Strictly inside a declared proposals folder, by spelling only: a mismatch refuses."""
+    root = Path(settings['library_root'])
+    return '..' not in path.parts and any(path != root / selected and path.is_relative_to(root / selected)
+                                          for selected in settings.get('layers', {}).get('proposals', []))
+
+
+def parked_parts(text: str):
+    """Split a parked proposal into (metadata, header, literal text); None when it is not one."""
+    try:
+        metadata = knowledge.metadata_from(text)
+    except (ValueError, RecursionError):
+        return None
+    if 'proposal_status' not in metadata:
+        return None
+    found = [(index, len(marker)) for marker in (f"\n{labels['text']}\n\n" for labels in PARKED_LABELS.values())
+             if (index := text.find(marker)) != -1]
+    if not found:
+        return None
+    index, length = min(found)
+    return metadata, text[:index], text[index + length:]
+
+
+def parked_note(language: str, text: str, origin: str, proposed_target: str, received: str,
+                conversation: str | None = None, evidence: list[dict] | None = None) -> str:
+    """Wrap literal proposal text in the minimal parked format; the text itself is never edited."""
+    fields = {'origin': origin, 'proposed_target': proposed_target, 'received': received,
+              **({'conversation': conversation} if conversation is not None else {})}
+    for name, value in fields.items():
+        if (not isinstance(value, str) or not value.strip() or len(value) > 512
+                or any(ord(char) < 32 or ord(char) == 127 for char in value)):
+            raise ValueError(f'Parked proposal {name} must be one nonempty line of at most 512 characters')
+    if not text.strip():
+        raise ValueError('Parked proposal text must be nonempty')
+    labels = PARKED_LABELS[language]
+    quote = lambda value: json.dumps(value, ensure_ascii=False)  # A JSON string is a YAML scalar.
+    lines = ['---', 'proposal_status: pending', 'origin: ' + quote(origin)]
+    if conversation is not None:
+        lines.append('conversation: ' + quote(conversation))
+    lines += ['received: ' + quote(received), 'proposed_target: ' + quote(proposed_target)]
+    if evidence:
+        lines.append('evidence:')
+        for item in evidence:
+            lines += [f'  - {key}: {quote(value)}' if position == 0 else f'    {key}: {quote(value)}'
+                      for position, (key, value) in enumerate(item.items())]
+    lines += ['text_sha256: ' + quote(hashlib.sha256(text.encode('utf-8')).hexdigest()), '---',
+              labels['title'], '', labels['notice'], '', labels['history'], '',
+              f"- {received} · {labels['received']} {origin}", '', labels['text'], '']
+    return '\n'.join(lines) + '\n' + text
+
+
+def check_custody(settings: dict, path: Path, packet: dict) -> None:
+    """Writer-side custody boundary: declared proposals layer and literal pending format only."""
+    if not in_proposals(settings, path):
+        raise ValueError('Custody is only available inside the declared layers.proposals; '
+                         'every other location requires the complete review loop')
+    parts = parked_parts(packet['draft'])
+    if parts is None:
+        raise ValueError('Custody requires the parked-proposal format')
+    metadata, _, literal = parts
+    if metadata['proposal_status'] != 'pending':
+        raise ValueError('Custody can only park a pending proposal; closing one is a reviewed update')
+    if set(metadata) & {'role', 'maturity', 'review'}:
+        raise ValueError('A parked proposal declares no role, maturity or review of its own')
+    if (not all(isinstance(metadata.get(key), str) and metadata[key].strip()
+                for key in ('origin', 'received', 'proposed_target'))
+            or not literal.strip()
+            or metadata.get('text_sha256') != hashlib.sha256(literal.encode('utf-8')).hexdigest()):
+        raise ValueError('Parked proposal requires origin, received, proposed_target and its exact bound text')
+
+
+def check_closure(previous: str, draft: str) -> None:
+    """Updating a parked proposal keeps its origin, literal text and history lines."""
+    before = parked_parts(previous)
+    if before is None:
+        return
+    after = parked_parts(draft)
+    if after is None or after[0]['proposal_status'] not in PROPOSAL_STATUSES:
+        raise ValueError('A parked proposal stays a parked proposal: keep its format and use a status of '
+                         + ', '.join(PROPOSAL_STATUSES))
+    if after[2] != before[2] or any(after[0].get(key) != before[0].get(key)
+                                    for key in ('origin', 'received', 'conversation', 'text_sha256')):
+        raise ValueError('Closing a parked proposal must keep its origin and exact proposed text')
+    kept = after[1].splitlines()
+    if any(line not in kept for line in before[1].splitlines() if line.startswith('- ')):
+        raise ValueError('Closing a parked proposal must keep its history lines; append, never erase')
 
 
 def load_config(path: Path) -> dict:
@@ -91,13 +211,25 @@ def load_config(path: Path) -> dict:
     if data.get('language', 'es') not in ('es', 'en'):
         raise ValueError('Supported languages: es, en')
     layers = data.get('layers', {})
-    if not isinstance(layers, dict) or set(layers) - {'sources', 'drafts', 'knowledge'}:
+    if not isinstance(layers, dict) or set(layers) - {'sources', 'drafts', 'knowledge', 'proposals'}:
         raise ValueError('Invalid layer correspondence')
     for selections in layers.values():
         if not isinstance(selections, list) or len(selections) > 100:
             raise ValueError('Layer correspondence must contain path lists')
         for relative in selections:
             authorize(root, allowed, relative)
+    if 'proposals' in layers:
+        # Custody may create files here without review, so the layer must be unmistakable.
+        if 'sources' not in layers or 'knowledge' not in layers:
+            raise ValueError('layers.proposals requires explicit layers.sources and layers.knowledge: declare '
+                             'the originals and the retained knowledge that custody must never touch')
+        for relative in layers['proposals']:
+            selected = contained(root, relative)
+            if not selected.is_dir() or selected.relative_to(root).as_posix() != relative:
+                raise ValueError('layers.proposals entries must be exact existing directories')
+            for layer in ('sources', 'knowledge'):
+                if any(overlaps(root, relative, other) for other in layers[layer]):
+                    raise ValueError(f'layers.proposals must not overlap layers.{layer}')
     if 'capture_policy' in data:
         policy = data['capture_policy']
         if (not isinstance(policy, dict) or set(policy) - {'roots', 'taxonomy_path', 'fields'}
@@ -241,7 +373,9 @@ def map_library(root: Path, scopes: list[str], layers: dict) -> dict:
             if rule.is_file() and not rule.is_symlink():
                 rules.add(rule.relative_to(root).as_posix())
     proposal = []
-    for layer in ('sources', 'drafts', 'knowledge'):
+    for layer in ('sources', 'drafts', 'knowledge', 'proposals'):
+        if layer == 'proposals' and layer not in layers:
+            continue
         selected = [p for p in layers.get(layer, [])
                     if any((root / p).is_relative_to(root / s) or (root / s).is_relative_to(root / p)
                            for s in scopes)]
@@ -273,6 +407,15 @@ def main() -> int:
     proposal.add_argument('--create', action='store_true', help='propose an absent derived-note target')
     proposal.add_argument('--evidence', action='append', default=[])
     proposal.add_argument('--move-primary', action='store_true', help='prepare a reviewed primary-MOC move with reserved history and map companion edits')
+    proposal.add_argument('--park', action='store_true',
+                          help='custody, not acceptance: wrap literal stdin as a pending proposal at an absent '
+                               'target inside layers.proposals; evidence is optional')
+    proposal.add_argument('--origin', help='with --park: who authored the proposal (agent or person)')
+    proposal.add_argument('--conversation', help='with --park: where it was received')
+    proposal.add_argument('--proposed-target', help='with --park: the destination the origin proposes')
+    proposal.add_argument('--received', help='with --park: ISO date, default today')
+    proposal.add_argument('--external-evidence', action='append', default=[],
+                          help='with --park: a reference or version stated by the origin, recorded unverified')
     batch = sub.add_parser('proposal-batch', help='prepare up to 20 scoped numbered changes from a JSON array on stdin; not approval')
     batch.add_argument('--evidence', action='append', default=[])
     args = parser.parse_args()
@@ -283,7 +426,7 @@ def main() -> int:
                  else args.evidence if args.action == 'proposal-batch' else args.scope)
         for path in paths:
             authorize(root, settings['authorized_paths'], path,
-                      create=args.action == 'proposal' and args.create and path == args.target)
+                      create=args.action == 'proposal' and (args.create or args.park) and path == args.target)
         if args.action == 'map':
             data = map_library(root, args.scope, settings['layers'])
         elif args.action == 'read':
@@ -304,6 +447,31 @@ def main() -> int:
             binding = None
             if args.action == 'proposal-batch':
                 data = numbering.prepare_batch(settings, json.loads(text), args.evidence)
+                print(json.dumps(data, ensure_ascii=False, indent=2))
+                return 0
+            park_only = (args.origin, args.conversation, args.proposed_target, args.received)
+            if args.action == 'proposal' and not args.park and (any(v is not None for v in park_only)
+                                                                or args.external_evidence):
+                raise ValueError('origin, conversation, proposed-target, received and external-evidence need --park')
+            if args.action == 'proposal' and args.park:
+                if args.create or args.move_primary:
+                    raise ValueError('--park is its own operation; do not combine it with --create or --move-primary')
+                if args.origin is None or args.proposed_target is None:
+                    raise ValueError('--park requires --origin and --proposed-target')
+                if not in_proposals(settings, root / args.target):
+                    raise ValueError('Custody is only available inside the declared layers.proposals; '
+                                     'every other location requires the complete review loop')
+                if numbering.in_scope(settings, args.target):
+                    raise ValueError('Custody is unavailable inside a numbered scope')
+                received = args.received or datetime.date.today().isoformat()
+                datetime.date.fromisoformat(received)
+                bound = knowledge.discover(root, args.evidence)['notes'] if args.evidence else []
+                hashes = {note['path']: note['sha256'] for note in bound}
+                evidence = ([{'path': p, 'sha256': hashes[p]} for p in sorted(set(args.evidence)) if p in hashes]
+                            + [{'reference': r, 'verified': 'no'} for r in args.external_evidence])
+                text = parked_note(settings['language'], text, args.origin, args.proposed_target, received,
+                                   args.conversation, evidence)
+                data = knowledge.prepare_proposal(root, args.target, text, args.evidence, custody=True)
                 print(json.dumps(data, ensure_ascii=False, indent=2))
                 return 0
             if args.move_primary:
