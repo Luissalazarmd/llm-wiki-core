@@ -18,6 +18,10 @@ Retain a useful correction/proposal or recover an authorized edit.
    include the note's complete citations and actual consulted scope in the human preview.
 2. For [idea emergence](../../docs/knowledge-workflow.md#idea-emergence), explain current
    and proposed maturity; when new evidence undermines an argument, propose correction.
+   An idea the owner states in conversation, with no original to cite, is an
+   [owner-authored seed](../../docs/review-contract.md#owner-authored-seeds): draft it
+   with `role: note`, `maturity: seed` and `origin: owner`, and prepare it with
+   `--create --owner-authored`. Never cite unrelated evidence to satisfy the writer.
 3. If the bounded collection opts into [living-synthesis numbering](../../docs/first-cut-tools.md#optional-living-synthesis-numbering),
    prepare through the shared proposal path before review. Show every numbered
    draft/diff and companion map change; explicit primary moves retain the same ID,
@@ -37,7 +41,10 @@ Retain a useful correction/proposal or recover an authorized edit.
 
 [Plain mechanics](../../docs/plain-saving.md) authenticate no consent; missing writer
 means proposal-only. A parked proposal is [custody](../../docs/review-contract.md#proposal-custody),
-not acceptance: review its exact text as any other before saving. Follow [AGENTS](../../AGENTS.md).
+not acceptance: review its exact text as any other before saving. `origin: owner` is
+only for what the owner personally stated: an agent's or third party's claim, a
+specialist's proposal or a parked item never qualifies, and promoting such a seed
+needs evidence. Follow [AGENTS](../../AGENTS.md).
 
 ## Verification
 

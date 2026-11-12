@@ -139,6 +139,20 @@ def check_custody(settings: dict, path: Path, packet: dict) -> None:
         raise ValueError('Parked proposal requires origin, received, proposed_target and its exact bound text')
 
 
+def check_owner_seed(settings: dict, target: str, draft: str) -> None:
+    """Writer-side boundary for a seed declared as the owner's: retained knowledge only, exact shape."""
+    root, layers = Path(settings['library_root']), settings.get('layers', {})
+    if any(overlaps(root, target, other) for layer in ('sources', 'proposals') for other in layers.get(layer, [])):
+        raise ValueError('An owner-authored seed never lands in layers.sources or layers.proposals; '
+                         'a proposal received from anyone else is parked with --park')
+    retained = [*layers.get('knowledge', []), *layers.get('drafts', [])]
+    if retained and not any((root / target).is_relative_to(root / selected) for selected in retained):
+        raise ValueError('An owner-authored seed must be inside the declared layers.knowledge or layers.drafts')
+    problem = knowledge.owner_seed_problem(draft)
+    if problem:
+        raise ValueError(problem)
+
+
 def check_closure(previous: str, draft: str) -> None:
     """Updating a parked proposal keeps its origin, literal text and history lines."""
     before = parked_parts(previous)
@@ -410,6 +424,10 @@ def main() -> int:
     proposal.add_argument('--park', action='store_true',
                           help='custody, not acceptance: wrap literal stdin as a pending proposal at an absent '
                                'target inside layers.proposals; evidence is optional')
+    proposal.add_argument('--owner-authored', action='store_true',
+                          help='with --create: the agent declares that the library owner authored this new seed in '
+                               'conversation, so it has no library evidence; the draft itself must declare role: '
+                               'note, maturity: seed and origin: owner. Not proof of authorship, not approval')
     proposal.add_argument('--origin', help='with --park: who authored the proposal (agent or person)')
     proposal.add_argument('--conversation', help='with --park: where it was received')
     proposal.add_argument('--proposed-target', help='with --park: the destination the origin proposes')
@@ -453,6 +471,11 @@ def main() -> int:
             if args.action == 'proposal' and not args.park and (any(v is not None for v in park_only)
                                                                 or args.external_evidence):
                 raise ValueError('origin, conversation, proposed-target, received and external-evidence need --park')
+            if args.owner_authored:
+                if not args.create or args.park or args.move_primary or args.evidence:
+                    raise ValueError('--owner-authored is one narrow creation: use it with --create only, without '
+                                     '--evidence, --park or --move-primary')
+                check_owner_seed(settings, args.target, text)
             if args.action == 'proposal' and args.park:
                 if args.create or args.move_primary:
                     raise ValueError('--park is its own operation; do not combine it with --create or --move-primary')
@@ -481,7 +504,8 @@ def main() -> int:
                 return 0
             if numbering.in_scope(settings, args.target):
                 text, binding = numbering.candidate(settings, args.target, text, args.create)
-            data = knowledge.prepare_proposal(root, args.target, text, args.evidence, args.create)
+            data = knowledge.prepare_proposal(root, args.target, text, args.evidence, args.create,
+                                              owner_authored=args.owner_authored)
             if binding is not None:
                 numbering.bind_packet(data, binding)
         print(json.dumps(data, ensure_ascii=False, indent=2))

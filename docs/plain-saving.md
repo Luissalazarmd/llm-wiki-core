@@ -74,9 +74,10 @@ text_sha256: "..."
 `conversation` and `evidence` are optional; `--evidence` binds library files by hash
 and `--external-evidence` records the origin's own statement unverified. Labels
 follow `language`. The writer parks only this shape with `pending`, the bound text
-hash and no `role`, `maturity` or `review` of its own. Only this operation creates
-without evidence, and only inside the proposals layer: creation anywhere else,
-Wiki included, keeps every existing requirement.
+hash and no `role`, `maturity` or `review` of its own. Custody creates without
+evidence only inside the proposals layer. Outside it, the single evidence-free
+creation is a declared [owner-authored seed](#owner-authored-seeds); every other
+creation, Wiki included, keeps every existing requirement.
 
 Close with an ordinary `proposal` update after the decision exists: change
 `proposal_status`, append a history line and, when accepted, name the saved note. The
@@ -87,6 +88,50 @@ is supplied, and restoring the update returns it to its previous status.
 The helper wraps what it is given: it cannot prove that stdin equals the original
 message or that the origin is who it claims, and it reads no library rules. Edits
 made outside the helper remain possible, as for every plain file.
+
+## Owner-authored seeds
+
+An [owner-authored seed](review-contract.md#owner-authored-seeds) uses the ordinary
+creation with one flag and no evidence:
+
+```sh
+python3 scripts/library.py --config /private.json proposal --create --owner-authored --target Wiki/Notes/idea.md < /draft.md > /seed.json
+python3 scripts/note_write.py --config /private.json save --packet /seed.json
+```
+
+```markdown
+---
+role: note
+maturity: seed
+origin: owner
+conversation: "session 2026-11-12"
+---
+# The idea, in the owner's words
+```
+
+The helper validates and adds nothing, so the bytes saved are the bytes the owner
+reviewed: the draft must already declare `role: note`, `maturity: seed` and
+`origin: owner`; `conversation` is optional, one line. The packet and the save
+result carry `authorship: owner_declared_not_authenticated`; the operation stays
+`create`, with the same absence binding, private record, no-clobber publication and
+readback, and `plain_file_created`. It needs no rule or setting beyond `plain_files`.
+
+Preparation and the writer both refuse: any other maturity or role, a draft in the
+parked-proposal format, an existing target, a target inside `layers.sources` or
+`layers.proposals` (compared by spelling and filesystem identity), a target outside
+`layers.knowledge`/`layers.drafts` when either is declared, and any combination
+with `--evidence`, `--park` or `--move-primary`. A note with evidence is an ordinary
+creation; add `origin: owner` there only if it is true. Without the flag, creation
+without evidence fails exactly as before. Afterwards an update that keeps the three
+declarations needs no evidence; one that changes maturity or role, or drops
+`origin: owner`, is refused unless it binds `--evidence`. That guard reads the note's
+current frontmatter, so it also applies to an existing note that already declares
+this exact shape, and it does not judge whether the bound evidence supports the text.
+
+The flag and the frontmatter record an assertion. The helper cannot tell the
+owner's idea from an agent's or a third party's text, cannot match the draft to
+what was said, and reads no conversation. Edits outside the helper can add or
+remove `origin: owner` like any other bytes.
 
 One quiet cooperative writer; no atomic compare-and-swap, locks/fencing, signed
 receipts, multi-file transaction or full crash journal. ACL/xattr/ownership beyond

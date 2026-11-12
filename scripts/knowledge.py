@@ -546,6 +546,34 @@ def discover(root: Path, scopes: list[str], max_notes: int = 200,
 
 
 CUSTODY = 'literal_proposal_not_accepted'  # Parked in the proposals layer; never a human decision.
+OWNER_AUTHORED = 'owner_declared_not_authenticated'  # The agent's assertion; never proof of authorship.
+
+
+def owner_seed_problem(text: str) -> str | None:
+    """Why text is not an owner-authored seed, or None when it declares exactly that shape."""
+    try:
+        metadata = metadata_from(text)
+    except (ValueError, RecursionError):
+        return 'An owner-authored seed needs readable frontmatter'
+    if 'proposal_status' in metadata:
+        return 'A parked proposal is never an owner-authored seed; review it through the complete loop'
+    if metadata.get('role') == 'note' and metadata.get('maturity') in ('synthesis', 'developing', 'evergreen'):
+        return ('Owner authorship replaces evidence only for a seed; synthesis and evergreen '
+                'require explicit evidence')
+    conversation = metadata.get('conversation')
+    if (metadata.get('role') != 'note' or metadata.get('maturity') != 'seed' or metadata.get('origin') != 'owner'
+            or ('conversation' in metadata and (not isinstance(conversation, str) or not conversation.strip()
+                                                or len(conversation) > 512))):
+        return ('An owner-authored seed declares role: note, maturity: seed and origin: owner (optionally a '
+                'one-line conversation) in the frontmatter the owner reviews; the helper adds nothing')
+    return None
+
+
+def check_owner_seed_kept(previous: str, draft: str, evidence: list) -> None:
+    """An owner-authored seed is promoted, or loses that provenance, only with bound evidence."""
+    if not evidence and owner_seed_problem(previous) is None and owner_seed_problem(draft) is not None:
+        raise ValueError('This note is an owner-authored seed: promoting it or dropping origin: owner '
+                         'requires explicit evidence, because its claims then trace to originals')
 
 
 def new_target_path(root: Path, target: str) -> Path:
@@ -569,23 +597,33 @@ def new_target_path(root: Path, target: str) -> Path:
 
 
 def prepare_proposal(root: Path, target: str, draft: str, evidence: list[str], create: bool = False,
-                     custody: bool = False) -> dict:
+                     custody: bool = False, owner_authored: bool = False) -> dict:
     """Bind an existing base or absent destination and evidence; never write.
 
     custody marks a literal parked proposal: an absent target whose evidence is
     optional. The caller and the writer confine it to the declared proposals layer.
+    owner_authored marks a new seed the agent declares the library owner authored:
+    the draft's own frontmatter stands in for evidence. The caller and the writer
+    keep it out of the sources and proposals layers.
     """
     if len(draft.encode('utf-8')) > 262144:
         raise ValueError('Draft exceeds byte limit')
     if custody and create:
         raise ValueError('Custody is its own operation; do not combine it with create')
+    if owner_authored:
+        if custody or not create or evidence:
+            raise ValueError('Owner authorship applies only to creating a new seed, without evidence or custody; '
+                             'a note with evidence uses the ordinary creation')
+        problem = owner_seed_problem(draft)
+        if problem:
+            raise ValueError(problem)
     create = create or custody
     # Discovery enforces path containment, link safety and bounded input reads.
     if create:
         new_target_path(root, target)
         if not draft.strip():
             raise ValueError('New derived note draft must be nonempty')
-        if not evidence and not custody:
+        if not evidence and not custody and not owner_authored:
             raise ValueError('New derived notes require explicit evidence')
     data = (discover(root, evidence if create else [target, *evidence]) if evidence or not create
             else {'notes': [], 'issues': []})
@@ -602,6 +640,7 @@ def prepare_proposal(root: Path, target: str, draft: str, evidence: list[str], c
             original_bytes = stream.read(262145)
         if len(original_bytes) > 262144 or hashlib.sha256(original_bytes).hexdigest() != notes[target]['sha256']:
             raise ValueError('Proposal base changed during preparation')
+        check_owner_seed_kept(original_bytes.decode('utf-8'), draft, evidence)
     target_binding = ({'path': target, 'operation': 'park' if custody else 'create',
                        'expected_absent': True, 'base_sha256': None}
                       if create else {'path': target, 'base_sha256': notes[target]['sha256']})
@@ -617,6 +656,8 @@ def prepare_proposal(root: Path, target: str, draft: str, evidence: list[str], c
                                                  tofile=target + ' (proposed)'))}
     if custody:
         packet['custody'] = CUSTODY
+    if owner_authored:
+        packet['authorship'] = OWNER_AUTHORED
     packet['packet_sha256'] = hashlib.sha256(json.dumps(packet, sort_keys=True,
         ensure_ascii=False, separators=(',', ':')).encode()).hexdigest()
     return packet

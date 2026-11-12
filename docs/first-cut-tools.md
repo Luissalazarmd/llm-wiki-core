@@ -75,6 +75,18 @@ python3 scripts/note_write.py --config /private.json save --packet /parked.json
 See [parked proposals](plain-saving.md#parked-proposals). Someone starting without a
 library can copy the [starter library](starter-library.md).
 
+An idea the owner states in conversation has no library evidence. Retain it as a
+seed whose draft declares `role: note`, `maturity: seed` and `origin: owner`, through
+the same review and save; `--owner-authored` replaces `--evidence` for that case only:
+
+```sh
+python3 scripts/library.py --config /private.json proposal --create --owner-authored --target Wiki/Notes/idea.md < /draft.md > /seed.json
+python3 scripts/note_write.py --config /private.json save --packet /seed.json
+```
+
+See [owner-authored seeds](plain-saving.md#owner-authored-seeds); the flag is the
+agent's assertion, never proof of authorship or approval.
+
 Save uses save instead of check; recovery uses restore --record. Capture recheck
 uses --expected-sha256; readback adds --saved. Follow [review](review-contract.md),
 [capture](raw-admission.md), [plain saving](plain-saving.md) and [projection](projection-reference.md).

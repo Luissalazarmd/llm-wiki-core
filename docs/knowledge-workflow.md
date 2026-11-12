@@ -51,6 +51,12 @@ evidence may justify reopening or correction through review. Reuse the same note
 for continuous ideas. Missing maturity stays unknown. A retained seed need not
 be Evergreen; publication permission is separate.
 
+A seed may be the owner's own idea, stated in conversation, with no original to
+cite. Retain it as an [owner-authored seed](review-contract.md#owner-authored-seeds):
+`origin: owner` records that the claim traces to the owner, not to evidence, and it
+is never used for an agent's or a third party's claim. Such a seed becomes a
+synthesis or evergreen note only through a reviewed update that binds evidence.
+
 ## Optional living-synthesis profile
 
 Opt into this profile for a bounded collection under its local rules; it does not

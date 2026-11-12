@@ -7,7 +7,9 @@ Only notes have [maturity](knowledge-workflow.md#idea-emergence), independent of
 ## Declare a connection once
 
 Keep role, optional maturity and optional up in frontmatter. Up is one explicit
-map wikilink; derive children. Preserve existing IDs/titles/authorship. In original
+map wikilink; derive children. Preserve existing IDs/titles/authorship. A seed the
+owner stated in conversation declares `origin: owner` and, optionally, a one-line
+`conversation`: [provenance in place of evidence](review-contract.md#owner-authored-seeds). In original
 note bodies, put typed declarations beside their arguments:
 
 ```markdown

@@ -122,9 +122,14 @@ def check_packet(settings, packet, *, numbered=True):
     if operation not in ('update', 'create', 'park'):
         raise ValueError('Unsupported proposal operation')
     create = operation in ('create', 'park')
+    owner_authored = 'authorship' in packet
+    if owner_authored and (packet['authorship'] != library.knowledge.OWNER_AUTHORED or operation != 'create'
+                           or packet['evidence']):
+        raise ValueError('Only the evidence-free creation of a seed carries an owner-authorship declaration')
     if create and (packet['target'].get('expected_absent') is not True
                    or packet['target'].get('base_sha256') is not None
-                   or (operation == 'create' and not packet['evidence']) or not packet['draft'].strip()):
+                   or (operation == 'create' and not packet['evidence'] and not owner_authored)
+                   or not packet['draft'].strip()):
         raise ValueError('Creation requires an absent-target binding and explicit evidence')
     if packet.get('custody') != (library.knowledge.CUSTODY if operation == 'park' else None):
         raise ValueError('Only a custody packet parks, and it parks only')
@@ -132,6 +137,9 @@ def check_packet(settings, packet, *, numbered=True):
     if operation == 'park':
         # Custody, not acceptance: literal pending text, only inside the declared proposals layer.
         library.check_custody(settings, path, packet)
+    if owner_authored:
+        # The agent's declaration, not proof: a seed only, outside originals and the proposals layer.
+        library.check_owner_seed(settings, packet['target']['path'], packet['draft'])
     try:
         declared_role = library.knowledge.metadata_from(packet['draft']).get('role')
     except (ValueError, RecursionError):
@@ -144,6 +152,8 @@ def check_packet(settings, packet, *, numbered=True):
         raise ValueError('Stale proposal base; preserve current note and review again')
     if not create and library.in_proposals(settings, path):
         library.check_closure(previous.decode('utf-8'), packet['draft'])
+    if not create:
+        library.knowledge.check_owner_seed_kept(previous.decode('utf-8'), packet['draft'], packet['evidence'])
     expected_diff = ''.join(difflib.unified_diff((previous or b'').decode('utf-8').splitlines(keepends=True),
                                                packet['draft'].splitlines(keepends=True),
                                                fromfile='/dev/null' if create else packet['target']['path'],
@@ -268,6 +278,7 @@ def save(settings, packet, *, numbered=True, expected_scope=None):
                 'human_authentication_verified': False}
     return {'status': 'plain_file_created' if previous is None else 'plain_file_saved',
             'record': str(record_path), 'sha256': digest(draft),
+            **({'authorship': packet['authorship']} if 'authorship' in packet else {}),
             'human_authentication_verified': False}
 
 
