@@ -1,5 +1,19 @@
 # Acceptance
 
+## Owner-authored seeds — 2026-11-12
+
+This update passed 274 synthetic tests on Linux with Python 3.14.8 and PyYAML 6.0.3,
+run from the working checkout. Disabling each of the 22 new owner-seed guards one at
+a time made the new tests fail. One owner seed inside a numbered scope was prepared
+and saved by hand in a disposable library; the suite does not cover that
+combination. The earlier guard runs and path variants were not repeated.
+
+Not run for this update: an actual host retaining an idea its owner stated, with
+the owner reviewing the exact text; macOS; Python 3.10–3.13. Tests show that the
+evidence-free creation stays a declared seed outside originals and the proposals
+layer, and that leaving that state needs bound evidence; they cannot show that an
+idea labelled `origin: owner` was the owner's, or that later evidence supports it.
+
 ## Starter library and proposal custody — 2026-11-11
 
 This update passed 261 synthetic tests on Linux with Python 3.14.8 and PyYAML 6.0.3,
@@ -53,7 +67,8 @@ Run `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests`.
 Synthetic cases cover bounded read-only discovery, native/legacy projection,
 identity/version/locator checks, capture duplicates/connections, proposal binding,
 stale/diff refusal, managed/source/instruction protection, no-clobber creation,
-proposal custody confined to its declared layer, the copied starter library,
+proposal custody confined to its declared layer, owner-authored seeds, the copied
+starter library,
 injected failures and recovery preserving later edits. Fixtures preserve originals.
 
 `python3 tests/demo_existing_library.py --output-parent /tmp` independently
