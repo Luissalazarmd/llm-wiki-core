@@ -13,7 +13,8 @@ Agents read them before any content and never edit them; only the owner changes 
 - `Review/Inbox/` holds proposals. Nothing there is accepted knowledge, whatever its labels say.
 - `Wiki/` retains reviewed knowledge: notes in `Wiki/Notes/`, optional reading maps in `Wiki/Maps/`.
 - `Home.md` and `Biblioteca.base` are views, not knowledge. `_templates/` holds blank
-  shapes for source wrappers, not sources.
+  shapes for source wrappers, not sources. A template is created or changed only on the
+  owner's decision on its exact text, and an existing one is never replaced without it.
 - Wiki prose is written in Spanish (`es`). Source titles, citations, identifiers and
   quotations keep their original language; label translations.
 - Private settings, credentials and recovery copies stay outside this folder.
