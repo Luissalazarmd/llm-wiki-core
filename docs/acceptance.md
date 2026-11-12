@@ -1,5 +1,18 @@
 # Acceptance
 
+## Starter library and proposal custody — 2026-11-11
+
+This update passed 261 synthetic tests on Linux with Python 3.14.8 and PyYAML 6.0.3,
+run from the working checkout. Disabling each of the 15 new proposal-custody and
+layer guards one at a time made the new tests fail. The earlier 30-guard run and the
+runs from paths with spaces, accents and a symlinked temp directory were not repeated.
+
+Not run for this update: an actual host parking a specialist's proposal, a
+human-reviewed acceptance of a parked proposal, native Obsidian rendering of the
+starter `Biblioteca.base`, macOS, or Python 3.10–3.13. Tests show that custody stays
+inside the declared proposals layer; they cannot show that parked text is literal
+to the original message or that a later Wiki save was really reviewed.
+
 ## Adoption readiness checkpoint — 2026-11-03
 
 This update passed 240 synthetic tests on Linux with Python 3.14.8 and PyYAML
@@ -40,6 +53,7 @@ Run `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests`.
 Synthetic cases cover bounded read-only discovery, native/legacy projection,
 identity/version/locator checks, capture duplicates/connections, proposal binding,
 stale/diff refusal, managed/source/instruction protection, no-clobber creation,
+proposal custody confined to its declared layer, the copied starter library,
 injected failures and recovery preserving later edits. Fixtures preserve originals.
 
 `python3 tests/demo_existing_library.py --output-parent /tmp` independently
