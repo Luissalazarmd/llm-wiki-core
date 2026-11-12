@@ -1,5 +1,23 @@
 # Acceptance
 
+## Capture writer, retirement and source templates — 2026-11-12
+
+This update passed 306 synthetic tests on Linux with Python 3.14.8 and PyYAML 6.0.3,
+run from the working checkout. Disabling each of 54 new capture-writer and retirement
+guards one at a time made the new tests fail; two further guards were removed as
+redundant with checks they repeated. One capture with a PDF, its retirement and the
+refused reuse of its packet were also run by hand in a disposable copy of the starter
+library. The earlier guard runs and path variants were not repeated.
+
+Not run for this update: an actual host capturing or retiring with its owner
+reviewing the exact wrapper; Obsidian inserting the source templates or reading the
+copied `templates.json`; a filesystem without hard links; a process killed mid-save;
+macOS; Python 3.10–3.13. Tests show that a capture is created whole or not at all
+under injected failures, that attachments are independent verified copies, and that
+retirement leaves verified recovery copies and edits no linking note; they cannot
+show that the owner saw the wrapper, asked for a retirement or was told which rule it
+excepts, nor that an attachment is what its name and first bytes suggest.
+
 ## Owner-authored seeds — 2026-11-12
 
 This update passed 274 synthetic tests on Linux with Python 3.14.8 and PyYAML 6.0.3,
@@ -68,7 +86,8 @@ Synthetic cases cover bounded read-only discovery, native/legacy projection,
 identity/version/locator checks, capture duplicates/connections, proposal binding,
 stale/diff refusal, managed/source/instruction protection, no-clobber creation,
 proposal custody confined to its declared layer, owner-authored seeds, the copied
-starter library,
+starter library and its source templates, whole-or-nothing capture with attachments,
+owner-exception retirement,
 injected failures and recovery preserving later edits. Fixtures preserve originals.
 
 `python3 tests/demo_existing_library.py --output-parent /tmp` independently
