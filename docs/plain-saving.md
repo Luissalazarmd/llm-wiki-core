@@ -18,7 +18,8 @@ an atomic no-clobber hard link: competing entries block publication. Records can
 remain after failure; readback establishes success.
 
 Restore verifies prior bytes and refuses later edits. Creation has no prior bytes;
-restore never deletes. No rename or source capture is supplied.
+restore never deletes. No rename is supplied; sources are created only by the
+[capture writer](raw-admission.md#capture-writer).
 
 The [optional numbered profile](first-cut-tools.md#optional-living-synthesis-numbering)
 adds complete scoped membership/configuration/reservation checks before saving.

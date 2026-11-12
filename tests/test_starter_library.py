@@ -19,6 +19,7 @@ STARTER = BASE / 'examples/starter-library'
 CONFIG = BASE / 'examples/starter-library.config.example.json'
 GUIDE = BASE / 'docs/starter-library.md'
 SCOPES = ('--scope', 'Raw', '--scope', 'Review', '--scope', 'Wiki')
+TEMPLATES = ['Fuente-articulo.md', 'Fuente-audiovisual.md', 'Fuente-libro.md', 'Fuente-web.md', 'Fuente.md']
 
 
 class StarterLibraryTests(unittest.TestCase):
@@ -48,7 +49,7 @@ class StarterLibraryTests(unittest.TestCase):
         return self.configured('note_write.py', 'save', '--packet', str(packet), core=core)
 
     def capture(self):
-        # Stands in for the host's create-only capture; Core ships no source writer.
+        # Stands in for a finished capture; capture_write.py has its own tests.
         source = self.root / 'Raw/Sources/informe.md'
         with source.open('x') as stream:
             stream.write('---\nrole: source\nTitle: Informe ficticio\n'
@@ -65,7 +66,7 @@ class StarterLibraryTests(unittest.TestCase):
             self.assertTrue((STARTER / required).exists(), required)
         files = [p for p in STARTER.rglob('*') if p.is_file()]
         self.assertEqual(sorted(p.relative_to(STARTER).as_posix() for p in files if p.suffix == '.md'),
-                         ['AGENTS.md', 'Home.md', 'Wiki/Maps/Indice.md'])
+                         ['AGENTS.md', 'Home.md', 'Wiki/Maps/Indice.md', *('_templates/' + name for name in TEMPLATES)])
         self.assertFalse(any(p.is_symlink() for p in STARTER.rglob('*')))
         for path in [*files, CONFIG]:
             text = path.read_text()
@@ -87,6 +88,81 @@ class StarterLibraryTests(unittest.TestCase):
         self.assertIn('formula.estado == "Pendiente"',
                       str(next(v for v in base['views'] if v['name'] == 'Atencion')['filters']))
 
+    def filled(self, name, title='Informe inventado', reference='synthetic:informe-inventado'):
+        text = (self.root / '_templates' / name).read_text()
+        text = text.replace('{{title}}', title).replace('{{date}}', '2026-11-12').replace('{{time}}', '09:30')
+        text = text.replace('Reference:\n', f'Reference: {reference}\n')
+        return text.replace('## Contexto de captura\n', '## Contexto de captura\nReferencia para consultar luego.\n')
+
+    def test_source_templates_use_core_placeholders_and_fill_into_valid_wrappers(self):
+        self.assertEqual(sorted(p.name for p in (STARTER / '_templates').iterdir()), TEMPLATES)
+        self.assertEqual(sorted(p.name for p in (STARTER / '.obsidian').iterdir()), ['templates.json'])
+        self.assertEqual(json.loads((STARTER / '.obsidian/templates.json').read_text()),
+                         {'folder': '_templates', 'dateFormat': 'YYYY-MM-DD', 'timeFormat': 'HH:mm'})
+        for number, name in enumerate(TEMPLATES):
+            with self.subTest(template=name):
+                text = (self.root / '_templates' / name).read_text()
+                self.assertEqual(set(re.findall(r'\{\{[^}]*\}\}', text)), {'{{title}}', '{{date}}', '{{time}}'})
+                for foreign in ('<%', 'tp.', '{{date:', '{{time:'):
+                    self.assertNotIn(foreign, text)
+                front = yaml.safe_load(text.split('---', 2)[1])
+                self.assertEqual((front['role'], front['Title'], front['captured']),
+                                 ('source', '{{title}}', '{{date}}T{{time}}'))
+                for key in ('Reference', 'Version', 'authors', 'created'):
+                    self.assertIsNone(front[key], key)
+                self.assertIn('\n## Contexto de captura\n', text)
+                target = f'Raw/Sources/fuente-{number}.md'
+                for script, args in (('capture_check.py', ()), ('capture_write.py', ('prepare',))):
+                    unfilled = self.configured(script, *args, '--target', target, stdin=text)
+                    self.assertEqual(unfilled.returncode, 2, unfilled.stdout)
+                self.assertIn('Template placeholder left unfilled', self.configured(
+                    'capture_write.py', 'prepare', '--target', target,
+                    stdin=text.replace('Reference:\n', 'Reference: synthetic:x\n')
+                    .replace('## Contexto de captura\n', '## Contexto de captura\nMotivo.\n')).stderr)
+                wrapper = self.filled(name, reference=f'synthetic:fuente-{number}')
+                checked = self.configured('capture_check.py', '--target', target, stdin=wrapper)
+                self.assertEqual(checked.returncode, 0, checked.stderr)
+                identity = json.loads(checked.stdout)['identity']
+                self.assertEqual(identity, {'title': 'Informe inventado', 'reference': f'synthetic:fuente-{number}',
+                                            'version': None})
+                prepared = self.configured('capture_write.py', 'prepare', '--target', target, stdin=wrapper)
+                self.assertEqual(prepared.returncode, 0, prepared.stderr)
+                (self.home / 'capture.json').write_text(prepared.stdout)
+                saved = self.configured('capture_write.py', 'save', '--packet', str(self.home / 'capture.json'))
+                self.assertEqual(saved.returncode, 0, saved.stderr)
+                self.assertEqual((self.root / target).read_text(), wrapper)
+        strict = self.run_script('knowledge.py', '--root', str(self.root))
+        self.assertEqual(strict.returncode, 0, strict.stderr)
+        self.assertEqual(sorted(n['path'] for n in json.loads(strict.stdout)['notes']),
+                         [*(f'Raw/Sources/fuente-{number}.md' for number in range(len(TEMPLATES))),
+                          'Wiki/Maps/Indice.md'])
+
+    def test_templates_are_not_library_content_or_sources(self):
+        mapped = json.loads(self.configured('library.py', 'map', *SCOPES).stdout)
+        listed = json.dumps([mapped['notes'], mapped['folders'], mapped['attachments'], mapped['issues']])
+        self.assertNotIn('_templates', listed)
+        self.assertNotIn('Fuente', listed)
+        self.assertEqual(mapped['summary']['notes'], 1)
+        for script, args in (('library.py', ('map', '--scope', '_templates')),
+                             ('library.py', ('read', '--scope', '_templates/Fuente.md')),
+                             ('capture_check.py', ('--target', '_templates/otra.md')),
+                             ('capture_write.py', ('prepare', '--target', '_templates/otra.md')),
+                             ('capture_write.py', ('retire', '--target', '_templates/Fuente.md', '--reason', 'x'))):
+            refused = self.configured(script, *args, stdin=self.filled('Fuente.md'))
+            self.assertEqual(refused.returncode, 2, refused.stdout)
+            self.assertIn('outside authorized_paths', refused.stderr)
+        # Five unfilled role: source templates are neither sources nor duplicates of a capture.
+        checked = self.configured('capture_check.py', '--target', 'Raw/Sources/a.md', stdin=self.filled('Fuente.md'))
+        self.assertEqual(checked.returncode, 0, checked.stderr)
+        self.assertEqual(json.loads(checked.stdout)['source_inventory'], [])
+        existing = self.run_script('knowledge.py', '--root', str(self.root), '--mode', 'existing', *SCOPES)
+        self.assertNotIn('_templates', existing.stdout)
+        strict = json.loads(self.run_script('knowledge.py', '--root', str(self.root)).stdout)
+        self.assertEqual([n['path'] for n in strict['notes']], ['Wiki/Maps/Indice.md'])
+        base = (STARTER / 'Biblioteca.base').read_text()
+        self.assertNotIn('_templates', base)
+        self.assertEqual(set(re.findall(r'file\.inFolder\("([^"]+)"\)', base)), {'Raw/Sources', 'Review/Inbox', 'Wiki'})
+
     def test_rules_and_private_settings_declare_the_same_library(self):
         rules = ' '.join((STARTER / 'AGENTS.md').read_text().split())
         for declaration in ('explicitly editable as plain files', '`Raw/` preserves originals',
@@ -94,7 +170,9 @@ class StarterLibraryTests(unittest.TestCase):
                             'Spanish (`es`)', 'Custody is permitted here',
                             'custody, not acceptance, and never counts as the owner\'s decision',
                             'never touches `Raw/` or `Wiki/`', 'never delete the file to close it',
-                            "needs the owner's own decision on the exact text"):
+                            "needs the owner's own decision on the exact text",
+                            'Only the owner may except this', 'asks for it in the current conversation',
+                            'after naming this rule', '`_templates/` holds blank shapes for source wrappers'):
             self.assertIn(declaration, rules)
         settings = json.loads(CONFIG.read_text())
         self.assertEqual(settings, {
@@ -210,6 +288,10 @@ class StarterLibraryTests(unittest.TestCase):
             self.assertEqual(done.returncode, 0, done.stderr)
             self.assertIn('"rule_paths": [\n    "AGENTS.md"\n  ]', done.stdout)
             self.assertEqual(stat.S_IMODE((private / 'recovery').stat().st_mode), 0o700)
+            # cp -R carries the hidden Obsidian setting and the templates it points to.
+            self.assertEqual(json.loads((private / 'library/.obsidian/templates.json').read_text())['folder'],
+                             '_templates')
+            self.assertEqual(sorted(p.name for p in (private / 'library/_templates').iterdir()), TEMPLATES)
             self.config, self.root, self.home = private / 'library.json', private / 'library', private
             parked = self.save(self.configured(
                 'library.py', 'proposal', '--park', '--origin', 'agente: especialista', '--proposed-target',

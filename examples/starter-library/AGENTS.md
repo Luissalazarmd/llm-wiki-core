@@ -7,10 +7,13 @@ Agents read them before any content and never edit them; only the owner changes 
 
 - This library is plain Markdown, explicitly editable as plain files. No managed engine owns it.
 - `Raw/` preserves originals; captured sources live in `Raw/Sources/`. Capture is
-  create-only: never edit, move, rename or delete a captured original.
+  create-only: never edit, move, rename or delete a captured original. Only the owner
+  may except this: when the owner asks for it in the current conversation, and after
+  naming this rule, an agent may retire a capture into the private recovery copies.
 - `Review/Inbox/` holds proposals. Nothing there is accepted knowledge, whatever its labels say.
 - `Wiki/` retains reviewed knowledge: notes in `Wiki/Notes/`, optional reading maps in `Wiki/Maps/`.
-- `Home.md` and `Biblioteca.base` are views, not knowledge.
+- `Home.md` and `Biblioteca.base` are views, not knowledge. `_templates/` holds blank
+  shapes for source wrappers, not sources.
 - Wiki prose is written in Spanish (`es`). Source titles, citations, identifiers and
   quotations keep their original language; label translations.
 - Private settings, credentials and recovery copies stay outside this folder.

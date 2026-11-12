@@ -62,12 +62,16 @@ def check_policy(settings):
             'and recovery; this helper does not enable writing.')
 
 
-def target_path(settings, relative, create=False, restoring=False):
-    root = Path(settings['library_root'])
-    check_policy(settings)
+def check_unmanaged(root):
     # Compatibility refusal signals only: no vendor imports, installs or calls.
     if any(os.path.lexists(root / marker) for marker in ('.wanderloots-llm-wiki', '.private-engine-install.json')):
         raise ValueError('Managed library requires its library-permitted writer; Core does not install it')
+
+
+def target_path(settings, relative, create=False, restoring=False):
+    root = Path(settings['library_root'])
+    check_policy(settings)
+    check_unmanaged(root)
     path = library.authorize(root, settings['authorized_paths'], relative, create=create)
     if path.suffix != '.md' or (not create and not path.is_file()):
         raise ValueError('Target must be an existing Markdown file')
@@ -146,7 +150,7 @@ def check_packet(settings, packet, *, numbered=True):
         declared_role = None
     if declared_role == 'source':
         raise ValueError('Draft declares role: source; this writer saves notes only. '
-                         'Capture sources with the host create-only tool and capture_check.py')
+                         'Capture sources with capture_write.py or the host create-only tool')
     previous = None if create else read_bytes(path)
     if not create and digest(previous) != packet['target']['base_sha256']:
         raise ValueError('Stale proposal base; preserve current note and review again')

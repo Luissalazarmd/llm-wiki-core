@@ -36,8 +36,8 @@ decision from you on its rules and private settings.
 For a first capture, preserve the source and explain why it helps your question.
 MOC and tags are optional. A chat question can persist as `Capture context` in
 the source wrapper without creating a placeholder note. The existing host must
-supply authorized retrieval and a permitted create-only writer; Core promises
-no built-in downloader. Follow [source admission](raw-admission.md).
+supply authorized retrieval; Core promises no built-in downloader. Follow
+[source admission](raw-admission.md).
 
 For a first note, the host shows the complete readable proposal or exact diff
 with its readable result, then obtains your actual confirmation of that version.
