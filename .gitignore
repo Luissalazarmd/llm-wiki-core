@@ -1,4 +1,6 @@
-# Local configuration and temporary artifacts stay private within the core project.
+# Private configuration, recovery and libraries belong OUTSIDE this checkout
+# (docs/first-cut-tools.md). These patterns only keep a misplaced local file
+# from being published; they are not a supported location.
 /instances/
 /private/
 /config/local.json

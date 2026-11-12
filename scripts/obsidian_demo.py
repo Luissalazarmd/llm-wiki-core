@@ -56,7 +56,7 @@ def materialize(destination: Path, identity: str = 'demo:idea:synthesis') -> Pat
     for source in sorted(sources):
         target = destination / source.relative_to(ROOT)
         target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(source, target)
+        shutil.copyfile(source, target)  # Content only: a read-only checkout must not yield a read-only workbench.
     navigation = destination / 'examples/obsidian/Navigation/Lectura.md'
     navigation.parent.mkdir(parents=True, exist_ok=True)
     navigation.write_text(view, encoding='utf-8')
@@ -72,7 +72,7 @@ def materialize(destination: Path, identity: str = 'demo:idea:synthesis') -> Pat
     css = EXAMPLE / 'core-home.css'
     if css.is_file():
         (settings / 'snippets').mkdir()
-        shutil.copy2(css, settings / 'snippets/core-home.css')
+        shutil.copyfile(css, settings / 'snippets/core-home.css')
     return destination
 
 

@@ -168,6 +168,36 @@ class ObsidianExampleTests(unittest.TestCase):
                 api.materialize(target)
             self.assertEqual(before, (target / 'examples/obsidian/Home.md').read_bytes())
 
+    def test_materialization_works_from_a_read_only_checkout(self):
+        import os
+        import shutil
+        with tempfile.TemporaryDirectory(prefix='core-readonly-checkout-') as directory:
+            clone = Path(directory) / 'core'
+            shutil.copytree(ROOT, clone, ignore=shutil.ignore_patterns('.git', '__pycache__', '.obsidian'))
+            locked = [clone, *clone.rglob('*')]
+            for path in locked:
+                os.chmod(path, 0o555 if path.is_dir() else 0o444)
+            try:
+                spec = importlib.util.spec_from_file_location('readonly_obsidian_demo',
+                                                              clone / 'scripts/obsidian_demo.py')
+                assert spec is not None and spec.loader is not None
+                api = importlib.util.module_from_spec(spec)
+                saved = list(sys.path)
+                try:
+                    spec.loader.exec_module(api)
+                    target = api.materialize(Path(directory) / 'demo')
+                finally:
+                    sys.path[:] = saved
+                view = target / 'examples/obsidian/Navigation/Lectura.md'
+                self.assertIn('[[examples/obsidian/Raw/Sources/Informe-A]]', view.read_text())
+                home = target / 'examples/obsidian/Home.md'
+                self.assertTrue(os.access(home, os.W_OK), 'Workbench copies must stay editable')
+                self.assertEqual(home.read_bytes(), (EXAMPLE / 'Home.md').read_bytes())
+                self.assertTrue(os.access(target / '.obsidian/snippets/core-home.css', os.W_OK))
+            finally:
+                for path in locked:
+                    os.chmod(path, 0o755 if path.is_dir() else 0o644)
+
     def test_export_contains_referenced_fixture_inputs(self):
         api = self.demo_api()
         with tempfile.TemporaryDirectory(prefix='core-export-references-') as directory:
