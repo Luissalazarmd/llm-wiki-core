@@ -36,7 +36,8 @@ abstract was read" in an explanation. Operational trace goes nowhere in it: hash
 local paths, retirement or recapture history, checks performed, approval or Wiki
 status, rights reminders and restated library rules belong to the private records,
 the chat or the rules themselves. A template organizes; it never obliges content: leave
-an empty section empty rather than writing "pending". Before showing a draft, delete
+an empty section empty rather than writing "pending". A capture adds no summary or
+interpretation the owner did not ask for. Before showing a draft, delete
 each sentence that describes the procedure, repeats metadata or would fit any source.
 
 ## Citations and lean metadata

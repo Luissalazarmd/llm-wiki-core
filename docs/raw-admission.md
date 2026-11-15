@@ -55,6 +55,9 @@ capture_write.py --config /private.json prepare --target Sources/new.md --attach
 capture_write.py --config /private.json save --packet /capture.json
 ```
 
+Name each attachment with its wrapper's file stem (`Sources/new.md`, `Sources/new.pdf`),
+not the download's name: they then sort, link and retire together.
+
 `prepare` runs the checker on the wrapper and prints a packet with a fresh
 `capture_id`. It refuses an existing target, an unfilled `{{title}}`, `{{date}}` or
 `{{time}}` placeholder, and an attachment that is a symlink, lies inside the library,
@@ -100,7 +103,7 @@ an improvised script. It needs the same settings as the capture writer.
 ```sh
 # New template. 1. Bind the exact text; writes nothing.
 template_write.py --config /private.json prepare --name Fuente-podcast.md < /template.md > /template.json
-# 2. Show the exact template (`draft`) and its `draft_sha256`; obtain the decision for this packet.
+# 2. Show the exact template (`draft`); obtain the decision for this packet.
 # 3. Recheck, create without overwrite, read back.
 template_write.py --config /private.json save --packet /template.json
 
