@@ -1,5 +1,23 @@
 # Acceptance
 
+## View writer and vendored Obsidian skills — 2026-11-14
+
+This update passed 381 synthetic tests on Linux with Python 3.14.8 and PyYAML 6.0.3,
+run from a clean clone of the branch. Disabling each of the 55 refusal conditions in
+`view_write.py` and in the `layers.views` setting one at a time made the new tests fail.
+The earlier guard runs were not repeated.
+
+Not run for this update: an actual host preparing a canvas with its owner reviewing the
+exact content; Obsidian opening a canvas, Base or `role: view` page written this way; a
+host loading the vendored skills, their triggering beside Core's four actions, or the
+Hermes steps in the [adapter](../adapters/obsidian/README.md); the `obsidian` CLI and
+Defuddle; a filesystem without hard links; a process killed mid-save; macOS; Python
+3.10–3.13. Tests show that a view lands only in the library root or a declared views
+folder, that an existing view is replaced only under the hash of its current version and
+after a verified private copy, that a packet saves once, and that the vendored bytes
+match the recorded upstream hashes. They cannot show that the owner saw the view, that
+card or dashboard prose holds no claim, that a Base renders, or how a host behaves.
+
 ## Template writer — 2026-11-12
 
 This update passed 332 synthetic tests on Linux with Python 3.14.8 and PyYAML 6.0.3,
