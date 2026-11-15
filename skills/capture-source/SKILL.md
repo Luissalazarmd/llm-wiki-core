@@ -15,7 +15,8 @@ existing permitted create-only tools. Retire one only as the owner's exception.
 ## Procedure
 
 1. Read [AGENTS](../../AGENTS.md), actual library rules and [admission](../../docs/raw-admission.md).
-2. Identify provenance/version/rights and search authorized sources for duplicates.
+2. Identify provenance/version/rights and search authorized sources for duplicates; record
+   them in fields or private records, not as prose in the wrapper.
 3. Prepare preserved content/reference and its persistent useful connection, drafted
    from the stated purpose; a simple reference needs no strategy discussion. Where the
    library has source templates, fill one: shape, not approval.
@@ -38,6 +39,7 @@ earlier capture, retired or deleted, never covers a new one: prepare and show it
 and never rewrite a recorded decision. Do not write your own capture, removal or
 template script, and never replace an owner's template without its current hash.
 Retirement never edits the notes that link to the source; tell the owner about them.
+A wrapper that narrates the procedure is noise: [write for the reader](../../docs/knowledge-workflow.md#write-for-the-reader).
 
 ## Verification
 

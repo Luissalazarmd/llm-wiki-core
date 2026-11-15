@@ -44,7 +44,8 @@ means proposal-only. A parked proposal is [custody](../../docs/review-contract.m
 not acceptance: review its exact text as any other before saving. `origin: owner` is
 only for what the owner personally stated: an agent's or third party's claim, a
 specialist's proposal or a parked item never qualifies, and promoting such a seed
-needs evidence. Follow [AGENTS](../../AGENTS.md).
+needs evidence. Drafts [write for the reader](../../docs/knowledge-workflow.md#write-for-the-reader),
+without procedure. Follow [AGENTS](../../AGENTS.md).
 
 ## Verification
 

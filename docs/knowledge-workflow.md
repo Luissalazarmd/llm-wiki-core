@@ -27,6 +27,18 @@ Counts do not determine importance, maturity, acceptance, MOC creation or eviden
 Saving or refreshing a report needs an actual user request and the library's
 permitted writer, review and current-input checks. A calculation grants no save authority.
 
+## Write for the reader
+
+Library text, notes and capture wrappers alike, is for the owner to read and think
+with, never a record of the agent's procedure. Keep what the source, idea or owner's
+decision says, plus limits that change how it should be read, such as "only the
+abstract was read" in an explanation. Operational trace goes nowhere in it: hashes,
+local paths, retirement or recapture history, checks performed, approval or Wiki
+status, rights reminders and restated library rules belong to the private records,
+the chat or the rules themselves. A template organizes; it never obliges content: leave
+an empty section empty rather than writing "pending". Before showing a draft, delete
+each sentence that describes the procedure, repeats metadata or would fit any source.
+
 ## Citations and lean metadata
 
 For new scientific derived notes, use numbered Vancouver citations such as [1] in order of first appearance, unless the owner or library requires another style. Reuse a source's number within the document; citation numbers are independent of MOC or synthesis addresses.

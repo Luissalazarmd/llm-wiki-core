@@ -27,6 +27,15 @@ class LibrarianSkillTests(unittest.TestCase):
         for relative in ('Librarian Profile.md', 'skills/read-connect/SKILL.md'):
             self.assertIn('knowledge-workflow.md#guided-loop', (BASE / relative).read_text(), relative)
 
+    def test_reader_first_writing_has_one_owner_reached_from_work_entries(self):
+        workflow = (BASE / 'docs/knowledge-workflow.md').read_text()
+        self.assertEqual(workflow.count('## Write for the reader'), 1)
+        for phrase in ('never a record of the agent', 'leave\nan empty section empty', 'private records'):
+            self.assertIn(phrase, workflow)
+        for relative in ('Librarian Profile.md', 'docs/raw-admission.md', 'skills/capture-source/SKILL.md',
+                         'skills/review-save/SKILL.md'):
+            self.assertIn('knowledge-workflow.md#write-for-the-reader', (BASE / relative).read_text(), relative)
+
     def test_four_skills_are_discoverable_and_portable(self):
         for name in ('progressive-adoption', 'read-connect', 'capture-source', 'review-save'):
             path = BASE / 'skills' / name / 'SKILL.md'

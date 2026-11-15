@@ -1,8 +1,10 @@
 # Capture identity and a lasting connection
 
-Preserve title, Reference, known author/date, retrieval/extraction context and
-permitted original/excerpt/attachment. Separate authored annotations from evidence.
-Optional verified Version identifies an edition; unknown stays unknown.
+Preserve title, Reference, known author/date and permitted original/excerpt/attachment.
+Separate authored annotations from evidence. Optional verified Version identifies an
+edition; unknown stays unknown, as an empty field rather than a sentence. The wrapper
+is reading text: [write for the reader](knowledge-workflow.md#write-for-the-reader);
+hashes, local paths, checks and capture history stay in the writer's private records.
 
 Connect to an existing question/note with an explicit wikilink and explanation.
 For chat-only questions, persist the question and contribution/limits under
