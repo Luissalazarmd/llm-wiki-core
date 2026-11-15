@@ -59,6 +59,8 @@ python3 scripts/capture_write.py --config /private.json prepare --target Sources
 python3 scripts/capture_write.py --config /private.json save --packet /capture.json
 python3 scripts/template_write.py --config /private.json prepare --name Fuente-podcast.md < /template.md > /template.json
 python3 scripts/template_write.py --config /private.json save --packet /template.json
+python3 scripts/view_write.py --config /private.json prepare --target Mapa.canvas < /draft.canvas > /view.json
+python3 scripts/view_write.py --config /private.json save --packet /view.json
 python3 scripts/note_write.py --config /private.json check --packet /proposal.json
 ```
 
@@ -99,7 +101,9 @@ owner's explicit exception to create-only custody, never routine: it prints a pl
 then moves the capture to private recovery under `--expected-sha256`; `revise` is the narrower
 exception that replaces only a wrapper's text and keeps its attachments. `template_write.py`
 creates or changes a blank [source template](raw-admission.md#templates) the same way,
-outside every layer. Follow [review](review-contract.md),
+outside every layer. `view_write.py` does the same for [views](views.md): a `.canvas`, a `.base` or a
+Markdown page declaring `role: view`, in the library root or a declared `layers.views`
+folder, never in Raw, Review or Wiki. Follow [review](review-contract.md),
 [capture](raw-admission.md), [plain saving](plain-saving.md) and [projection](projection-reference.md).
 Mapping bounds inventory to 500 entries and reads attachment metadata, never binary content.
 Existing-library `map` and `knowledge.py --mode existing` deliberately report `role:

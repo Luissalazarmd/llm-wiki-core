@@ -45,7 +45,8 @@ not acceptance: review its exact text as any other before saving. `origin: owner
 only for what the owner personally stated: an agent's or third party's claim, a
 specialist's proposal or a parked item never qualifies, and promoting such a seed
 needs evidence. Drafts [write for the reader](../../docs/knowledge-workflow.md#write-for-the-reader),
-without procedure. Follow [AGENTS](../../AGENTS.md).
+without procedure. A canvas, Base or `role: view` page is a [view](../../docs/views.md): same
+review, saved only with `view_write.py`, never holding a claim. Follow [AGENTS](../../AGENTS.md).
 
 ## Verification
 

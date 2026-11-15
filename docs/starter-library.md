@@ -93,6 +93,10 @@ changing a template is the owner's choice: on their request the agent shows the 
 template and saves it through [`template_write.py`](raw-admission.md#templates), which
 never overwrites one without the hash of its current version.
 
+`Home.md`, `Biblioteca.base` and any canvas are [views](views.md): the agent shows the
+exact content and saves it through `view_write.py`, in the root without further settings.
+The first change to `Home.md` adds the `role: view` declaration that the writer requires.
+
 ## Limits
 
 Copying creates no source, note or approval. Obsidian is optional: `Home.md` embeds

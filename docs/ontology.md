@@ -2,6 +2,7 @@
 
 [Version 2](../config/ontology.json): source preserves an original; note authors
 an explanation, question, entity, project or diagram; map authors a reading route.
+A page declaring `role: view` is [navigation](views.md) outside these roles, never a source, note or map.
 Only notes have [maturity](knowledge-workflow.md#idea-emergence), independent of review.
 
 ## Declare a connection once

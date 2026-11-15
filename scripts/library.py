@@ -223,13 +223,22 @@ def load_config(path: Path) -> dict:
     if data.get('language', 'es') not in ('es', 'en'):
         raise ValueError('Supported languages: es, en')
     layers = data.get('layers', {})
-    if not isinstance(layers, dict) or set(layers) - {'sources', 'drafts', 'knowledge', 'proposals'}:
+    if not isinstance(layers, dict) or set(layers) - {'sources', 'drafts', 'knowledge', 'proposals', 'views'}:
         raise ValueError('Invalid layer correspondence')
-    for selections in layers.values():
+    for layer, selections in layers.items():
         if not isinstance(selections, list) or len(selections) > 100:
             raise ValueError('Layer correspondence must contain path lists')
         for relative in selections:
-            authorize(root, allowed, relative)
+            if layer != 'views':
+                authorize(root, allowed, relative)
+    for relative in layers.get('views', []):
+        # Navigation folders for view_write.py only: never originals, proposals or retained knowledge.
+        selected = contained(root, relative)
+        if not selected.is_dir() or selected.relative_to(root).as_posix() != relative:
+            raise ValueError('layers.views entries must be exact existing directories')
+        for layer in ('sources', 'proposals', 'knowledge', 'drafts'):
+            if any(overlaps(root, relative, other) for other in layers.get(layer, [])):
+                raise ValueError(f'layers.views must not overlap layers.{layer}')
     if 'proposals' in layers:
         # Custody may create files here without review, so the layer must be unmistakable.
         if 'sources' not in layers or 'knowledge' not in layers:
