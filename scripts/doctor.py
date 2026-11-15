@@ -133,6 +133,35 @@ def git_state(core: Path) -> dict:
     return {'commit': head, 'clean': not changed and not stray, 'changed': changed[:20], 'stray_code': stray[:20]}
 
 
+_PIN_CHECKS = {}
+
+
+def write_guard(root, core: Path = CORE):
+    """Refusal message when this library's rules pin a Core commit that the running install does not match."""
+    rules = Path(root) / 'AGENTS.md'
+    try:
+        if rules.is_symlink() or not rules.is_file():
+            return None
+        text = rules.read_bytes()[:LIMIT].decode('utf-8')
+    except (OSError, UnicodeDecodeError):
+        return 'The library rules could not be read; writing is refused until doctor.py reports write mode'
+    declared = declaration(text)
+    if not declared['declared']:
+        return None
+    if declared['problems']:
+        return 'The Core declaration in the library rules is invalid: ' + '; '.join(declared['problems'])
+    if not declared['pinned']:
+        return None
+    key = (str(core), declared['commit'])
+    if key not in _PIN_CHECKS:
+        state = git_state(core)
+        _PIN_CHECKS[key] = (state.get('commit') == declared['commit'] and state.get('clean') is True)
+    if not _PIN_CHECKS[key]:
+        return ('The library rules pin Core commit ' + declared['commit'] + ', and this install is not that '
+                'clean commit; writing is refused. Run doctor.py --library and work proposal-only.')
+    return None
+
+
 def bridge_state(root: Path) -> dict:
     result = {}
     for name, accepted in BRIDGES.items():

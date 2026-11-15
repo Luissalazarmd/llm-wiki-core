@@ -442,3 +442,52 @@ class HostSkillTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class WriteGuardTests(unittest.TestCase):
+    """The writers themselves refuse a pinned library whose running Core is another or a modified commit."""
+
+    def setUp(self):
+        self.root = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.root)
+        doctor._PIN_CHECKS.clear()
+        self.addCleanup(doctor._PIN_CHECKS.clear)
+        self.state = {'commit': 'a' * 40, 'clean': True}
+        original = doctor.git_state
+        doctor.git_state = lambda core: dict(self.state)
+        self.addCleanup(setattr, doctor, 'git_state', original)
+        import note_write
+        self.note_write = note_write
+
+    def rules(self, commit):
+        (self.root / 'AGENTS.md').write_text('# Rules\n\n' + SECTION.format(commit=commit, identifier='mi-wiki'))
+
+    def policy(self):
+        self.note_write.check_policy({'write_policy': 'plain_files', 'library_root': str(self.root)})
+
+    def test_no_rules_no_declaration_or_unpinned_do_not_block(self):
+        self.policy()
+        (self.root / 'AGENTS.md').write_text('# Rules\n\nPlain rules.\n')
+        self.policy()
+        self.rules('unpinned')
+        self.policy()
+
+    def test_matching_clean_commit_writes(self):
+        self.rules('a' * 40)
+        self.policy()
+
+    def test_other_commit_dirty_install_or_invalid_declaration_refuse(self):
+        for commit, state in (('b' * 40, {'commit': 'a' * 40, 'clean': True}),
+                              ('a' * 40, {'commit': 'a' * 40, 'clean': False}),
+                              ('a' * 40, {'commit': None, 'clean': None})):
+            doctor._PIN_CHECKS.clear()
+            self.state = state
+            self.rules(commit)
+            with self.assertRaisesRegex(ValueError, 'writing is refused'):
+                self.policy()
+        self.rules('97fc87e')
+        with self.assertRaisesRegex(ValueError, 'Core declaration in the library rules is invalid'):
+            self.policy()
+
+    def test_gemini_bridge_is_never_a_note_target(self):
+        self.assertIn("'gemini.md'", (BASE / 'scripts/note_write.py').read_text())

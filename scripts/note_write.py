@@ -88,6 +88,10 @@ def check_policy(settings):
             'Continue authorized reading and proposals through host tools. '
             'Plain-file saving requires explicit library permission, exact human confirmation '
             'and recovery; this helper does not enable writing.')
+    import doctor  # Deferred: doctor imports library, as this module does.
+    refusal = doctor.write_guard(settings['library_root'])
+    if refusal:
+        raise ValueError(refusal)
 
 
 def check_unmanaged(root):
@@ -125,8 +129,8 @@ def target_path(settings, relative, create=False, restoring=False):
             role = None
         if role == 'source':
             raise ValueError('Target declares role: source; captured sources are immutable')
-    if path.name.casefold() in ('agents.md', 'skill.md', 'claude.md'):
-        raise ValueError('This helper does not write known agent instruction files (AGENTS.md, SKILL.md, CLAUDE.md)')
+    if path.name.casefold() in ('agents.md', 'skill.md', 'claude.md', 'gemini.md'):
+        raise ValueError('This helper does not write known agent instruction files (AGENTS.md, SKILL.md, CLAUDE.md, GEMINI.md)')
     return path
 
 

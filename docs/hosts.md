@@ -66,6 +66,9 @@ settings were located, the write policy, the host bridges and one of two modes:
 - `proposal_only`: anything else. `blocked_by` names each reason. The agent changes
   nothing in the library, gives proposals in the conversation and says what is missing.
 
+The writers apply the pin themselves: when the rules pin a commit and the running install is
+another or a modified one, every writer refuses, even if the doctor was skipped.
+
 Without a pin, `core_commit_not_pinned` is a warning and any Core version passes. The
 report names private paths: keep it out of the library, commits and shared messages.
 The doctor runs from the install it inspects, so a host that must not trust that
