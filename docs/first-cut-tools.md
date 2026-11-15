@@ -103,7 +103,8 @@ exception that replaces only a wrapper's text and keeps its attachments. `templa
 creates or changes a blank [source template](raw-admission.md#templates) the same way,
 outside every layer. `view_write.py` does the same for [views](views.md): a `.canvas`, a `.base` or a
 Markdown page declaring `role: view`, in the library root or a declared `layers.views`
-folder, never in Raw, Review or Wiki. Follow [review](review-contract.md),
+folder, never in Raw, Review or Wiki. Obsidian syntax comes from the vendored
+[Obsidian skills](../adapters/obsidian/README.md), which never replace these writers. Follow [review](review-contract.md),
 [capture](raw-admission.md), [plain saving](plain-saving.md) and [projection](projection-reference.md).
 Mapping bounds inventory to 500 entries and reads attachment metadata, never binary content.
 Existing-library `map` and `knowledge.py --mode existing` deliberately report `role:

@@ -308,11 +308,16 @@ class ScopeTests(ViewWriteCase):
                                       ('prepare', ('--expected-sha256', sha(canvas())))):
                     result = self.call(action, '--target', target, *extra, stdin=canvas())
                     self.assertEqual((result.returncode, result.stdout), (2, ''), label)
-                    self.assertIn('ymlink', json.loads(result.stderr)['error'])
+                    self.assertIn('View is not a regular non-symlink file' if 'view' in label.split()[-1:]
+                                  else 'ymlink', json.loads(result.stderr)['error'])
                 self.assertEqual(sorted(p.name for p in outside.iterdir()), ['Indice.md', 'Mapa.canvas'])
                 self.assertEqual((outside / 'Mapa.canvas').read_text(), canvas())
                 self.assertEqual(sorted(p.name for p in (self.root / 'Raw/Sources').iterdir()), ['.gitkeep'])
                 self.assertEqual(list(self.recovery.iterdir()), [])
+
+    def test_a_folder_named_like_a_view_is_not_replaced(self):
+        (self.root / NAME).mkdir()
+        self.refused(self.call('check', '--target', NAME, stdin=canvas()), 'View is not a regular non-symlink file')
 
     def test_folder_swapped_for_a_symlink_after_prepare_is_refused(self):
         self.views_folder()

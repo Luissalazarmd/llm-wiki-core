@@ -77,3 +77,7 @@ procedure, hashes or status. A card that links a note or a Base that lists one s
 nothing about its review. These mechanics authenticate no consent, read no library
 rules and share the [plain-save limits](plain-saving.md): one quiet cooperative writer,
 no locks, hard links required for creation.
+
+Obsidian syntax for these files is in the vendored
+[Obsidian skills](../adapters/obsidian/README.md); where they say to create or edit the
+file directly, use this writer instead.
