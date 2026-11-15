@@ -154,7 +154,7 @@ def connection(settings, body, target):
                      'one line stating why it is being retained suffices')
 
 
-def source_inventory(settings, target, reference, version, identifier):
+def source_inventory(settings, target, reference, version, identifier, ignore=()):
     root = Path(settings['library_root'])
     scopes = settings['layers'].get('sources', [])
     if not scopes:
@@ -163,7 +163,7 @@ def source_inventory(settings, target, reference, version, identifier):
     inventory, total = [], 0
     for path in entries:
         relative = path.relative_to(root).as_posix()
-        if path.is_dir() or path.suffix != '.md' or relative == target:
+        if path.is_dir() or path.suffix != '.md' or relative == target or relative in ignore:
             continue
         try:
             raw, metadata = parse_note(path, relative)  # inventory() already refused symlinks/special files
@@ -189,8 +189,12 @@ def source_inventory(settings, target, reference, version, identifier):
     return inventory
 
 
-def check(settings, target, draft, saved=False, expected=None, existing=False):
-    """Check a capture draft; `existing` checks a revision of the wrapper already at target."""
+def check(settings, target, draft, saved=False, expected=None, existing=False, ignore=()):
+    """Check a capture draft; `existing` checks a revision of the wrapper already at target.
+
+    `ignore` names the other wrappers of one batch, published together with this one: they were
+    compared with it before publication and are left out of its inventory when it is verified.
+    """
     root = Path(settings['library_root'])
     destination = (library.authorize(root, settings['authorized_paths'], target) if saved or existing else
                    library.authorize(root, settings['authorized_paths'], target, create=True))
@@ -218,7 +222,7 @@ def check(settings, target, draft, saved=False, expected=None, existing=False):
     if not reference or not isinstance(title, str) or not title.strip() or len(title) > 512:
         raise ValueError('Capture identity requires a title and Reference')
     connected, dependencies = connection(settings, body, target)
-    inventory = source_inventory(settings, target, reference, version, identifier)
+    inventory = source_inventory(settings, target, reference, version, identifier, ignore)
     stronger = hierarchy(settings, metadata) if settings.get('capture_policy') is not None else {}
     binding = {'target': target, 'draft_sha256': digest(draft),
                'identity': {'title': title, 'reference': reference, 'version': version},

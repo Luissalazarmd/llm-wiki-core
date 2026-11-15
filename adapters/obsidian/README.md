@@ -3,8 +3,8 @@
 Obsidian is an optional front end. `skills/` here holds unmodified copies of the
 official [Obsidian skills](https://github.com/obsidianmd/obsidian-skills) by Steph Ango
 (MIT; see [LICENSE](LICENSE) and [UPSTREAM](UPSTREAM.md) for the pinned commit, every
-file's hash and how to update). They are reference text, not Core actions: Core's four
-actions stay in [`skills/`](../../skills) and nothing here adds a fifth.
+file's hash and how to update). They are reference text, not Core actions: Core's five
+actions stay in [`skills/`](../../skills) and nothing here adds a sixth.
 
 ## What prevails
 
@@ -52,7 +52,7 @@ listed here. Core wins in every case.
   prepare the exact content, show it, and save with the Core writer named above.
 - Their triggers are broad ("when working with .md files in Obsidian", "interact with
   their Obsidian vault"). A trigger never selects the action: the person's request
-  selects one of Core's four actions, and an Obsidian skill is consulted only for
+  selects one of Core's five actions, and an Obsidian skill is consulted only for
   spelling.
 - "Verify it renders in Obsidian" is the owner's observation. An agent that has not
   seen the rendering reports structure checked, not rendering confirmed.

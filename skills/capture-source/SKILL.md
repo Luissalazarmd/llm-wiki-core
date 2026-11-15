@@ -13,7 +13,9 @@ library rules locate ([hosts](../../docs/hosts.md)); read them there.
 ## When to Use
 
 Retain a supplied original, with optional attachments, through the capture writer or
-existing permitted create-only tools. Retire one only as the owner's exception.
+existing permitted create-only tools. Retire one only as the owner's exception. Where
+the library rules permit it, documents handed over to keep continue into
+[Ingesta](../ingesta/SKILL.md) unless the owner says otherwise.
 
 ## Procedure
 
@@ -25,7 +27,8 @@ existing permitted create-only tools. Retire one only as the owner's exception.
    library has source templates, fill one: shape, not approval.
 4. Bind it with `capture_write.py prepare`. Show the exact wrapper and each attachment
    name, size and sha256; follow [review](../../docs/review-contract.md) and library
-   custody. The decision is for this packet only.
+   custody. The decision is for this packet only. Several sources handed over together
+   are one packet: `prepare-batch`, every wrapper and attachment shown once, one decision.
 5. `capture_write.py save` rechecks inputs, creates without overwrite as independent
    copies, reads back and verifies. Report any `capture_partial` exactly. Without
    plain-file permission, use the host's create-only tool and `capture_check.py`.

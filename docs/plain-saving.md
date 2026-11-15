@@ -108,6 +108,82 @@ The helper wraps what it is given: it cannot prove that stdin equals the origina
 message or that the origin is who it claims, and it reads no library rules. Edits
 made outside the helper remain possible, as for every plain file.
 
+## Ingesta items
+
+[Ingest custody](review-contract.md#ingest-custody) needs the library rules to permit
+it, `"ingest_custody": true` in the private settings and the same explicit
+`layers.proposals` that parking needs; without the setting every command below
+refuses, whatever parking is allowed. `library.py ingest --target ... --source ...
+--origin ...` wraps the analysis on stdin; `note_write.py save` publishes it with the
+same no-clobber creation and private record, and reports `ingest_item_created`,
+`custody_only: true`, `reviewed_by_owner: false`.
+
+```markdown
+---
+ingest_status: pending
+source: "Raw/Sources/guia.md"
+origin: "agent: reader"
+conversation: "thread 7"
+created: "2026-11-15"
+---
+# Ingesta: (the title of the source)
+
+Fuente: [[Raw/Sources/guia]]
+
+> Análisis preparatorio del agente, sin revisar: ...
+
+## Orientación
+## Mapa de lectura
+## Contraste con la biblioteca
+## Cobertura
+
+## Historial
+
+- 2026-11-15 · pendiente · preparada por agent: reader
+```
+
+Stdin holds the four sections, in that order, starting at the first heading; the
+helper adds the frontmatter, title, source link, notice and history. Labels follow
+`language`. Preparation and the writer both refuse: a target outside `layers.proposals`
+or inside a numbered scope; a source that is not the existing Markdown wrapper of a
+capture inside `layers.sources`, or whose bytes changed since preparation; a second
+open item for the same source; any status but `pending`; `role`, `maturity`, `review`,
+`proposal_status` or any other key; `origin: owner`; a missing, extra or reordered
+`##` section; an empty orientation or coverage; an `![embed]` or an HTML element such
+as `<img>`, so that opening an unreviewed file loads nothing; and more than 32 KiB. `conversation`
+is optional. The source is bound by hash in the packet and the private record, not in
+the file.
+
+```sh
+python3 scripts/library.py --config /private.json ingest-queue
+python3 scripts/library.py --config /private.json ingest-status --target Review/Inbox/ingesta-guia.md --status reading --progress "p. 45" --expected-sha256 <sha256> > /status.json
+python3 scripts/note_write.py --config /private.json save --packet /status.json
+```
+
+`ingest-queue` is read-only and works under `read_only`: it lists the `pending` and
+`reading` items (`--all` adds the closed ones) with their source, progress and the
+`sha256` of the current file. `ingest-status` takes that hash, so a record is prepared
+only on the version just read, and builds the same file with a new `ingest_status`,
+an optional `progress`, and one more history line (`--note` adds one line to it, such
+as the notes the owner kept). It moves `pending` or `reading` to `reading`, `reviewed`
+or `withdrawn`. The writer recomputes that transition from the current bytes and
+refuses any packet that differs from it by one byte, so a status record cannot carry
+a change to the analysis, the source, the origin or earlier history; it reports
+`ingest_status_recorded` and keeps the previous bytes in a private record like any
+update. A frontmatter the helper cannot change line by line, a missing history and a
+closed item are refused: those are reviewed updates.
+
+An ordinary `proposal` update of an item, shown and decided like any other, may change
+its analysis or status; the writer refuses one that drops the format, changes
+`source`, `origin`, `conversation` or `created`, or removes or reorders history lines.
+No deletion or rename is supplied. An Ingesta item is refused as `--evidence` for any
+note, at preparation and at save: bind the captured source it points to.
+
+The helper wraps what it is given. It cannot tell whether the analysis is accurate,
+whether the coverage statement is true, which agent wrote it, or whether the owner
+said what a status record states; it reads no library rules. Edits made outside the
+helper remain possible, as for every plain file.
+
 ## Owner-authored seeds
 
 An [owner-authored seed](review-contract.md#owner-authored-seeds) uses the ordinary
@@ -151,6 +227,11 @@ The flag and the frontmatter record an assertion. The helper cannot tell the
 owner's idea from an agent's or a third party's text, cannot match the draft to
 what was said, and reads no conversation. Edits outside the helper can add or
 remove `origin: owner` like any other bytes.
+
+A seed the owner states while reading a source says where it arose in its own text,
+as a plain link with the pages (`Al leer [[Raw/Sources/guia]], pp. 13–15.`). That
+locator is orientation for the reader, not an evidence binding: no field is added,
+and promoting the seed later still binds the source as evidence.
 
 One quiet cooperative writer; no atomic compare-and-swap, locks/fencing, signed
 receipts, multi-file transaction or full crash journal. ACL/xattr/ownership beyond

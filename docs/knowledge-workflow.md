@@ -69,6 +69,9 @@ cite. Retain it as an [owner-authored seed](review-contract.md#owner-authored-se
 `origin: owner` records that the claim traces to the owner, not to evidence, and it
 is never used for an agent's or a third party's claim. Such a seed becomes a
 synthesis or evergreen note only through a reviewed update that binds evidence.
+Seeds also come from the owner's own reading of a [queued document](ingesta.md), one
+section at a time; the agent's first analysis of that document stays in Review and is
+never a seed.
 
 ## Optional living-synthesis profile
 

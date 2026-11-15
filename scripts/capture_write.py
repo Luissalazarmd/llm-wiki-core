@@ -22,6 +22,8 @@ import library
 import note_write
 
 FORMAT = 'capture-v1'
+BATCH = 'capture-batch-v1'
+MAX_BATCH = 20
 REVISION = 'capture-revision-v1'
 MAX_ATTACHMENTS = 8
 MAX_ATTACHMENT_BYTES = 134217728
@@ -269,47 +271,133 @@ def fail(clean, partial, exc, recovery, name, record_path, record_created, left,
     return CaptureError(result)
 
 
-def save(settings, packet):
-    """Create the wrapper and its attachments no-clobber, as independent copies, or leave none of them."""
-    check_packet(settings, packet)
+def prepare_batch(settings, entries, batch_id=None):
+    """Bind several captures for one decision: each as its own packet, none duplicating another; never write."""
+    if not isinstance(entries, list) or not 1 <= len(entries) <= MAX_BATCH:
+        raise ValueError(f'A capture batch is a JSON array of 1 to {MAX_BATCH} captures')
+    captures = []
+    for entry in entries:
+        if (not isinstance(entry, dict) or set(entry) - {'target', 'draft', 'draft_path', 'attach'}
+                or not isinstance(entry.get('target'), str) or ('draft' in entry) == ('draft_path' in entry)
+                or not isinstance(entry.get('draft', entry.get('draft_path')), str)):
+            raise ValueError('Each capture is {"target": ..., "draft": text or "draft_path": file, "attach": '
+                             '[[original, target], ...]}')
+        pairs = entry.get('attach', [])
+        if not isinstance(pairs, list) or any(not isinstance(pair, list) or len(pair) != 2
+                                              or not all(isinstance(part, str) for part in pair) for pair in pairs):
+            raise ValueError('"attach" is a list of [original, target] pairs: ' + entry['target'])
+        if 'draft_path' in entry:
+            source = Path(os.path.abspath(entry['draft_path']))
+            if source.resolve().is_relative_to(Path(settings['library_root'])):
+                raise ValueError('A wrapper draft is written outside the library: ' + entry['draft_path'])
+            draft = note_write.read_bytes(source, capture_check.LIMIT)
+        else:
+            draft = entry['draft'].encode('utf-8')
+        try:
+            captures.append(prepare(settings, entry['target'], draft, [tuple(pair) for pair in pairs]))
+        except ValueError as exc:
+            raise ValueError(f"{entry['target']}: {exc}") from None
+    batch_conflicts(captures)
+    packet = {'format': BATCH, 'status': 'prepared_not_approved', 'batch_id': batch_id or uuid.uuid4().hex,
+              'captures': captures, 'approval_available': False}
+    return {**packet, 'packet_sha256': canonical(packet)}
+
+
+def batch_conflicts(captures):
+    """Each capture was checked against the library alone; compare them with each other here."""
+    targets, identities = set(), []
+    for packet in captures:
+        for target in (packet['target'], *(item['target'] for item in packet['attachments'])):
+            if target.casefold() in targets:
+                raise ValueError(f'Two captures of the batch name the same target: {target}')
+            targets.add(target.casefold())
+        identifier = capture_check.knowledge.metadata_from(packet['draft']).get('id')
+        reference, version = packet['identity']['reference'], packet['identity']['version']
+        for other, other_reference, other_version, other_id in identities:
+            if identifier is not None and identifier == other_id:
+                raise ValueError(f"Duplicate source id inside the batch: {packet['target']} and {other}")
+            if reference == other_reference and (version == other_version or None in (version, other_version)):
+                raise ValueError('Duplicate reference/version or unknown version inside the batch: '
+                                 f"{packet['target']} and {other}; capture the document once")
+        identities.append((packet['target'], reference, version, identifier))
+
+
+def check_batch(settings, packet):
+    """Rederive every capture of the batch from current inputs; any difference means review again."""
+    if (not isinstance(packet, dict) or packet.get('format') != BATCH
+            or packet.get('status') != 'prepared_not_approved'):
+        raise ValueError('Expected an unapplied capture batch from capture_write.py prepare-batch')
+    if packet.get('packet_sha256') != canonical({k: v for k, v in packet.items() if k != 'packet_sha256'}):
+        raise ValueError('Packet content changed')
+    if not re.fullmatch(r'[0-9a-f]{32}', str(packet['batch_id'])):
+        raise ValueError('Invalid batch_id')
+    captures = packet['captures']
+    if (set(packet) != {'format', 'status', 'batch_id', 'captures', 'approval_available', 'packet_sha256'}
+            or not isinstance(captures, list) or not 1 <= len(captures) <= MAX_BATCH):
+        raise ValueError(f'A capture batch holds 1 to {MAX_BATCH} captures and nothing else')
+    for child in captures:
+        try:
+            check_packet(settings, child)
+        except (ValueError, KeyError, TypeError) as exc:
+            target = child.get('target') if isinstance(child, dict) else None
+            raise ValueError(f'{target}: {exc}') from None
+    batch_conflicts(captures)
+    return packet
+
+
+def publish(settings, packets, name, record, recheck, members=()):
+    """Create every wrapper and attachment no-clobber, as independent copies, or leave none of them.
+
+    `members` are further records, one per capture of a batch, so that no member packet saves again alone.
+    """
     root, recovery = Path(settings['library_root']), Path(settings['recovery_directory'])
-    draft = packet['draft'].encode('utf-8')
-    name = 'capture-' + packet['capture_id']
     record_path = recovery / (name + '.json')
-    # Attachments first: the wrapper names them, so it is published last.
-    items = [(Path(item['source']), root / item['target'], item['sha256']) for item in packet['attachments']]
-    items.append((draft, root / packet['target'], packet['draft_sha256']))
+    stamp = {'library_root': settings['library_root'],
+             'recorded': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds'),
+             'note': 'Written before publication; not an apply receipt or an approval.',
+             'human_authentication_verified': False}
+    member_paths = []
+    wrappers = {packet['target'] for packet in packets}
+    items = []
+    for packet in packets:
+        # Attachments first: the wrapper names them, so it is published after them.
+        items += [(Path(item['source']), root / item['target'], item['sha256']) for item in packet['attachments']]
+        items.append((packet['draft'].encode('utf-8'), root / packet['target'], packet['draft_sha256']))
     staged, published, record_created = [], [], False
     try:
         try:
             try:
                 # Persist provenance BEFORE publishing. One record per packet: a packet is saved once.
-                write_record(record_path, {
-                    'format': 'capture-recovery-v1', 'library_root': settings['library_root'],
-                    'recorded': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds'),
-                    'note': 'Written before publication; not an apply receipt or an approval.',
-                    'packet': packet, 'human_authentication_verified': False})
-            except FileExistsError:
+                write_record(record_path, {**record, **stamp})
+                record_created = True
+                for member, body in members:
+                    write_record(recovery / (member + '.json'), {**body, **stamp})
+                    member_paths.append(recovery / (member + '.json'))
+            except FileExistsError as exc:
                 raise ValueError('This packet was already used for a save. A decision covers one capture: after a '
                                  'retired, deleted or partial capture, prepare again and show the wrapper again '
-                                 f'({record_path})') from None
-            record_created = True
+                                 f'({exc.filename})') from None
             for source, final, sha256 in items:
                 staged.append((stage(source, final.parent, sha256), final))
-            check_packet(settings, packet)  # Recording and staging may have exposed changed inputs.
+            recheck()  # Recording and staging may have exposed changed inputs.
             for temporary, final in staged:
                 os.link(temporary, final)  # Atomic absence requirement; never replace a competing entry.
                 published.append((temporary, final))
-            if note_write.read_bytes(root / packet['target']) != draft:
-                raise ValueError('Saved wrapper bytes do not match the reviewed draft')
-            for item in packet['attachments']:
-                sha256, size, _, _ = measure(root / item['target'])
-                if (sha256, size) != (item['sha256'], item['bytes']):
-                    raise ValueError('Saved attachment does not match its bound hash: ' + item['target'])
-                if os.path.exists(item['source']) and os.path.samefile(item['source'], root / item['target']):
-                    raise ValueError('Saved attachment is a hard link to the original, not an independent copy: '
-                                     + item['target'])
-            capture_check.check(settings, packet['target'], draft, saved=True, expected=packet['check_sha256'])
+            for packet in packets:
+                draft = packet['draft'].encode('utf-8')
+                if note_write.read_bytes(root / packet['target']) != draft:
+                    raise ValueError('Saved wrapper bytes do not match the reviewed draft')
+                for item in packet['attachments']:
+                    sha256, size, _, _ = measure(root / item['target'])
+                    if (sha256, size) != (item['sha256'], item['bytes']):
+                        raise ValueError('Saved attachment does not match its bound hash: ' + item['target'])
+                    if os.path.exists(item['source']) and os.path.samefile(item['source'], root / item['target']):
+                        raise ValueError('Saved attachment is a hard link to the original, not an independent '
+                                         'copy: ' + item['target'])
+                # The other wrappers of the same batch were compared before publication, not as existing sources.
+                others = wrappers - {packet['target']}
+                capture_check.check(settings, packet['target'], draft, saved=True, expected=packet['check_sha256'],
+                                    **({'ignore': others} if others else {}))
         except (OSError, ValueError, TypeError, KeyError, RecursionError) as exc:
             left = []
             for temporary, final in reversed(published):
@@ -322,15 +410,45 @@ def save(settings, packet):
                 except OSError:
                     if os.path.lexists(final):
                         left.append(final.relative_to(root).as_posix())
+            if not left:
+                for path in member_paths:
+                    path.unlink(missing_ok=True)
             raise fail('capture_not_saved', 'capture_partial', exc, recovery, name, record_path, record_created, left,
                        remaining=left) from exc
     finally:
         for temporary, _ in staged:
             temporary.unlink(missing_ok=True)
-    return {'status': 'capture_saved', 'capture_id': packet['capture_id'], 'target': packet['target'],
-            'sha256': packet['draft_sha256'], 'check_sha256': packet['check_sha256'],
-            'attachments': [{k: item[k] for k in ('target', 'sha256', 'bytes')} for item in packet['attachments']],
-            'record': str(record_path), 'semantic_validation': False, 'human_authentication_verified': False}
+    return record_path
+
+
+def saved_capture(packet):
+    return {'capture_id': packet['capture_id'], 'target': packet['target'], 'sha256': packet['draft_sha256'],
+            'check_sha256': packet['check_sha256'],
+            'attachments': [{k: item[k] for k in ('target', 'sha256', 'bytes')} for item in packet['attachments']]}
+
+
+def save(settings, packet):
+    """Create the wrapper and its attachments no-clobber, as independent copies, or leave none of them."""
+    check_packet(settings, packet)
+    record_path = publish(settings, [packet], 'capture-' + packet['capture_id'],
+                          {'format': 'capture-recovery-v1', 'packet': packet},
+                          lambda: check_packet(settings, packet))
+    return {'status': 'capture_saved', **saved_capture(packet), 'record': str(record_path),
+            'semantic_validation': False, 'human_authentication_verified': False}
+
+
+def save_batch(settings, packet):
+    """One decision, several captures: all of them are created and verified, or none stays."""
+    check_batch(settings, packet)
+    record_path = publish(settings, packet['captures'], 'capture-batch-' + packet['batch_id'],
+                          {'format': 'capture-batch-recovery-v1', 'packet': packet},
+                          lambda: check_batch(settings, packet),
+                          [('capture-' + child['capture_id'],
+                            {'format': 'capture-recovery-v1', 'packet': child, 'batch_id': packet['batch_id']})
+                           for child in packet['captures']])
+    return {'status': 'capture_batch_saved', 'batch_id': packet['batch_id'],
+            'captures': [saved_capture(child) for child in packet['captures']], 'record': str(record_path),
+            'semantic_validation': False, 'human_authentication_verified': False}
 
 
 def linked_from(settings, retiring, wrapper):
@@ -611,6 +729,9 @@ def main():
     command.add_argument('--target', required=True)
     command.add_argument('--attach', nargs=2, action='append', default=[], metavar=('ORIGINAL', 'TARGET'),
                          help='an original file outside the library and its target inside a source folder')
+    sub.add_parser('prepare-batch', help='bind several captures for one decision from a JSON array on stdin: '
+                                         '[{"target", "draft" or "draft_path", "attach": [[original, target]]}]; '
+                                         'writes nothing')
     for action in ('check', 'save'):
         command = sub.add_parser(action)
         command.add_argument('--packet', type=Path, required=True)
@@ -631,6 +752,11 @@ def main():
         if args.action == 'prepare':
             draft = sys.stdin.buffer.read(capture_check.LIMIT + 1)
             result = prepare(settings, args.target, draft, args.attach)
+        elif args.action == 'prepare-batch':
+            manifest = sys.stdin.buffer.read(8388609)
+            if len(manifest) > 8388608:
+                raise ValueError('Batch manifest exceeds byte limit; name each wrapper with "draft_path"')
+            result = prepare_batch(settings, note_write.parse_json(manifest))
         elif args.action == 'retire':
             if args.expected_sha256 is None:
                 result = {**retire_plan(settings, args.target, args.reason, args.attachment),
@@ -642,12 +768,12 @@ def main():
             result = revise_prepare(settings, args.target, draft, args.expected_sha256)
         else:
             packet = note_write.read_json(args.packet)
-            revision = isinstance(packet, dict) and packet.get('format') == REVISION
+            kind = packet.get('format') if isinstance(packet, dict) else None
             if args.action == 'check':
-                (check_revision if revision else check_packet)(settings, packet)
+                {REVISION: check_revision, BATCH: check_batch}.get(kind, check_packet)(settings, packet)
                 result = {'status': 'capture_inputs_current', 'human_authentication_verified': False}
             else:
-                result = (save_revision if revision else save)(settings, packet)
+                result = {REVISION: save_revision, BATCH: save_batch}.get(kind, save)(settings, packet)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
     except CaptureError as exc:

@@ -43,7 +43,8 @@ or, where plain-file writing is not permitted, by the host's own create-only too
 
 ## Capture writer
 
-`capture_write.py` creates one capture: the Markdown wrapper and up to 8 attachments.
+`capture_write.py` creates one capture: the Markdown wrapper and up to 8 attachments
+([several at once](#several-captures-one-decision) share one decision).
 It needs `write_policy: plain_files`, a `recovery_directory` and `layers.sources`, and
 mirrors proposal → save. Check each exit code directly:
 
@@ -80,6 +81,37 @@ saved check. On any failure it removes only the entries it published and its rec
 `capture_not_saved` with `library_unchanged: true`. If that removal fails, it reports
 `capture_partial` with the `remaining` paths and leaves a `.partial.json` record
 beside the first; stop and tell the owner.
+
+### Several captures, one decision
+
+Each packet binds the source inventory it was checked against, so saving one capture
+invalidates every other packet prepared before it. Documents handed over together are
+therefore prepared together:
+
+```sh
+# 1. Bind every wrapper and attachment at once. Writes nothing.
+capture_write.py --config /private.json prepare-batch < /batch-manifest.json > /batch.json
+# 2. Show every exact wrapper and every attachment name, size and sha256, once; obtain one decision for this packet.
+# 3. Recheck every input, create all of them, read back and verify.
+capture_write.py --config /private.json save --packet /batch.json
+```
+
+The manifest is a JSON array of 1 to 20 captures, each
+`{"target": "Sources/a.md", "draft_path": "/scratch/a.md", "attach": [["/downloads/a.pdf", "Sources/a.pdf"]]}`;
+`"draft"` may hold the wrapper text instead of `"draft_path"`, a file outside the
+library. Every capture is prepared exactly as a single one and stays a complete packet
+inside `captures`. They are also compared with each other: two captures naming the same
+target, the same explicit `id`, or the same Reference with an equal or unknown Version
+are refused, as is the whole batch when any one capture fails.
+
+`save` rederives every capture, writes `capture-batch-<batch_id>.json` and one
+`capture-<capture_id>.json` per capture, stages all files, rechecks, publishes them
+no-clobber and verifies each wrapper against the inventory it was reviewed with. It is
+whole or nothing under the same rule as one capture: any failure removes every entry
+this run published and its records (`capture_not_saved`, `library_unchanged: true`),
+or reports `capture_partial` with the `remaining` paths. The batch and each of its
+captures save once. One decision covers exactly the wrappers and attachments shown;
+adding, dropping or changing a capture is a new packet and a new decision.
 
 The writer authenticates no consent. The [review contract](review-contract.md) still
 requires showing the exact wrapper, with the attachment names and hashes, and the

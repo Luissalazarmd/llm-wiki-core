@@ -226,7 +226,7 @@ class ValidationTests(TemplateWriteCase):
         self.unchanged()
 
     def test_template_needs_a_source_folder_to_prove_the_filled_wrapper(self):
-        self.settings(layers={'sources': [], 'knowledge': ['Wiki']})
+        self.settings(layers={'sources': [], 'knowledge': ['Wiki']}, ingest_custody=False)
         self.refused(self.call('check', '--name', NAME, stdin=PODCAST), 'needs a declared source folder')
 
     def test_a_stronger_capture_policy_does_not_block_a_template(self):
@@ -485,7 +485,7 @@ class DocumentationTests(unittest.TestCase):
         self.assertIn('template_write.py', skill)
         self.assertIn('raw-admission.md#templates', skill)
         self.assertEqual(sorted(p.name for p in (BASE / 'skills').iterdir()),
-                         ['capture-source', 'progressive-adoption', 'read-connect', 'review-save'])
+                         ['capture-source', 'ingesta', 'progressive-adoption', 'read-connect', 'review-save'])
 
 
 if __name__ == '__main__':

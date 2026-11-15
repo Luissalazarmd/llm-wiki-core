@@ -36,8 +36,8 @@ class LibrarianSkillTests(unittest.TestCase):
                          'skills/review-save/SKILL.md'):
             self.assertIn('knowledge-workflow.md#write-for-the-reader', (BASE / relative).read_text(), relative)
 
-    def test_four_skills_are_discoverable_and_portable(self):
-        for name in ('progressive-adoption', 'read-connect', 'capture-source', 'review-save'):
+    def test_five_skills_are_discoverable_and_portable(self):
+        for name in ('progressive-adoption', 'read-connect', 'capture-source', 'ingesta', 'review-save'):
             path = BASE / 'skills' / name / 'SKILL.md'
             self.assertTrue(path.is_file(), f'Missing {name} skill')
             text = path.read_text()
@@ -71,7 +71,7 @@ class LibrarianSkillTests(unittest.TestCase):
         self.assertIn('docs/review-contract.md', (BASE / 'skills/review-save/SKILL.md').read_text())
 
     def test_entry_point_discovers_each_skill(self):
-        for name in ('progressive-adoption', 'read-connect', 'capture-source', 'review-save'):
+        for name in ('progressive-adoption', 'read-connect', 'capture-source', 'ingesta', 'review-save'):
             self.assertIn(f'skills/{name}/SKILL.md', (BASE / 'AGENTS.md').read_text())
 
     def test_adoption_identifies_starting_material_before_requesting_a_sample(self):

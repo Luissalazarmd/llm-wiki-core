@@ -5,7 +5,7 @@ Agents read them before any content and never edit them; only the owner changes 
 
 ## LLM Wiki Core
 
-This library follows LLM Wiki Core: its method, its four actions and its writers.
+This library follows LLM Wiki Core: its method, its actions and its writers.
 
 - Core: https://github.com/Luissalazarmd/llm-wiki-core
 - Core commit: unpinned
@@ -43,7 +43,7 @@ to this file and belong to the owner like it.
   may except this: when the owner asks for it in the current conversation, and after
   naming this rule, an agent may retire a capture into the private recovery copies, or
   revise only its wrapper text, keeping the previous text there; attachments stay as captured.
-- `Review/Inbox/` holds proposals. Nothing there is accepted knowledge, whatever its labels say.
+- `Review/Inbox/` holds proposals and the reading queue. Nothing there is accepted knowledge, whatever its labels say.
 - `Wiki/` retains reviewed knowledge: notes in `Wiki/Notes/`, optional reading maps in `Wiki/Maps/`.
 - `Home.md` and `Biblioteca.base` are views, not knowledge, as is any canvas. A view is created or changed only
   on the owner's decision on its exact content, and holds no claim that belongs in a note. `_templates/` holds blank
@@ -77,3 +77,24 @@ exact text the owner sees then. Closing one (`accepted`, `rejected` or `withdraw
 is a change to its file that records a decision already made: keep the origin and the
 literal text, append to its history, and never delete the file to close it. An origin
 that withdraws a proposal while the owner is away parks a new note saying so.
+
+## Ingesta
+
+Ingesta is permitted here, and it is the default whenever the owner hands over documents
+to keep, unless the owner says otherwise in that conversation.
+
+- Capture keeps its rule: the owner decides once on the whole batch, after seeing every
+  wrapper and every attachment name, size and sha256.
+- For each captured document an agent may then, without a further decision, create one
+  new file in `Review/Inbox/` holding its own first analysis: what the document is, a
+  reading map by sections and pages, a first contrast with this library, and exactly what
+  was and was not read. The file names that agent as its origin and starts as
+  `ingest_status: pending`.
+- That file is the agent's unreviewed reading aid: never knowledge, never evidence and
+  never the owner's decision. Creating it never overwrites and never touches `Raw/` or `Wiki/`.
+- An agent changes its status, progress and history only to record what the owner said
+  in the current conversation: reading started, the point reached, finished or discarded.
+  The file is closed in place and never deleted. Any other change to it needs the owner's
+  decision on the exact text.
+- What the owner keeps from a reading enters `Wiki/` as the owner's own notes, under
+  "Saving in Wiki".

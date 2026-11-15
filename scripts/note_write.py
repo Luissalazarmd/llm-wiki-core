@@ -155,9 +155,9 @@ def check_packet(settings, packet, *, numbered=True):
     if len(draft) > LIMIT or digest(draft) != packet['draft_sha256']:
         raise ValueError('Invalid draft binding')
     operation = packet['target'].get('operation', 'update')
-    if operation not in ('update', 'create', 'park'):
+    if operation not in ('update', 'create', 'park', 'ingest'):
         raise ValueError('Unsupported proposal operation')
-    create = operation in ('create', 'park')
+    create = operation in ('create', 'park', 'ingest')
     owner_authored = 'authorship' in packet
     if owner_authored and (packet['authorship'] != library.knowledge.OWNER_AUTHORED or operation != 'create'
                            or packet['evidence']):
@@ -167,12 +167,17 @@ def check_packet(settings, packet, *, numbered=True):
                    or (operation == 'create' and not packet['evidence'] and not owner_authored)
                    or not packet['draft'].strip()):
         raise ValueError('Creation requires an absent-target binding and explicit evidence')
-    if packet.get('custody') != (library.knowledge.CUSTODY if operation == 'park' else None):
+    custody = {'park': library.knowledge.CUSTODY, 'ingest': library.knowledge.INGEST}.get(operation)
+    status_record = operation == 'update' and packet.get('custody') == library.knowledge.INGEST_STATUS
+    if (packet.get('custody') != custody and not status_record) or ('ingest' in packet) != status_record:
         raise ValueError('Only a custody packet parks, and it parks only')
     path = target_path(settings, packet['target']['path'], create=create)
     if operation == 'park':
         # Custody, not acceptance: literal pending text, only inside the declared proposals layer.
         library.check_custody(settings, path, packet)
+    if operation == 'ingest':
+        # The agent's own preparatory analysis: one pending item about one captured source, same layer only.
+        library.check_ingest(settings, path, packet)
     if owner_authored:
         # The agent's declaration, not proof: a seed only, outside originals and the proposals layer.
         library.check_owner_seed(settings, packet['target']['path'], packet['draft'])
@@ -186,8 +191,12 @@ def check_packet(settings, packet, *, numbered=True):
     previous = None if create else read_bytes(path)
     if not create and digest(previous) != packet['target']['base_sha256']:
         raise ValueError('Stale proposal base; preserve current note and review again')
+    if status_record:
+        # Status, progress and one history line: the draft must be exactly that transition of the current bytes.
+        library.check_ingest_status(settings, path, previous.decode('utf-8'), packet)
     if not create and library.in_proposals(settings, path):
         library.check_closure(previous.decode('utf-8'), packet['draft'])
+        library.check_ingest_kept(previous.decode('utf-8'), packet['draft'])
     if not create:
         library.knowledge.check_owner_seed_kept(previous.decode('utf-8'), packet['draft'], packet['evidence'])
     expected_diff = ''.join(difflib.unified_diff((previous or b'').decode('utf-8').splitlines(keepends=True),
@@ -196,6 +205,8 @@ def check_packet(settings, packet, *, numbered=True):
                                                tofile=packet['target']['path'] + ' (proposed)'))
     if packet.get('diff') != expected_diff:
         raise ValueError('Proposal diff does not match the current base and draft')
+    if operation != 'ingest':
+        library.refuse_ingest_evidence(Path(settings['library_root']), [a['path'] for a in packet['evidence']])
     for anchor in packet['evidence']:
         evidence = library.authorize(Path(settings['library_root']), settings['authorized_paths'], anchor['path'])
         if evidence.suffix != '.md' or digest(read_bytes(evidence)) != anchor['sha256']:
@@ -308,6 +319,10 @@ def save(settings, packet, *, numbered=True, expected_scope=None):
         return {'status': 'proposal_parked', 'custody_only': True, 'accepted': False,
                 'record': str(record_path), 'sha256': digest(draft),
                 'human_authentication_verified': False}
+    if packet.get('custody') in (library.knowledge.INGEST, library.knowledge.INGEST_STATUS):
+        return {'status': 'ingest_item_created' if previous is None else 'ingest_status_recorded',
+                'custody_only': True, 'reviewed_by_owner': False, 'record': str(record_path),
+                'sha256': digest(draft), 'human_authentication_verified': False}
     return {'status': 'plain_file_created' if previous is None else 'plain_file_saved',
             'record': str(record_path), 'sha256': digest(draft),
             **({'authorship': packet['authorship']} if 'authorship' in packet else {}),

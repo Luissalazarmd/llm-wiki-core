@@ -234,7 +234,7 @@ class ScopeTests(ViewWriteCase):
         for layer, name in (('sources', 'Fuente.md'), ('knowledge', 'Idea.md'), ('drafts', 'Borrador.md')):
             with self.subTest(layer=layer):
                 (self.root / name).write_text('# Texto\n')
-                self.settings(authorized_paths=['Raw', 'Review', 'Wiki', name],
+                self.settings(authorized_paths=['Raw', 'Review', 'Wiki', name], ingest_custody=False,
                               layers={'sources': ['Raw'], 'knowledge': ['Wiki'], layer:
                                       [*{'sources': ['Raw'], 'knowledge': ['Wiki']}.get(layer, []), name]})
                 self.refused(self.call('check', '--target', name, stdin=DASHBOARD), f'inside layers.{layer}')
@@ -712,7 +712,7 @@ class DocumentationTests(unittest.TestCase):
         rules = ' '.join((STARTER / 'AGENTS.md').read_text().split())
         self.assertIn('A view is created or changed only', rules)
         self.assertEqual(sorted(p.name for p in (BASE / 'skills').iterdir()),
-                         ['capture-source', 'progressive-adoption', 'read-connect', 'review-save'])
+                         ['capture-source', 'ingesta', 'progressive-adoption', 'read-connect', 'review-save'])
 
 
 if __name__ == '__main__':

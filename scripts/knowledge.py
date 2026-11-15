@@ -547,6 +547,8 @@ def discover(root: Path, scopes: list[str], max_notes: int = 200,
 
 CUSTODY = 'literal_proposal_not_accepted'  # Parked in the proposals layer; never a human decision.
 OWNER_AUTHORED = 'owner_declared_not_authenticated'  # The agent's assertion; never proof of authorship.
+INGEST = 'agent_analysis_not_reviewed'  # The agent's own preparatory reading aid; never knowledge or a decision.
+INGEST_STATUS = 'ingest_status_record_not_reviewed'  # Status, progress and one history line; nothing else changes.
 
 
 def owner_seed_problem(text: str) -> str | None:
@@ -597,8 +599,12 @@ def new_target_path(root: Path, target: str) -> Path:
 
 
 def prepare_proposal(root: Path, target: str, draft: str, evidence: list[str], create: bool = False,
-                     custody: bool = False, owner_authored: bool = False) -> dict:
+                     custody: bool = False, owner_authored: bool = False, ingest: bool = False) -> dict:
     """Bind an existing base or absent destination and evidence; never write.
+
+    ingest marks the agent's own preparatory analysis of one captured source: an absent
+    target whose only evidence is that source. The caller and the writer confine it to
+    the declared proposals layer and to its exact shape.
 
     custody marks a literal parked proposal: an absent target whose evidence is
     optional. The caller and the writer confine it to the declared proposals layer.
@@ -608,8 +614,10 @@ def prepare_proposal(root: Path, target: str, draft: str, evidence: list[str], c
     """
     if len(draft.encode('utf-8')) > 262144:
         raise ValueError('Draft exceeds byte limit')
-    if custody and create:
+    if (custody or ingest) and create or custody and ingest:
         raise ValueError('Custody is its own operation; do not combine it with create')
+    if ingest and (owner_authored or len(set(evidence)) != 1):
+        raise ValueError('An Ingesta item binds exactly one captured source and is never owner-authored')
     if owner_authored:
         if custody or not create or evidence:
             raise ValueError('Owner authorship applies only to creating a new seed, without evidence or custody; '
@@ -617,7 +625,7 @@ def prepare_proposal(root: Path, target: str, draft: str, evidence: list[str], c
         problem = owner_seed_problem(draft)
         if problem:
             raise ValueError(problem)
-    create = create or custody
+    create = create or custody or ingest
     # Discovery enforces path containment, link safety and bounded input reads.
     if create:
         new_target_path(root, target)
@@ -641,7 +649,7 @@ def prepare_proposal(root: Path, target: str, draft: str, evidence: list[str], c
         if len(original_bytes) > 262144 or hashlib.sha256(original_bytes).hexdigest() != notes[target]['sha256']:
             raise ValueError('Proposal base changed during preparation')
         check_owner_seed_kept(original_bytes.decode('utf-8'), draft, evidence)
-    target_binding = ({'path': target, 'operation': 'park' if custody else 'create',
+    target_binding = ({'path': target, 'operation': 'park' if custody else 'ingest' if ingest else 'create',
                        'expected_absent': True, 'base_sha256': None}
                       if create else {'path': target, 'base_sha256': notes[target]['sha256']})
     original = original_bytes.decode('utf-8')
@@ -656,6 +664,8 @@ def prepare_proposal(root: Path, target: str, draft: str, evidence: list[str], c
                                                  tofile=target + ' (proposed)'))}
     if custody:
         packet['custody'] = CUSTODY
+    if ingest:
+        packet['custody'] = INGEST
     if owner_authored:
         packet['authorship'] = OWNER_AUTHORED
     packet['packet_sha256'] = hashlib.sha256(json.dumps(packet, sort_keys=True,

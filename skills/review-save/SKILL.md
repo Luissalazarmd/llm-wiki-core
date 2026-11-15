@@ -25,6 +25,8 @@ Retain a useful correction/proposal or recover an authorized edit.
    [owner-authored seed](../../docs/review-contract.md#owner-authored-seeds): draft it
    with `role: note`, `maturity: seed` and `origin: owner`, and prepare it with
    `--create --owner-authored`. Never cite unrelated evidence to satisfy the writer.
+   One stated while [reading a queued document](../../docs/ingesta.md#the-reading-session)
+   names the source and pages it arose from in its text.
 3. If the bounded collection opts into [living-synthesis numbering](../../docs/first-cut-tools.md#optional-living-synthesis-numbering),
    prepare through the shared proposal path before review. Show every numbered
    draft/diff and companion map change; explicit primary moves retain the same ID,

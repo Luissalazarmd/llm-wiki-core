@@ -8,6 +8,7 @@
     "proposals": ["Review/Inbox"],
     "knowledge": ["Wiki"]
   },
+  "ingest_custody": true,
   "write_policy": "plain_files",
   "recovery_directory": "recovery"
 }

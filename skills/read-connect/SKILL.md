@@ -25,6 +25,8 @@ Understand, compare or navigate selected material.
    result; otherwise proceed. Sources are never voted on; retain evidence gaps
    as open questions. Explain claims, evidence, tensions, limits and inference. Reuse explanations;
    develop useful arguments under [idea emergence](../../docs/knowledge-workflow.md#idea-emergence).
+   Where the library keeps a [reading queue](../../docs/ingesta.md#afterwards), look
+   there too: a waiting item points to a source and is never evidence itself.
 4. Answer clearly; successful reading requires no save. Send useful retention to [review/save](../review-save/SKILL.md).
 
 For optional read-only counts over an explicitly selected Wiki scope, use

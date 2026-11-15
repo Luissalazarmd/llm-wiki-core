@@ -6,10 +6,13 @@ filters:
         - 'file.inFolder("Review/Inbox")'
         - 'file.inFolder("Wiki")'
 formulas:
-  categoria: 'if(file.inFolder("Review/Inbox"), "Propuestas", if(file.inFolder("Raw/Sources"), "Capturas", if(role == "note", "Notas", if(role == "map", "Mapas e índices", "Sin clasificar"))))'
+  categoria: 'if(file.inFolder("Review/Inbox"), if(ingest_status, "Ingesta", "Propuestas"), if(file.inFolder("Raw/Sources"), "Capturas", if(role == "note", "Notas", if(role == "map", "Mapas e índices", "Sin clasificar"))))'
   unidad: '1'
   estado: 'if(formula.categoria != "Propuestas", "—", if(proposal_status == "accepted", "Aceptada", if(proposal_status == "rejected", "Rechazada", if(proposal_status == "withdrawn", "Retirada", "Pendiente"))))'
   origen: 'if(origin, origin, "—")'
+  lectura: 'if(formula.categoria != "Ingesta", "—", if(ingest_status == "reading", "En lectura", if(ingest_status == "reviewed", "Revisada", if(ingest_status == "withdrawn", "Retirada", "Pendiente"))))'
+  avance: 'if(progress, progress, "—")'
+  fuente: 'if(source, link(source), "—")'
   destino: 'if(proposed_target, proposed_target, "—")'
   nota: 'file.asLink(if(title, title, if(Title, Title, file.basename)))'
   madurez: 'if(formula.categoria != "Notas", "—", if(maturity == "seed", "Semilla", if(maturity == "synthesis", "Síntesis", if(maturity == "evergreen", "Evergreen", "Desconocida"))))'
@@ -31,6 +34,12 @@ properties:
     displayName: Estado de la propuesta
   formula.origen:
     displayName: Origen
+  formula.lectura:
+    displayName: Lectura
+  formula.avance:
+    displayName: Avance
+  formula.fuente:
+    displayName: Fuente
   formula.destino:
     displayName: Destino propuesto
   formula.fecha:
@@ -68,6 +77,36 @@ views:
     sort:
       - property: formula.nota
         direction: ASC
+  - type: table
+    name: Pendientes
+    columnSize:
+      formula.nota: 270
+    filters:
+      and:
+        - 'formula.categoria == "Ingesta"'
+        - or:
+            - 'ingest_status == "pending"'
+            - 'ingest_status == "reading"'
+    order:
+      - formula.nota
+      - formula.lectura
+      - formula.avance
+      - formula.fuente
+    sort:
+      - property: file.ctime
+        direction: ASC
+  - type: table
+    name: Lecturas
+    filters:
+      and:
+        - 'formula.categoria == "Ingesta"'
+    groupBy:
+      property: formula.lectura
+      direction: ASC
+    order:
+      - formula.nota
+      - formula.avance
+      - formula.fuente
   - type: table
     name: Propuestas
     filters:

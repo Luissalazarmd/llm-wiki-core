@@ -111,13 +111,13 @@ it. Bridges are instruction files: the owner owns them and the writers refuse to
 Read on 2026-11-15; hosts change, so check the linked page when one misbehaves. The
 bridges themselves were not exercised in Gemini CLI, Cursor or Copilot.
 
-## Core's four actions as host skills
+## Core's five actions as host skills
 
-[`skills/`](../skills) holds four `SKILL.md` folders with `name` and `description`
+[`skills/`](../skills) holds five `SKILL.md` folders with `name` and `description`
 frontmatter, which Claude Code, Codex and Hermes all accept. With the owner's
 authorization for that host:
 
-1. Copy the four folders as regular files from the pinned Core commit into the host's
+1. Copy the five folders as regular files from the pinned Core commit into the host's
    user-level skills directory: `~/.claude/skills/` (Claude Code), `~/.agents/skills/`
    (Codex), or the profile's skills directory (Hermes). Never symlink them, and never
    point a host's external skills directory at the Core checkout: a host must not load

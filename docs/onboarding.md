@@ -3,7 +3,7 @@
 Choose a starting point: tell your existing agent a question, share a source,
 or select a few notes.
 Ask: “Start read-only. Help me understand this and show me what is worth keeping.”
-Use [AGENTS](../AGENTS.md), its preflight and one of the four action skills.
+Use [AGENTS](../AGENTS.md), its preflight and one of the five action skills.
 Markdown and authorized host tools suffice; Obsidian and K-Plex are optional.
 
 In plain terms: your agent reads what you point it to, explains it and suggests what
@@ -49,7 +49,7 @@ See the [review contract](review-contract.md) and [plain saving](plain-saving.md
 [Helpers](first-cut-tools.md) are optional. Their default is `read_only`;
 `plain_files` configuration restricts operations and never supplies consent.
 Wiki prose defaults to Spanish; source titles and original quotations retain
-their language. The four skills and [ontology 2.0](ontology.md) remain the model.
+their language. The five skills and [ontology 2.0](ontology.md) remain the model.
 
 ## Get and update Core
 

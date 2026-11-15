@@ -2,8 +2,9 @@
 
 Read with purpose. Connect ideas. Keep what matters.
 
-Core gives your existing agent four reusable workflows: adopt selected material,
-read and connect ideas, capture sources, and review/save useful knowledge.
+Core gives your existing agent five reusable workflows: adopt selected material,
+read and connect ideas, capture sources, queue new documents for your own reading,
+and review/save useful knowledge.
 It combines Markdown instructions, synthetic examples and optional Python helpers.
 Bring an existing library, collected articles, your own drafts or a first question;
 no dedicated agent service, migration or plugin is required.

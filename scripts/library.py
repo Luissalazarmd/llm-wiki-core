@@ -168,6 +168,363 @@ def check_closure(previous: str, draft: str) -> None:
         raise ValueError('Closing a parked proposal must keep its history lines; append, never erase')
 
 
+INGEST_STATUSES = ('pending', 'reading', 'reviewed', 'withdrawn')
+INGEST_LIMIT = 32768  # An orientation and a reading map, never a copy of the document.
+INGEST_KEYS = {'ingest_status', 'source', 'origin', 'conversation', 'created'}
+INGEST_LABELS = {
+    'es': {'title': '# Ingesta: ', 'source': 'Fuente: ', 'history': '## Historial',
+           'notice': '> Análisis preparatorio del agente, sin revisar: orienta la lectura; no es conocimiento '
+                     'aceptado ni sustituye leer el original.',
+           'sections': ('## Orientación', '## Mapa de lectura', '## Contraste con la biblioteca', '## Cobertura'),
+           'states': {'pending': 'pendiente', 'reading': 'en lectura', 'reviewed': 'revisada',
+                      'withdrawn': 'retirada'},
+           'prepared': 'preparada por', 'until': 'hasta'},
+    'en': {'title': '# Ingest: ', 'source': 'Source: ', 'history': '## History',
+           'notice': '> Preparatory analysis by the agent, not reviewed: it orients the reading; it is neither '
+                     'accepted knowledge nor a substitute for reading the original.',
+           'sections': ('## Orientation', '## Reading map', '## Contrast with the library', '## Coverage'),
+           'states': {'pending': 'pending', 'reading': 'reading', 'reviewed': 'reviewed',
+                      'withdrawn': 'withdrawn'},
+           'prepared': 'prepared by', 'until': 'up to'},
+}
+
+
+INGEST_EMBED = re.compile(r'!\[|<\s*(?:img|iframe|script|object|embed|video|audio|link|style|svg|meta|base)\b', re.I)
+
+
+def one_line(name: str, value, limit: int = 512) -> str:
+    if (not isinstance(value, str) or not value.strip() or len(value) > limit
+            or any(ord(char) < 32 or ord(char) == 127 for char in value)):
+        raise ValueError(f'{name} must be one nonempty line of at most {limit} characters')
+    return value
+
+
+def ingest_enabled(settings: dict) -> None:
+    """Ingest custody is its own opt-in: permission to park a received proposal does not imply it."""
+    if settings.get('ingest_custody') is not True:
+        raise ValueError('Ingest custody is not enabled for this library: its rules must permit it and the '
+                         'private settings must declare "ingest_custody": true beside layers.proposals. '
+                         'Without both, give the analysis in the conversation and write nothing')
+
+
+def ingest_parts(text: str):
+    """(metadata, labels, lines) of an Ingesta item; None when the text is not one."""
+    try:
+        metadata = knowledge.metadata_from(text)
+    except (ValueError, RecursionError):
+        return None
+    if 'ingest_status' not in metadata:
+        return None
+    lines = text.replace('\r\n', '\n').split('\n')
+    for labels in INGEST_LABELS.values():
+        if lines.count(labels['history']) == 1:
+            return metadata, labels, lines
+    return None
+
+
+def ingest_history(lines: list[str], labels: dict) -> tuple[int, int, list[str]]:
+    """(heading index, end of the history block, its entries); the block ends at the next heading."""
+    start = lines.index(labels['history'])
+    end = next((i for i in range(start + 1, len(lines)) if re.match(r'#{1,6} ', lines[i])), len(lines))
+    return start, end, [line for line in lines[start + 1:end] if line.startswith('- ')]
+
+
+def source_wrapper(settings: dict, source: str) -> str:
+    """Title of an existing capture wrapper inside the declared sources; anything else is refused."""
+    root = Path(settings['library_root'])
+    path = authorize(root, settings['authorized_paths'], one_line('source', source))
+    if (path.relative_to(root).as_posix() != source or path.suffix != '.md' or not path.is_file()
+            or not any(path.is_relative_to(root / selected)
+                       for selected in settings.get('layers', {}).get('sources', []))):
+        raise ValueError('An Ingesta item points to the exact Markdown wrapper of a captured source inside '
+                         'layers.sources: capture the document first')
+    with path.open('rb') as stream:
+        text = stream.read(262145).decode('utf-8')
+    if len(text.encode('utf-8')) > 262144:
+        raise ValueError('Source wrapper exceeds byte limit')
+    metadata = knowledge.metadata_from(text)
+    if metadata.get('role', 'source') != 'source':
+        raise ValueError('An Ingesta item points to a captured source, not to a note')
+    title = metadata.get('Title', metadata.get('title'))
+    if not isinstance(title, str) or not title.strip():
+        title = next((line[2:] for line in knowledge.visible_body(text) if line.startswith('# ')), path.stem)
+    return ' '.join(title.split())[:200] or path.stem
+
+
+def ingest_note(language: str, body: str, source: str, title: str, origin: str, created: str,
+                conversation: str | None = None) -> str:
+    """Wrap the agent's analysis in the Ingesta shape; the analysis itself is not edited."""
+    labels = INGEST_LABELS[language]
+    quote = lambda value: json.dumps(value, ensure_ascii=False)  # A JSON string is a YAML scalar.
+    front = ['---', 'ingest_status: pending', 'source: ' + quote(source), 'origin: ' + quote(origin)]
+    if conversation is not None:
+        front.append('conversation: ' + quote(conversation))
+    front += ['created: ' + quote(created), '---', labels['title'] + title, '',
+              f"{labels['source']}[[{source[:-3]}]]", '', labels['notice'], '']
+    tail = ['', labels['history'], '', f"- {created} · {labels['states']['pending']} · {labels['prepared']} {origin}"]
+    return '\n'.join(front) + '\n' + body.replace('\r\n', '\n').strip('\n') + '\n' + '\n'.join(tail) + '\n'
+
+
+def ingest_problem(text: str) -> str | None:
+    """Why text is not a new pending Ingesta item, or None when it has exactly that shape."""
+    if len(text.encode('utf-8')) > INGEST_LIMIT:
+        return (f'An Ingesta item holds an orientation, a reading map and a first contrast in at most '
+                f'{INGEST_LIMIT} bytes; it never copies the document')
+    parts = ingest_parts(text)
+    if parts is None:
+        return 'Ingest custody requires the Ingesta item format'
+    metadata, labels, lines = parts
+    if INGEST_EMBED.search(text):
+        return ('An Ingesta item links and never embeds: no ![embed] and no HTML element, so that opening an '
+                'unreviewed file loads nothing from the document or the network')
+    if set(metadata) - INGEST_KEYS:
+        return ('A new Ingesta item declares only ingest_status, source, origin, conversation and created: '
+                'no role, maturity, review or proposal status of its own')
+    if metadata['ingest_status'] != 'pending':
+        return 'Ingest custody creates a pending item only; reading and closing record what the owner did'
+    try:
+        for key in ('source', 'origin', 'created', *(['conversation'] if 'conversation' in metadata else [])):
+            one_line(key, metadata.get(key))
+        datetime.date.fromisoformat(metadata['created'])
+    except ValueError as exc:
+        return f'Ingesta item: {exc}'
+    if metadata['origin'].strip().casefold() == 'owner':
+        return ('An Ingesta item is the agent\'s analysis and names that agent as its origin; what the owner '
+                'states is an owner-authored seed, reviewed and saved in retained knowledge')
+    source = metadata['source']
+    end = next((i for i, line in enumerate(lines[1:], 1) if line == '---'), 0)
+    header = lines[end + 1:]
+    if (not header or not header[0].startswith(labels['title']) or not header[0][len(labels['title']):].strip()
+            or f"{labels['source']}[[{source[:-3]}]]" not in header or labels['notice'] not in header):
+        return 'An Ingesta item keeps its title, the link to its source and the notice that it is not reviewed'
+    headings = [line for line in header if re.match(r'#{1,2} ', line)][1:]
+    if headings != [*labels['sections'], labels['history']]:
+        return ('An Ingesta item has exactly these sections, in order: '
+                + ', '.join(h[3:] for h in (*labels['sections'], labels['history'])))
+    for heading in (labels['sections'][0], labels['sections'][-1]):
+        start = header.index(heading)
+        if not any(line.strip() for line in header[start + 1:header.index(headings[headings.index(heading) + 1])]):
+            return (f'"{heading[3:]}" is empty: say what the document is and exactly what was and was not read; '
+                    'a first analysis never implies a complete reading')
+    expected = f"- {metadata['created']} · {labels['states']['pending']} · {labels['prepared']} {metadata['origin']}"
+    start, end, entries = ingest_history(lines, labels)
+    if entries != [expected] or any(line.strip() for line in lines[start + 1:end] if line != expected):
+        return 'A new Ingesta item has one history line: the date and the agent that prepared it'
+    return None
+
+
+def prepare_ingest(settings: dict, target: str, body: str, source: str, origin: str,
+                   conversation: str | None = None, created: str | None = None) -> dict:
+    """Bind the agent's preparatory analysis of one captured source to an absent target; never write."""
+    ingest_enabled(settings)
+    root = Path(settings['library_root'])
+    if not in_proposals(settings, root / target):
+        raise ValueError('An Ingesta item is created only inside the declared layers.proposals; it never '
+                         'enters originals or retained knowledge')
+    if importlib.import_module('numbering').in_scope(settings, target):
+        raise ValueError('Ingest custody is unavailable inside a numbered scope')
+    created = created or datetime.date.today().isoformat()
+    labels = INGEST_LABELS[settings['language']]
+    first = next((line for line in body.replace('\r\n', '\n').split('\n') if line.strip()), '')
+    if first != labels['sections'][0]:
+        raise ValueError('The analysis on stdin starts with "' + labels['sections'][0] + '" and continues with '
+                         + ', '.join('"' + heading + '"' for heading in labels['sections'][1:])
+                         + '; the helper adds the title, the source link, the notice and the history')
+    text = ingest_note(settings['language'], body, source, source_wrapper(settings, source),
+                       one_line('origin', origin), created, conversation)
+    ingest_waiting(settings, source)
+    problem = ingest_problem(text)
+    if problem:
+        raise ValueError(problem)
+    return knowledge.prepare_proposal(root, target, text, [source], ingest=True)
+
+
+def check_ingest(settings: dict, path: Path, packet: dict) -> None:
+    """Writer-side boundary of ingest custody: opted in, proposals layer, exact pending shape, one captured source."""
+    ingest_enabled(settings)
+    if not in_proposals(settings, path):
+        raise ValueError('An Ingesta item is created only inside the declared layers.proposals; it never '
+                         'enters originals or retained knowledge')
+    problem = ingest_problem(packet['draft'])
+    if problem:
+        raise ValueError(problem)
+    source = knowledge.metadata_from(packet['draft'])['source']
+    if [anchor.get('path') for anchor in packet['evidence']] != [source]:
+        raise ValueError('An Ingesta item binds exactly the captured source it names')
+    source_wrapper(settings, source)
+    ingest_waiting(settings, source)
+
+
+def ingest_waiting(settings: dict, source: str) -> None:
+    """One open item per document: a second analysis of the same source would duplicate the queue."""
+    for item in ingest_queue(settings)['items']:
+        if item['source'] == source:
+            raise ValueError(f"This source already waits in the reading queue at {item['path']}; "
+                             'one open Ingesta item per document')
+
+
+def ingest_transition(text: str, status: str, date: str, progress: str | None = None,
+                      note: str | None = None) -> str:
+    """The same item with a new status, optional progress and one more history line; nothing else changes."""
+    parts = ingest_parts(text)
+    if parts is None:
+        raise ValueError('Not an Ingesta item: a status record changes only the status, the progress and the '
+                         'history of one; anything else is a reviewed update')
+    metadata, labels, _ = parts
+    current = metadata['ingest_status']
+    if current not in ('pending', 'reading') or status not in ('reading', 'reviewed', 'withdrawn'):
+        raise ValueError('A status record moves a pending or reading item to reading, reviewed or withdrawn; '
+                         'reopening a closed item is a reviewed update')
+    datetime.date.fromisoformat(one_line('date', date))
+    for name, value, limit in (('progress', progress, 200), ('note', note, 300)):
+        if value is not None and INGEST_EMBED.search(one_line(name, value, limit)):
+            raise ValueError(f'{name} links and never embeds: no ![embed] and no HTML element')
+    if status == 'reading' and current == 'reading' and progress in (None, metadata.get('progress')):
+        raise ValueError('Nothing to record: the item is already in reading at that point')
+    front = re.match(r'\A---\r?\n(.*?\r?\n)---(?=\r?\n|\Z)', text, re.S)
+    lines = front[1].splitlines(keepends=True)
+    found = [i for i, line in enumerate(lines) if line.startswith('ingest_status:')]
+    placed = [i for i, line in enumerate(lines) if line.startswith('progress:')]
+    if len(found) != 1 or len(placed) > 1:
+        raise ValueError('The item frontmatter cannot be updated mechanically; prepare a reviewed update')
+    eol = '\r\n' if lines[found[0]].endswith('\r\n') else '\n'
+    lines[found[0]] = f'ingest_status: {status}{eol}'
+    if progress is not None:
+        line = 'progress: ' + json.dumps(progress, ensure_ascii=False) + eol
+        if placed:
+            lines[placed[0]] = line
+        else:
+            lines.insert(found[0] + 1, line)
+    body = text[front.end(1):].splitlines(keepends=True)
+    plain = [line.rstrip('\r\n') for line in body]
+    if plain.count(labels['history']) != 1:
+        raise ValueError('The item history cannot be located; prepare a reviewed update')
+    start = plain.index(labels['history'])
+    end = next((i for i in range(start + 1, len(plain)) if re.match(r'#{1,6} ', plain[i])), len(plain))
+    entries = [i for i in range(start + 1, end) if plain[i].startswith('- ')]
+    if not entries:
+        raise ValueError('The item history has no entries to append to; prepare a reviewed update')
+    last = entries[-1]
+    if not body[last].endswith('\n'):
+        body[last] += eol
+    entry = ' · '.join([f'- {date}', labels['states'][status],
+                        *([f"{labels['until']} {progress}"] if progress is not None else []),
+                        *([note] if note is not None else [])])
+    body.insert(last + 1, entry + eol)
+    result = text[:front.start(1)] + ''.join(lines) + ''.join(body)
+    changed = {**metadata, 'ingest_status': status, **({'progress': progress} if progress is not None else {})}
+    try:
+        after = knowledge.metadata_from(result)
+    except (ValueError, RecursionError):
+        after = None
+    if after != changed:
+        raise ValueError('The item frontmatter cannot be updated mechanically; prepare a reviewed update')
+    return result
+
+
+def prepare_ingest_status(settings: dict, target: str, expected: str, status: str, date: str | None = None,
+                          progress: str | None = None, note: str | None = None) -> dict:
+    """Bind a status record to the exact current item; never write."""
+    ingest_enabled(settings)
+    root = Path(settings['library_root'])
+    path = root / target
+    if not in_proposals(settings, path) or path.suffix != '.md' or path.is_symlink() or not path.is_file():
+        raise ValueError('A status record applies to an existing Ingesta item inside the declared layers.proposals')
+    with path.open('rb') as stream:
+        raw = stream.read(262145)
+    if len(raw) > 262144:
+        raise ValueError('Item exceeds byte limit')
+    if hashlib.sha256(raw).hexdigest() != expected:
+        raise ValueError('The item changed, or this is not the sha256 of the current file: read it again '
+                         '(ingest-queue prints it) before recording anything')
+    record = {'status': status, 'date': date or datetime.date.today().isoformat(), 'progress': progress,
+              'note': note}
+    packet = knowledge.prepare_proposal(root, target, ingest_transition(raw.decode('utf-8'), **record), [])
+    packet = {**{k: v for k, v in packet.items() if k != 'packet_sha256'},
+              'custody': knowledge.INGEST_STATUS, 'ingest': record}
+    packet['packet_sha256'] = hashlib.sha256(json.dumps(packet, sort_keys=True, ensure_ascii=False,
+                                                        separators=(',', ':')).encode()).hexdigest()
+    return packet
+
+
+def check_ingest_status(settings: dict, path: Path, previous: str, packet: dict) -> None:
+    """Writer-side boundary of a status record: the draft is exactly the recomputed transition."""
+    ingest_enabled(settings)
+    record = packet.get('ingest')
+    if (not in_proposals(settings, path) or not isinstance(record, dict)
+            or set(record) != {'status', 'date', 'progress', 'note'} or packet['evidence']):
+        raise ValueError('A status record applies to an Ingesta item inside the declared layers.proposals and '
+                         'carries only its status, date, progress and note')
+    if ingest_transition(previous, **record) != packet['draft']:
+        raise ValueError('A status record changes only the status, the progress and one new history line; '
+                         'every other byte of the item stays as it is')
+
+
+def check_ingest_kept(previous: str, draft: str) -> None:
+    """A reviewed update of an Ingesta item keeps its format, source, origin and history lines."""
+    before = ingest_parts(previous)
+    if before is None:
+        return
+    after = ingest_parts(draft)
+    if after is None or after[0]['ingest_status'] not in INGEST_STATUSES:
+        raise ValueError('An Ingesta item stays an Ingesta item: keep its format and use a status of '
+                         + ', '.join(INGEST_STATUSES))
+    if any(after[0].get(key) != before[0].get(key) for key in ('source', 'origin', 'conversation', 'created')):
+        raise ValueError('An Ingesta item keeps its source, origin and creation date')
+    kept, earlier = ingest_history(after[2], after[1])[2], ingest_history(before[2], before[1])[2]
+    if kept[:len(earlier)] != earlier:
+        raise ValueError('An Ingesta item keeps its history lines; append, never erase')
+
+
+def refuse_ingest_evidence(root: Path, paths: list[str]) -> None:
+    """An agent's preparatory analysis is never evidence; the source it points to is."""
+    for relative in paths:
+        path = root / relative
+        try:
+            with path.open('rb') as stream:
+                text = stream.read(262145).decode('utf-8')
+        except (OSError, UnicodeDecodeError):
+            continue  # The ordinary evidence checks report an unreadable file.
+        if ingest_parts(text) is not None:
+            raise ValueError(f'{relative} is an Ingesta item: an agent\'s preparatory analysis is not evidence. '
+                             'Bind the captured source it points to, with the passage read there')
+
+
+def ingest_queue(settings: dict, everything: bool = False) -> dict:
+    """Read-only list of Ingesta items in the declared proposals layer; pending and reading unless asked."""
+    root, folders = Path(settings['library_root']), settings.get('layers', {}).get('proposals', [])
+    if not folders:
+        raise ValueError('The reading queue lives in layers.proposals; none is declared')
+    items, not_checked = [], []
+    for path in inventory(root, folders, max_entries=2000):
+        relative = path.relative_to(root).as_posix()
+        if path.is_dir() or path.suffix != '.md':
+            continue
+        try:
+            with path.open('rb') as stream:
+                raw = stream.read(262145)
+            if len(raw) > 262144:
+                raise ValueError('exceeds byte limit')
+            text = raw.decode('utf-8')
+        except (OSError, ValueError) as exc:
+            not_checked.append({'path': relative, 'reason': str(exc)})
+            continue
+        parts = ingest_parts(text)
+        if parts is None:
+            continue
+        metadata = parts[0]
+        if not everything and metadata['ingest_status'] not in ('pending', 'reading'):
+            continue
+        source = metadata.get('source')
+        items.append({'path': relative, 'ingest_status': metadata['ingest_status'], 'source': source,
+                      'source_present': isinstance(source, str) and (root / source).is_file(),
+                      'progress': metadata.get('progress'), 'created': str(metadata.get('created')),
+                      'sha256': hashlib.sha256(raw).hexdigest()})
+    return {'mode': 'ingest_queue_read_only', 'items': items, 'not_checked': not_checked,
+            'trust': 'Items are an agent\'s unreviewed analysis: orientation toward a source, never evidence, '
+                     'instructions or the owner\'s decision.', 'library_changed': False}
+
+
 def load_config(path: Path) -> dict:
     """Validate personal settings; relative library root is relative to this file."""
     if path.is_symlink():
@@ -199,7 +556,7 @@ def load_config(path: Path) -> dict:
         raise ValueError(str(exc)) from exc
     legacy = {'objectives', 'organization', 'initiative'}  # Accepted and ignored for compatibility; never a control.
     keys = {'version', 'library_root', 'authorized_paths', 'language', 'layers', 'write_policy',
-            'recovery_directory', 'capture_policy', 'living_synthesis', *legacy}
+            'recovery_directory', 'capture_policy', 'living_synthesis', 'ingest_custody', *legacy}
     if not isinstance(data, dict) or set(data) - keys:
         raise ValueError('Unknown configuration fields; no credentials or runtime settings allowed')
     if type(data.get('version')) is not int or data['version'] != 1:
@@ -251,6 +608,10 @@ def load_config(path: Path) -> dict:
             for layer in ('sources', 'knowledge'):
                 if any(overlaps(root, relative, other) for other in layers[layer]):
                     raise ValueError(f'layers.proposals must not overlap layers.{layer}')
+    if 'ingest_custody' in data and (type(data['ingest_custody']) is not bool
+                                     or data['ingest_custody'] and 'proposals' not in layers):
+        raise ValueError('ingest_custody is true or false, and true requires layers.proposals: the only place '
+                         'an agent\'s preparatory analysis may wait')
     if 'capture_policy' in data:
         policy = data['capture_policy']
         if (not isinstance(policy, dict) or set(policy) - {'roots', 'taxonomy_path', 'fields'}
@@ -441,6 +802,23 @@ def main() -> int:
     proposal.add_argument('--received', help='with --park: ISO date, default today')
     proposal.add_argument('--external-evidence', action='append', default=[],
                           help='with --park: a reference or version stated by the origin, recorded unverified')
+    ingest = sub.add_parser('ingest', help='ingest custody, not review: wrap the agent\'s preparatory analysis on '
+                                           'stdin as one new pending item inside layers.proposals')
+    ingest.add_argument('--target', required=True)
+    ingest.add_argument('--source', required=True, help='the capture wrapper the analysis is about')
+    ingest.add_argument('--origin', required=True, help='the agent that prepared the analysis')
+    ingest.add_argument('--conversation', help='where it was prepared')
+    ingest.add_argument('--created', help='ISO date, default today')
+    record = sub.add_parser('ingest-status', help='record what the owner did with an Ingesta item: status, '
+                                                  'progress and one history line; nothing else changes')
+    record.add_argument('--target', required=True)
+    record.add_argument('--status', required=True, choices=['reading', 'reviewed', 'withdrawn'])
+    record.add_argument('--expected-sha256', required=True, help='sha256 of the current item file')
+    record.add_argument('--progress', help='where the owner is, as they said it: "p. 45", "cap. 3"')
+    record.add_argument('--note', help='one line for the history, such as the notes the owner kept')
+    record.add_argument('--date', help='ISO date, default today')
+    queue = sub.add_parser('ingest-queue', help='read-only: Ingesta items waiting in layers.proposals')
+    queue.add_argument('--all', action='store_true', help='include reviewed and withdrawn items')
     batch = sub.add_parser('proposal-batch', help='prepare up to 20 scoped numbered changes from a JSON array on stdin; not approval')
     batch.add_argument('--evidence', action='append', default=[])
     args = parser.parse_args()
@@ -448,11 +826,28 @@ def main() -> int:
         settings = load_config(args.config)
         root = Path(settings['library_root'])
         paths = ([args.target, *args.evidence] if args.action == 'proposal'
-                 else args.evidence if args.action == 'proposal-batch' else args.scope)
+                 else args.evidence if args.action == 'proposal-batch'
+                 else [args.target, args.source] if args.action == 'ingest'
+                 else [args.target] if args.action == 'ingest-status'
+                 else [] if args.action == 'ingest-queue' else args.scope)
         for path in paths:
             authorize(root, settings['authorized_paths'], path,
-                      create=args.action == 'proposal' and (args.create or args.park) and path == args.target)
-        if args.action == 'map':
+                      create=(args.action == 'ingest' or args.action == 'proposal' and (args.create or args.park))
+                      and path == args.target)
+        if args.action in ('proposal', 'proposal-batch'):
+            refuse_ingest_evidence(root, args.evidence)
+        if args.action == 'ingest-queue':
+            data = ingest_queue(settings, args.all)
+        elif args.action == 'ingest-status':
+            data = prepare_ingest_status(settings, args.target, args.expected_sha256, args.status, args.date,
+                                         args.progress, args.note)
+        elif args.action == 'ingest':
+            body = sys.stdin.buffer.read(INGEST_LIMIT + 1)
+            if len(body) > INGEST_LIMIT:
+                raise ValueError(ingest_problem('x' * (INGEST_LIMIT + 1)))
+            data = prepare_ingest(settings, args.target, body.decode('utf-8'), args.source, args.origin,
+                                  args.conversation, args.created)
+        elif args.action == 'map':
             data = map_library(root, args.scope, settings['layers'])
         elif args.action == 'read':
             data = knowledge.discover(root, args.scope)

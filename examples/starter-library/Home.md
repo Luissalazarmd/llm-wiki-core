@@ -14,6 +14,12 @@ Una vista para orientarte. Trae una pregunta, elige una nota o retoma una propue
 
 Propuestas pendientes en `Review/Inbox`. Estar aquí no es estar aceptada: nada pasa a la Wiki sin que veas el texto exacto y lo decidas. [[Biblioteca.base#Propuestas|Abrir todas las propuestas, también las cerradas]].
 
+## Lecturas pendientes
+
+![[Biblioteca.base#Pendientes]]
+
+Documentos capturados que esperan tu lectura, uno por archivo. El análisis es del agente y está sin revisar: orienta por secciones y páginas, no es conocimiento ni sustituye el original. Lo que conserves entra en la Wiki como notas tuyas. [[Biblioteca.base#Lecturas|Abrir todas las lecturas, también las cerradas]].
+
 ## Editadas recientemente
 
 ![[Biblioteca.base#Recientes]]
@@ -29,7 +35,7 @@ Semilla → Síntesis → Evergreen describe el desarrollo de ideas, no de origi
 ## Cómo está organizada
 
 - `Raw/Sources`: originales preservados; no se editan.
-- `Review/Inbox`: propuestas, pendientes o cerradas; ninguna es conocimiento aceptado.
+- `Review/Inbox`: propuestas y lecturas pendientes o cerradas; ninguna es conocimiento aceptado.
 - `Wiki`: lo que revisaste y decidiste conservar, en notas y mapas de lectura.
 
 Las reglas de esta biblioteca están en [[AGENTS|su archivo de reglas]]. [[Biblioteca.base#Capturas|Fuentes preservadas]] · [[Biblioteca.base#Inventario|Inventario completo]].

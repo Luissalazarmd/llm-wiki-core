@@ -58,6 +58,9 @@ python3 scripts/library.py --config /private.json proposal --target Notes/existi
 python3 scripts/capture_check.py --config /private.json --target Sources/new.md < /capture.md
 python3 scripts/capture_write.py --config /private.json prepare --target Sources/new.md --attach /downloads/paper.pdf Sources/new.pdf < /capture.md > /capture.json
 python3 scripts/capture_write.py --config /private.json save --packet /capture.json
+python3 scripts/capture_write.py --config /private.json prepare-batch < /batch-manifest.json > /batch.json
+python3 scripts/library.py --config /private.json ingest --target Review/Inbox/ingesta-new.md --source Sources/new.md --origin "agent: reader" < /analysis.md > /item.json
+python3 scripts/library.py --config /private.json ingest-queue
 python3 scripts/template_write.py --config /private.json prepare --name Fuente-podcast.md < /template.md > /template.json
 python3 scripts/template_write.py --config /private.json save --packet /template.json
 python3 scripts/view_write.py --config /private.json prepare --target Mapa.canvas < /draft.canvas > /view.json
@@ -85,6 +88,22 @@ python3 scripts/note_write.py --config /private.json save --packet /parked.json
 
 See [parked proposals](plain-saving.md#parked-proposals). Someone starting without a
 library can copy the [starter library](starter-library.md).
+
+Where the rules permit [ingest custody](review-contract.md#ingest-custody) and the
+settings add `"ingest_custody": true` beside `layers.proposals`, each captured
+document may get one pending [Ingesta item](plain-saving.md#ingesta-items) with the
+agent's first analysis, and later records of what the owner did with it:
+
+```sh
+python3 scripts/library.py --config /private.json ingest --target Review/Inbox/ingesta-new.md --source Raw/Sources/new.md --origin "agent: reader" < /analysis.md > /item.json
+python3 scripts/note_write.py --config /private.json save --packet /item.json
+python3 scripts/library.py --config /private.json ingest-status --target Review/Inbox/ingesta-new.md --status reading --progress "p. 45" --expected-sha256 <sha256> > /status.json
+python3 scripts/note_write.py --config /private.json save --packet /status.json
+```
+
+The setting restricts like every other: it grants nothing the rules do not, and a
+Core version that predates it refuses the settings file, so add it only after the
+library's pinned commit includes [Ingesta](ingesta.md).
 
 An idea the owner states in conversation has no library evidence. Retain it as a
 seed whose draft declares `role: note`, `maturity: seed` and `origin: owner`, through

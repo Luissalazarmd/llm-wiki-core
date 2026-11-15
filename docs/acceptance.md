@@ -1,5 +1,30 @@
 # Acceptance
 
+## Ingesta: reading queue, ingest custody and batch capture — 2026-11-15
+
+This update passed 458 synthetic tests on Linux with Python 3.14.8 and PyYAML 6.0.3,
+run from the working checkout. Disabling each of the 60 refusal conditions in the new
+ingest and batch-capture functions one at a time, each compound condition as a whole,
+made the new tests fail; the shared publication path keeps its earlier guards and was
+not run again that way. One batch of two
+captures, an Ingesta item, its status records with an owner edit in between, an owner
+seed and the closing were also run by hand in a disposable copy of the starter library.
+The earlier guard runs and path variants were not repeated.
+
+Not run for this update: an actual host running Ingesta with its owner, by default or
+in the background; a first analysis of a real long document, or any check that a
+coverage statement matches what was read; a reading session with the owner stating
+notes; Obsidian rendering the "Pendientes" view or rewriting an item's properties; a
+sub-agent returning an analysis; a filesystem without hard links; a process killed
+mid-save; macOS; Python 3.10–3.13. Tests show that an item is created only in the
+declared proposals layer, only with its own opt-in, only in its exact pending shape and
+about one captured source; that a status record changes the status, the progress and
+one history line and no other byte; that an item is refused as evidence; and that a
+batch of captures is created whole or not at all under injected failures and saves
+once. They cannot show that an analysis is accurate or honest about its coverage, that
+the owner said what a status record states, that the owner read anything, or that a
+note labelled `origin: owner` holds the owner's words.
+
 ## View writer and vendored Obsidian skills — 2026-11-14
 
 This update passed 381 synthetic tests on Linux with Python 3.14.8 and PyYAML 6.0.3,
@@ -119,7 +144,8 @@ Synthetic cases cover bounded read-only discovery, native/legacy projection,
 identity/version/locator checks, capture duplicates/connections, proposal binding,
 stale/diff refusal, managed/source/instruction protection, no-clobber creation,
 proposal custody confined to its declared layer, owner-authored seeds, the copied
-starter library and its source templates, whole-or-nothing capture with attachments,
+starter library and its source templates, whole-or-nothing capture with attachments, alone or as one batch,
+ingest custody confined to its layer, opt-in and shape, status records that change nothing else,
 owner-exception retirement and wrapper-only revision, template creation and hash-bound change,
 injected failures and recovery preserving later edits, and the [portable entry](hosts.md):
 the Core declaration, the private lookup order, `write` against `proposal_only`, the host

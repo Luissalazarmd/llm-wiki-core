@@ -25,7 +25,11 @@ no second rules filename. Inside this checkout the file governs only the templat
 
 The rules declare the library editable as plain files, the Raw/Review/Wiki
 correspondence, the language, the review needed before any Wiki save, and that
-literal proposals may be parked in `Review/Inbox` without the owner present. They
+literal proposals may be parked in `Review/Inbox` without the owner present. Their
+last section, "Ingesta", is an example of the separate permission for
+[ingest custody](review-contract.md#ingest-custody) and of making [Ingesta](ingesta.md)
+the default when documents are handed over; an owner who does not want it deletes that
+section and `"ingest_custody": true` from the settings before the first use. They
 also state that only the owner may except create-only custody to
 [retire a capture](raw-admission.md#retiring-a-capture-an-owner-exception). A library
 copied earlier keeps its rules and needs no change: the writers read no rules text, and
@@ -55,7 +59,8 @@ recovery file from being staged.
 Show the person the [rules](../examples/starter-library/AGENTS.md) and the
 [private settings](../examples/starter-library.config.example.json), with the
 location you propose, and obtain one decision covering both. That decision makes the
-library editable and permits custody; it accepts no note. Afterwards parking a
+library editable and permits custody, of parked proposals and of Ingesta items; it
+accepts no note. Afterwards parking a
 proposal asks nothing of the owner, and every Wiki save still follows the
 [review contract](review-contract.md).
 
@@ -81,7 +86,7 @@ records stay outside both the library and Core. The checks pass when `map` repor
 starting map. The helpers need the Python environment in [tools](first-cut-tools.md).
 
 The settings declare `Raw` as sources, `Review/Inbox` as proposals and `Wiki` as
-knowledge. They restrict the helpers and grant nothing; the rules and the person's
+knowledge, and opt into ingest custody. They restrict the helpers and grant nothing; the rules and the person's
 decision do. [Plain saving](plain-saving.md#parked-proposals) describes parking.
 
 ## Source templates
@@ -113,6 +118,8 @@ changing a template is the owner's choice: on their request the agent shows the 
 template and saves it through [`template_write.py`](raw-admission.md#templates), which
 never overwrites one without the hash of its current version.
 
+`Biblioteca.base` shows the [reading queue](ingesta.md#the-queue-as-a-view) as
+"Pendientes", embedded in `Home.md`.
 `Home.md`, `Biblioteca.base` and any canvas are [views](views.md): the agent shows the
 exact content and saves it through `view_write.py`, in the root without further settings.
 The first change to `Home.md` adds the `role: view` declaration that the writer requires.

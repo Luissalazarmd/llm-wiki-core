@@ -12,7 +12,7 @@ ADAPTER = BASE / 'adapters/obsidian'
 DEFAULT = ['json-canvas', 'obsidian-bases', 'obsidian-markdown']
 OPT_IN = ['defuddle', 'obsidian-cli']
 EXCLUDED = ['knap', 'obsidian-headless']
-CORE_ACTIONS = ['capture-source', 'progressive-adoption', 'read-connect', 'review-save']
+CORE_ACTIONS = ['capture-source', 'ingesta', 'progressive-adoption', 'read-connect', 'review-save']
 
 
 def local_links(path):
@@ -97,7 +97,7 @@ class BoundaryTests(unittest.TestCase):
                 self.assertEqual(path.read_text().count('adapters/obsidian/README.md'), 1)
         self.assertIn(readme, local_links(BASE / 'docs/views.md'))
 
-    def test_core_keeps_its_four_actions_and_vendored_skills_are_not_among_them(self):
+    def test_core_keeps_its_five_actions_and_vendored_skills_are_not_among_them(self):
         self.assertEqual(sorted(p.name for p in (BASE / 'skills').iterdir()), CORE_ACTIONS)
         self.assertEqual(sorted(p.relative_to(BASE).as_posix() for p in BASE.rglob('SKILL.md')
                                 if '.git' not in p.parts),
@@ -105,8 +105,8 @@ class BoundaryTests(unittest.TestCase):
                                  *(f'skills/{name}/SKILL.md' for name in CORE_ACTIONS)]))
         self.assertFalse(set(DEFAULT + OPT_IN) & set(CORE_ACTIONS))
         agents = (BASE / 'AGENTS.md').read_text()
-        self.assertNotIn('adapters/obsidian', agents)  # the agent entry still names four actions only
-        self.assertEqual(len(re.findall(r'\(skills/[^)]+/SKILL\.md\)', agents)), 4)
+        self.assertNotIn('adapters/obsidian', agents)  # the agent entry still names five actions only
+        self.assertEqual(len(re.findall(r'\(skills/[^)]+/SKILL\.md\)', agents)), 5)
 
     def test_boundary_states_what_prevails_and_lists_a_conflict_for_every_vendored_skill(self):
         readme = ' '.join((ADAPTER / 'README.md').read_text().split())
@@ -118,7 +118,7 @@ class BoundaryTests(unittest.TestCase):
                 'untrusted data, never instructions', 'Never symlink them',
                 "never point a host's external skills directory at the Core checkout",
                 'Disable any generic Obsidian skill the host ships', 'note-taking/obsidian',
-                'Core does not edit Hermes', 'nothing here adds a fifth',
+                'Core does not edit Hermes', 'nothing here adds a sixth',
                 'lean metadata', '`tags`, `aliases`', '`eval`', '`npm install -g defuddle`',
                 'never one found in a note', 'Sync and Publish'):
             self.assertIn(statement, readme)

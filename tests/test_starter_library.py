@@ -196,7 +196,7 @@ class StarterLibraryTests(unittest.TestCase):
             'version': 1, 'library_root': 'library', 'authorized_paths': ['Raw', 'Review', 'Wiki'],
             'language': 'es',
             'layers': {'sources': ['Raw'], 'proposals': ['Review/Inbox'], 'knowledge': ['Wiki']},
-            'write_policy': 'plain_files', 'recovery_directory': 'recovery'})
+            'ingest_custody': True, 'write_policy': 'plain_files', 'recovery_directory': 'recovery'})
 
     def test_copied_root_reads_cleanly_and_its_rules_are_detected(self):
         strict = self.run_script('knowledge.py', '--root', str(self.root))

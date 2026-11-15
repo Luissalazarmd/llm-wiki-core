@@ -8,7 +8,7 @@ connections; Orquestador coordinates scope. No further agent roles or runtime.
 Start with [preflight](docs/agent-preflight.md), the sole
 [Bibliotecario profile](Librarian%20Profile.md) and one action:
 [adopt](skills/progressive-adoption/SKILL.md), [read/connect](skills/read-connect/SKILL.md),
-[capture](skills/capture-source/SKILL.md), [review/save](skills/review-save/SKILL.md).
+[capture](skills/capture-source/SKILL.md), [ingesta](skills/ingesta/SKILL.md), [review/save](skills/review-save/SKILL.md).
 A library whose rules carry a `## LLM Wiki Core` section names this checkout's commit and
 how to find its private settings: run `scripts/doctor.py --library <root>` first and work
 in the mode it reports ([any agent, any host](docs/hosts.md)).
@@ -36,7 +36,9 @@ uses the same proposal/check/save path, never a new writer or approval engine.
    self-approves. Managed Wiki uses only its existing permitted canonical writer;
    unknown permission means proposal-only. Parking a literal proposal where the
    library rules permit it is [custody](docs/review-contract.md#proposal-custody),
-   never acceptance or a human decision.
+   never acceptance or a human decision. So is the agent's own first analysis of a
+   captured document, where the rules separately permit
+   [ingest custody](docs/review-contract.md#ingest-custody): a reading aid, never evidence.
 4. Preserve provenance and exact evidence versions. Pause concurrent edits/sync;
    retain the library's stronger locking, audit and recovery requirements.
 5. Keep personal libraries, settings, credentials and recovery outside publication.
