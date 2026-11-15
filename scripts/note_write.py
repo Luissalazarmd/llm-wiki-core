@@ -59,6 +59,21 @@ def write_record(path, record):
         json.dump(record, stream)  # ASCII escapes keep non-UTF-8 locale paths writable.
         stream.flush()
         os.fsync(stream.fileno())
+    fsync_directory(os.path.dirname(os.path.abspath(path)))
+
+
+def fsync_directory(directory):
+    """Persist a new directory entry where the platform allows it."""
+    try:
+        fd = os.open(directory, os.O_RDONLY)
+    except OSError:
+        return
+    try:
+        os.fsync(fd)
+    except OSError:
+        pass
+    finally:
+        os.close(fd)
 
 
 def check_policy(settings):
