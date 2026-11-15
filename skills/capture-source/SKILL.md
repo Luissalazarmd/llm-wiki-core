@@ -25,8 +25,9 @@ existing permitted create-only tools. Retire one only as the owner's exception.
 5. `capture_write.py save` rechecks inputs, creates without overwrite as independent
    copies, reads back and verifies. Report any `capture_partial` exactly. Without
    plain-file permission, use the host's create-only tool and `capture_check.py`.
-6. Retire a capture only when the owner asks in this conversation: name the create-only
-   rule being excepted, show the `retire` plan and its linking notes, then run it.
+6. Retire a capture, or revise only its wrapper text, only when the owner asks in this
+   conversation: name the create-only rule being excepted, show the `retire` plan and its
+   linking notes, or the `revise` diff, then run it. A revision never touches attachments.
 7. Create or change a source template only on the owner's request, through
    `template_write.py` [prepare → show the exact template → save](../../docs/raw-admission.md#templates).
 

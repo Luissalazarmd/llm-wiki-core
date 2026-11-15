@@ -102,7 +102,7 @@ identity/version/locator checks, capture duplicates/connections, proposal bindin
 stale/diff refusal, managed/source/instruction protection, no-clobber creation,
 proposal custody confined to its declared layer, owner-authored seeds, the copied
 starter library and its source templates, whole-or-nothing capture with attachments,
-owner-exception retirement, template creation and hash-bound change,
+owner-exception retirement and wrapper-only revision, template creation and hash-bound change,
 injected failures and recovery preserving later edits. Fixtures preserve originals.
 
 `python3 tests/demo_existing_library.py --output-parent /tmp` independently

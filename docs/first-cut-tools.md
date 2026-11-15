@@ -96,7 +96,8 @@ optional PDF, image, EPUB or audio attachments, goes through `capture_write.py`
 prepare → review → save, which rechecks, creates independent copies without overwrite
 and verifies them; it is not an approval engine. `capture_write.py retire` is the
 owner's explicit exception to create-only custody, never routine: it prints a plan,
-then moves the capture to private recovery under `--expected-sha256`. `template_write.py`
+then moves the capture to private recovery under `--expected-sha256`; `revise` is the narrower
+exception that replaces only a wrapper's text and keeps its attachments. `template_write.py`
 creates or changes a blank [source template](raw-admission.md#templates) the same way,
 outside every layer. Follow [review](review-contract.md),
 [capture](raw-admission.md), [plain saving](plain-saving.md) and [projection](projection-reference.md).

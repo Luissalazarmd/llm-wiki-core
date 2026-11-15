@@ -189,9 +189,10 @@ def source_inventory(settings, target, reference, version, identifier):
     return inventory
 
 
-def check(settings, target, draft, saved=False, expected=None):
+def check(settings, target, draft, saved=False, expected=None, existing=False):
+    """Check a capture draft; `existing` checks a revision of the wrapper already at target."""
     root = Path(settings['library_root'])
-    destination = (library.authorize(root, settings['authorized_paths'], target) if saved else
+    destination = (library.authorize(root, settings['authorized_paths'], target) if saved or existing else
                    library.authorize(root, settings['authorized_paths'], target, create=True))
     if (destination.relative_to(root).as_posix() != target or destination.suffix != '.md'
             or not any(destination.is_relative_to(root / source)

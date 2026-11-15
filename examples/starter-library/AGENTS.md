@@ -9,7 +9,8 @@ Agents read them before any content and never edit them; only the owner changes 
 - `Raw/` preserves originals; captured sources live in `Raw/Sources/`. Capture is
   create-only: never edit, move, rename or delete a captured original. Only the owner
   may except this: when the owner asks for it in the current conversation, and after
-  naming this rule, an agent may retire a capture into the private recovery copies.
+  naming this rule, an agent may retire a capture into the private recovery copies, or
+  revise only its wrapper text, keeping the previous text there; attachments stay as captured.
 - `Review/Inbox/` holds proposals. Nothing there is accepted knowledge, whatever its labels say.
 - `Wiki/` retains reviewed knowledge: notes in `Wiki/Notes/`, optional reading maps in `Wiki/Maps/`.
 - `Home.md` and `Biblioteca.base` are views, not knowledge. `_templates/` holds blank

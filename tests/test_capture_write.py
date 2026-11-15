@@ -662,3 +662,79 @@ class RetireCaptureTests(CaptureWriteCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class CaptureRevisionTest(CaptureWriteCase):
+    LEAN = WRAPPER.replace('Referencia para consultar luego.', 'Para consulta.')
+
+    def setUp(self):
+        super().setUp()
+        self.save()
+        self.wrapper = self.sources / 'informe.md'
+        self.pdf_sha = sha((self.sources / 'informe.pdf').read_bytes())
+
+    def revise(self, text=None, *extra):
+        return self.call('revise', '--target', 'Raw/Sources/informe.md', *extra, stdin=self.LEAN if text is None else text)
+
+    def revision(self, text=None):
+        prepared = self.revise(text)
+        self.assertEqual(prepared.returncode, 0, prepared.stderr)
+        path = self.home / 'revision.json'
+        path.write_text(prepared.stdout)
+        return path, json.loads(prepared.stdout)
+
+    def test_revision_replaces_only_the_wrapper_and_keeps_the_previous_text(self):
+        path, packet = self.revision()
+        self.assertEqual(self.wrapper.read_text(), WRAPPER)  # prepare writes nothing
+        self.assertIn('-Referencia para consultar luego.', packet['diff'])
+        self.assertEqual(packet['rule_excepted'], 'Capture is create-only: never edit, move, rename or delete a captured original')
+        self.assertEqual(self.call('check', '--packet', str(path)).returncode, 0)
+        saved = self.call('save', '--packet', str(path))
+        self.assertEqual(saved.returncode, 0, saved.stderr)
+        result = json.loads(saved.stdout)
+        self.assertEqual(result['status'], 'capture_revised')
+        self.assertEqual(self.wrapper.read_text(), self.LEAN)
+        self.assertEqual(Path(result['previous_copy']).read_text(), WRAPPER)
+        self.assertEqual(stat.S_IMODE(Path(result['previous_copy']).stat().st_mode), 0o600)
+        self.assertEqual(sha((self.sources / 'informe.pdf').read_bytes()), self.pdf_sha)
+        self.assertEqual(result['attachments_unchanged'], ['Raw/Sources/informe.pdf'])
+        self.refused(self.call('save', '--packet', str(path)), 'Wrapper changed')
+
+    def test_owner_edit_after_revise_or_stale_hash_is_refused(self):
+        path, _ = self.revision()
+        self.wrapper.write_text(WRAPPER + '\nNota del dueño.\n')
+        self.refused(self.call('save', '--packet', str(path)), 'Wrapper changed')
+        self.refused(self.revise(None, '--expected-sha256', sha(WRAPPER.encode())), 'not the sha256 of the current file')
+        self.assertIn('Nota del dueño.', self.wrapper.read_text())
+
+    def test_identity_and_attachments_cannot_change_in_a_revision(self):
+        self.refused(self.revise(self.LEAN.replace('synthetic:informe-inventado', 'synthetic:otro')),
+                     'keeps the source identity')
+        self.refused(self.revise(self.LEAN.replace('![[Raw/Sources/informe.pdf]]', 'Sin enlace.')),
+                     'keeps its attachment links')
+        self.refused(self.revise(self.LEAN.replace('informe.pdf', 'otro.pdf')), 'does not name a captured file')
+        self.refused(self.revise(WRAPPER), 'identical to the current wrapper')
+        self.refused(self.revise(self.LEAN.replace('Para consulta.', '{{title}}')), 'placeholder')
+
+    def test_only_a_capture_wrapper_in_sources_is_revised(self):
+        refused = self.call('revise', '--target', 'Wiki/Maps/Indice.md', stdin=self.LEAN)
+        self.assertEqual(refused.returncode, 2)
+        refused = self.call('revise', '--target', 'Raw/Sources/ausente.md', stdin=self.LEAN)
+        self.assertEqual(refused.returncode, 2)
+
+    def test_edited_revision_packet_is_refused(self):
+        path, packet = self.revision()
+        packet['draft'] = packet['draft'] + 'extra\n'
+        path.write_text(json.dumps(packet))
+        self.refused(self.call('save', '--packet', str(path)), 'Packet content changed')
+        self.assertEqual(self.wrapper.read_text(), WRAPPER)
+
+    def test_failed_replace_leaves_the_wrapper_and_no_previous_copy(self):
+        path, packet = self.revision()
+        module, settings = self.module()
+        with patch.object(module.os, 'replace', side_effect=OSError('simulated')):
+            with self.assertRaises(module.CaptureError) as caught:
+                module.save_revision(settings, packet)
+        self.assertEqual(caught.exception.result['status'], 'revision_not_saved')
+        self.assertEqual(self.wrapper.read_text(), WRAPPER)
+        self.assertFalse(any(p.name.startswith('revision-') for p in self.recovery.iterdir()))

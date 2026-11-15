@@ -172,7 +172,7 @@ class StarterLibraryTests(unittest.TestCase):
                             'never touches `Raw/` or `Wiki/`', 'never delete the file to close it',
                             "needs the owner's own decision on the exact text",
                             'Only the owner may except this', 'asks for it in the current conversation',
-                            'after naming this rule', '`_templates/` holds blank shapes for source wrappers',
+                            'after naming this rule', 'revise only its wrapper text', '`_templates/` holds blank shapes for source wrappers',
                             "only on the owner's decision on its exact text"):
             self.assertIn(declaration, rules)
         settings = json.loads(CONFIG.read_text())

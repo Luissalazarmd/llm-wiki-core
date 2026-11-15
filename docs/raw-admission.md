@@ -182,6 +182,30 @@ agent states the rule it found. The record is not proof of that request. There i
 restore command: capturing again uses the recovery copy as the original, as a new
 capture with a new review.
 
+## Revising a wrapper: an owner exception
+
+Correcting only a wrapper's text (a lean context, a fixed author, a removed note) is
+the same owner exception, narrower: the attached originals stay untouched, so there
+is no retirement and no recapture. Act only when the owner asks in the current
+conversation; name the rule being excepted and show the packet's `diff` with the
+complete resulting text.
+
+```sh
+# 1. Bind the complete new text to the current wrapper; writes nothing.
+capture_write.py --config /private.json revise --target Sources/new.md < /revised.md > /revision.json
+# 2. Only after the owner's decision on that diff:
+capture_write.py --config /private.json save --packet /revision.json
+```
+
+The revision keeps the source identity (`id`, Reference, Version) and exactly the same
+attachment links; a different source is a new capture, and different attachments need
+retirement and a new capture. `save` rechecks the current wrapper, keeps it as
+`revision-<id>.previous.md` with a `revision-<id>.json` record in the private recovery
+directory, replaces the text atomically and verifies it and the unchanged attachments.
+An owner edit after `revise` is refused: revise again and show it again. A failure
+before the replace leaves the library and recovery as they were
+(`revision_not_saved`); one after it reports `revision_partial` with the previous copy.
+
 ## Without the writer
 
 The checker prints `check_sha256`; `--expected-sha256` takes that value, never

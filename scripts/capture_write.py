@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Optional create-only capture writer and owner-exception retirement; NOT an approval engine."""
+"""Optional create-only capture writer, owner-exception retirement and wrapper revision; NOT an approval engine."""
 import argparse
 import datetime
+import difflib
 import hashlib
 import json
 import os
@@ -21,6 +22,7 @@ import library
 import note_write
 
 FORMAT = 'capture-v1'
+REVISION = 'capture-revision-v1'
 MAX_ATTACHMENTS = 8
 MAX_ATTACHMENT_BYTES = 134217728
 # Admitted binary types: extension plus leading signature. A sanity bound, never content validation.
@@ -43,6 +45,9 @@ RULE = 'Capture is create-only: never edit, move, rename or delete a captured or
 EXCEPTION = ('Owner exception to create-only custody: this captured original leaves the library only because '
              'its owner explicitly asked for it in the current conversation, after being told which rule is '
              'excepted. It is never routine, and it is not evidence of that request.')
+REVISION_EXCEPTION = ('Owner exception to create-only custody: this wrapper text changes only because its owner '
+                      'explicitly asked for it in the current conversation, after being told which rule is excepted; '
+                      'the previous text is kept in private recovery and attached originals are never changed.')
 WIKI = re.compile(r'!?\[\[([^\[\]|#\n]+)(?:#[^\[\]|\n]*)?(?:\|[^\[\]\n]*)?\]\]')
 MARKDOWN = re.compile(r'!?\[[^\]\n]*\]\(\s*(<[^>\n]+>|[^()\s]+)(?:\s+"[^"\n]*")?\s*\)')
 PLACEHOLDER = re.compile(r'\{\{\s*(?:title|date|time)(?::[^}\n]*)?\s*\}\}')
@@ -476,6 +481,128 @@ def retire(settings, target, reason, extra, expected):
             'human_authentication_verified': False}
 
 
+def linked_attachments(settings, text, target):
+    """Existing captured files a wrapper links; a dangling attachment link is refused."""
+    root, found = Path(settings['library_root']), set()
+    for written, destination, paths in local_links(capture_check.knowledge.visible_body(text), posixpath.dirname(target)):
+        if not admitted(destination):
+            continue
+        hits = [p for p in paths or () if (root / p).is_file() and not (root / p).is_symlink()
+                and in_sources(settings, root / p)]
+        if not hits:
+            raise ValueError(f'Attachment link {written} does not name a captured file in the source locations')
+        found.add(hits[0])
+    return sorted(found)
+
+
+def revise_prepare(settings, target, draft, expected_base=None, revision_id=None, expected=None):
+    """Bind a new text for an existing wrapper, its current bytes and its unchanged attachments; never write."""
+    writable(settings)
+    root = Path(settings['library_root'])
+    wrapper = library.authorize(root, settings['authorized_paths'], target)
+    if (wrapper.relative_to(root).as_posix() != target or wrapper.suffix != '.md' or wrapper.is_symlink()
+            or not wrapper.is_file() or not in_sources(settings, wrapper)):
+        raise ValueError('Revision target must be the exact Markdown wrapper of a capture inside a declared '
+                         'source location')
+    current, old = capture_check.parse_note(wrapper, target)
+    base = note_write.digest(current)
+    if expected_base is not None and expected_base != base:
+        raise ValueError('Wrapper changed, or this is not the sha256 of the current file; read it again and show '
+                         'the change again')
+    if old.get('role', 'source') != 'source':
+        raise ValueError('Revision target does not declare a captured source')
+    checked = capture_check.check(settings, target, draft, expected=expected, existing=True)
+    text, previous = draft.decode('utf-8'), current.decode('utf-8')
+    if PLACEHOLDER.search(text):
+        raise ValueError('Template placeholder left unfilled ({{title}}, {{date}} or {{time}})')
+    if text == previous:
+        raise ValueError('Revision text is identical to the current wrapper; nothing to revise')
+    before = capture_check.knowledge.source_reference(old, capture_check.knowledge.visible_body(previous))
+    if (old.get('id') != capture_check.knowledge.metadata_from(text).get('id')
+            or list(before) != [checked['identity']['reference'], checked['identity']['version']]):
+        raise ValueError('A revision keeps the source identity (id, Reference and Version); a different source is '
+                         'a new capture')
+    attachments = linked_attachments(settings, previous, target)
+    if linked_attachments(settings, text, target) != attachments:
+        raise ValueError('A revision changes the wrapper text only and keeps its attachment links; to change '
+                         'attachments, retire the capture and capture it again')
+    packet = {'format': REVISION, 'status': 'prepared_not_approved',
+              'revision_id': revision_id or uuid.uuid4().hex, 'target': target, 'base_sha256': base,
+              'draft': text, 'draft_sha256': checked['draft_sha256'], 'check_sha256': checked['check_sha256'],
+              'identity': checked['identity'],
+              'attachments': [{'path': p, 'sha256': measure(root / p)[0]} for p in attachments],
+              'diff': ''.join(difflib.unified_diff(previous.splitlines(True), text.splitlines(True),
+                                                   'current/' + target, 'revised/' + target)),
+              'rule_excepted': RULE, 'exception': REVISION_EXCEPTION, 'approval_available': False}
+    return {**packet, 'packet_sha256': canonical(packet)}
+
+
+def check_revision(settings, packet):
+    """Rederive the revision binding from current inputs; any difference means review again."""
+    if (not isinstance(packet, dict) or packet.get('format') != REVISION
+            or packet.get('status') != 'prepared_not_approved'):
+        raise ValueError('Expected an unapplied revision packet from capture_write.py revise')
+    if packet.get('packet_sha256') != canonical({k: v for k, v in packet.items() if k != 'packet_sha256'}):
+        raise ValueError('Packet content changed')
+    if not re.fullmatch(r'[0-9a-f]{32}', str(packet['revision_id'])):
+        raise ValueError('Invalid revision_id')
+    current = revise_prepare(settings, packet['target'], packet['draft'].encode('utf-8'), packet['base_sha256'],
+                             packet['revision_id'], packet['check_sha256'])
+    if current != packet:
+        raise ValueError('Wrapper, attachments or library changed since revise; do not save, review again')
+    return current
+
+
+def save_revision(settings, packet):
+    """Keep the current wrapper in private recovery, then replace only its text; attachments are never touched."""
+    check_revision(settings, packet)
+    root, recovery = Path(settings['library_root']), Path(settings['recovery_directory'])
+    draft, path = packet['draft'].encode('utf-8'), root / packet['target']
+    name = 'revision-' + packet['revision_id']
+    record_path, copy = recovery / (name + '.json'), recovery / (name + '.previous.md')
+    record_created = copied = replaced = False
+    temporary = None
+    try:
+        try:
+            try:
+                write_record(record_path, {
+                    'format': 'capture-revision-recovery-v1', 'library_root': settings['library_root'],
+                    'recorded': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds'),
+                    'note': 'Written before publication; not an apply receipt or an approval.',
+                    'packet': packet, 'previous_copy': str(copy), 'human_authentication_verified': False})
+            except FileExistsError:
+                raise ValueError('This packet was already used for a save. A decision covers one write: revise '
+                                 f'again and show the change again ({record_path})') from None
+            record_created = True
+            staged = stage(path, recovery, packet['base_sha256'], mode=0o600)
+            try:
+                os.link(staged, copy)
+            finally:
+                staged.unlink()
+            copied = True
+            temporary = stage(draft, path.parent, packet['draft_sha256'], stat.S_IMODE(path.stat().st_mode))
+            check_revision(settings, packet)  # Recording and staging may have exposed changed inputs.
+            os.replace(temporary, path)  # Atomic; the bound previous bytes were verified just above.
+            replaced = True
+            capture_check.check(settings, packet['target'], draft, saved=True, expected=packet['check_sha256'])
+            for item in packet['attachments']:
+                if measure(root / item['path'])[0] != item['sha256']:
+                    raise ValueError('Attachment changed during the revision: ' + item['path'])
+        except (OSError, ValueError, TypeError, KeyError, RecursionError) as exc:
+            left = [packet['target']] if replaced else []
+            if not left and copied:
+                copy.unlink(missing_ok=True)
+            raise fail('revision_not_saved', 'revision_partial', exc, recovery, name, record_path, record_created,
+                       left, remaining=left, previous_copy=str(copy) if left else None) from exc
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
+    return {'status': 'capture_revised', 'revision_id': packet['revision_id'], 'target': packet['target'],
+            'sha256': packet['draft_sha256'], 'previous_sha256': packet['base_sha256'], 'previous_copy': str(copy),
+            'attachments_unchanged': [item['path'] for item in packet['attachments']], 'record': str(record_path),
+            'rule_excepted': RULE, 'semantic_validation': False, 'human_authentication_verified': False}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--config', type=Path, required=True)
@@ -494,6 +621,10 @@ def main():
     command.add_argument('--attachment', action='append', default=[],
                          help='a captured file the wrapper does not link, named explicitly')
     command.add_argument('--expected-sha256')
+    command = sub.add_parser('revise', help='owner exception: bind a new text for an existing wrapper on stdin, '
+                                            'keeping its attachments; writes nothing')
+    command.add_argument('--target', required=True)
+    command.add_argument('--expected-sha256', help='sha256 of the current wrapper file, when already read')
     args = parser.parse_args()
     try:
         settings = library.load_config(args.config)
@@ -506,13 +637,17 @@ def main():
                           'status': 'retirement_planned_nothing_changed', 'human_authentication_verified': False}
             else:
                 result = retire(settings, args.target, args.reason, args.attachment, args.expected_sha256)
+        elif args.action == 'revise':
+            draft = sys.stdin.buffer.read(capture_check.LIMIT + 1)
+            result = revise_prepare(settings, args.target, draft, args.expected_sha256)
         else:
             packet = note_write.read_json(args.packet)
+            revision = isinstance(packet, dict) and packet.get('format') == REVISION
             if args.action == 'check':
-                check_packet(settings, packet)
+                (check_revision if revision else check_packet)(settings, packet)
                 result = {'status': 'capture_inputs_current', 'human_authentication_verified': False}
             else:
-                result = save(settings, packet)
+                result = (save_revision if revision else save)(settings, packet)
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
     except CaptureError as exc:
