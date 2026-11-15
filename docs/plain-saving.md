@@ -21,6 +21,23 @@ Restore verifies prior bytes and refuses later edits. Creation has no prior byte
 restore never deletes. No rename is supplied; sources are created only by the
 [capture writer](raw-admission.md#capture-writer).
 
+A restore is recorded too. Before replacing the note it writes a new private 0600
+record of the same format holding the bytes it displaces, `operation: restore` and
+the name and hash of the record it used (`restored_from`). It reports that record
+as `record`, beside `sha256`, `previous_sha256` and `restored_from`; nothing is
+written into the library. `restore --record` on the new record reverses the restore
+under the same checks, so save → restore → restore returns to the saved bytes, and
+each step leaves its own record. A record applies only while the note holds exactly
+the version that record produced. Reversing re-applies bytes that were saved before;
+it re-checks neither their evidence nor their review, and stays a decision for the person.
+
+If that record cannot be written, nothing is replaced. If the replacement fails
+afterwards, the note keeps its bytes and the unused record is removed. Both exit 2
+with `restore_not_done`, `note_unchanged: true` and `record: null`; `unused_record`
+names a record that could not be removed. A replaced note whose readback fails
+reports `restore_unverified`, `note_unchanged: false` and the record holding the
+displaced bytes: inspect before doing anything else.
+
 The [optional numbered profile](first-cut-tools.md#optional-living-synthesis-numbering)
 adds complete scoped membership/configuration/reservation checks before saving.
 A numbered batch validates every target and postimage before the first recovery
@@ -30,7 +47,8 @@ records, not a transaction journal. I/O failures can leave earlier files saved:
 exit 2 reports `plain_batch_partial`, completed targets and new recovery records.
 Inspect and prepare a fresh reviewed candidate; do not blindly retry or auto-undo.
 Restore permits same-address content updates but refuses to release or replace
-identity, primary association or current/former reservations. Creation still has
+identity, primary association or current/former reservations, in either direction:
+a restore record carries the numbered binding forward (`numbered`). Creation still has
 no automatic deletion recovery. A primary recoding reversal is another reviewed
 move, not restoration that recycles history.
 

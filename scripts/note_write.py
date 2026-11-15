@@ -34,7 +34,7 @@ def read_bytes(path, limit=LIMIT):
     return raw
 
 
-def read_json(path):
+def parse_json(raw):
     def unique(pairs):
         data = {}
         for key, value in pairs:
@@ -43,9 +43,22 @@ def read_json(path):
             data[key] = value
         return data
     try:
-        return json.loads(read_bytes(path, 2097152), object_pairs_hook=unique)
+        return json.loads(raw, object_pairs_hook=unique)
     except json.JSONDecodeError as exc:
         raise ValueError(str(exc)) from exc
+
+
+def read_json(path):
+    return parse_json(read_bytes(path, 2097152))
+
+
+def write_record(path, record):
+    """Create one private record: never overwrites, 0600, flushed to disk before returning."""
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    with os.fdopen(fd, 'w', encoding='utf-8') as stream:
+        json.dump(record, stream)  # ASCII escapes keep non-UTF-8 locale paths writable.
+        stream.flush()
+        os.fsync(stream.fileno())
 
 
 def check_policy(settings):
@@ -257,11 +270,7 @@ def save(settings, packet, *, numbered=True, expected_scope=None):
               'proposal': packet, 'human_authentication_verified': False}
     record_path = Path(settings['recovery_directory']) / (uuid.uuid4().hex + '.json')
     # Persist previous bytes and provenance BEFORE replacing the note. Not an apply receipt.
-    fd = os.open(record_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-    with os.fdopen(fd, 'w', encoding='utf-8') as stream:
-        json.dump(record, stream)  # ASCII escapes keep non-UTF-8 locale paths writable.
-        stream.flush()
-        os.fsync(stream.fileno())
+    write_record(record_path, record)
     def before_publish():
         check_packet(settings, packet, numbered=numbered)
         if expected_scope is not None:
@@ -286,6 +295,13 @@ def save(settings, packet, *, numbered=True, expected_scope=None):
             'human_authentication_verified': False}
 
 
+class RestoreError(ValueError):
+    """A restore that began writing: reports what the note and the recovery directory now hold."""
+    def __init__(self, result):
+        super().__init__(result['error'])
+        self.result = result
+
+
 def restore(settings, record_path):
     try:
         check_policy(settings)
@@ -295,7 +311,8 @@ def restore(settings, record_path):
     directory = Path(settings['recovery_directory'])
     if record_path.parent.resolve() != directory or record_path.is_symlink():
         raise ValueError('Record must be directly inside the configured recovery directory')
-    record = read_json(record_path)
+    record_raw = read_bytes(record_path, 2097152)
+    record = parse_json(record_raw)
     if record.get('format') != 'plain-note-recovery-v1' or record['library_root'] != settings['library_root']:
         raise ValueError('Recovery record belongs to a different library')
     if record.get('before_exists') is False:
@@ -307,14 +324,68 @@ def restore(settings, record_path):
     previous = base64.b64decode(record['before_base64'], validate=True)
     if len(previous) > LIMIT or digest(previous) != record['before_sha256']:
         raise ValueError('Invalid previous-content binding')
-    if record.get('proposal', {}).get('living_synthesis') is not None and not numbering.in_scope(settings, record['target']):
-        raise ValueError('Numbering profile or scope changed; restore refused')
-    numbering.check_restore(settings, record['target'], current, previous)
-    replace_checked(path, current, previous)
-    if read_bytes(path) != previous:
-        raise ValueError('Restored output not verified')
-    return {'status': 'plain_file_restored', 'sha256': digest(previous),
+    # A save record carries its numbered binding in the proposal; a restore record carries the flag forward.
+    numbered = record.get('numbered', (record.get('proposal') or {}).get('living_synthesis') is not None)
+    if numbered is not True and numbered is not False:
+        raise ValueError('Invalid numbering binding in recovery record')
+
+    def check_numbering():
+        if numbered and not numbering.in_scope(settings, record['target']):
+            raise ValueError('Numbering profile or scope changed; restore refused')
+        numbering.check_restore(settings, record['target'], current, previous)
+
+    check_numbering()
+    # The same record shape, in the opposite direction: the bytes this restore displaces become
+    # the previous bytes, so `restore --record` on the new record reverses it under the same checks.
+    reversal = {'format': 'plain-note-recovery-v1', 'library_root': settings['library_root'],
+                'target': record['target'], 'before_exists': True,
+                'before_sha256': digest(current), 'after_sha256': digest(previous),
+                'before_base64': base64.b64encode(current).decode(),
+                'operation': 'restore', 'numbered': numbered,
+                'restored_from': {'record': record_path.name, 'record_sha256': digest(record_raw)},
+                'human_authentication_verified': False}
+    reversal_path = directory / (uuid.uuid4().hex + '.json')
+    untouched = {'status': 'restore_not_done', 'note_unchanged': True, 'record': None,
+                 'restored_from': str(record_path), 'human_authentication_verified': False}
+    # Persist the displaced bytes BEFORE replacing the note: without the record, nothing is replaced.
+    try:
+        write_record(reversal_path, reversal)
+    except OSError as exc:
+        # An entry this command did not create is never removed.
+        left = None if isinstance(exc, FileExistsError) else discard(reversal_path)
+        raise RestoreError({**untouched, 'unused_record': left, 'error':
+            f'The record of this restore could not be written, so the note was not replaced: {exc}'}) from exc
+    try:
+        replace_checked(path, current, previous, check_numbering)
+    except (OSError, ValueError, TypeError, KeyError, RecursionError) as exc:
+        # replace_checked raises only before its atomic replace: this command did not change the note.
+        left = discard(reversal_path)
+        raise RestoreError({**untouched, 'unused_record': left, 'error':
+            f'The note was not replaced and keeps the bytes it had: {exc}. The original record remains usable'
+            + ('; the record of this restore describes nothing that happened and could not be removed.'
+               if left else '; the record of this restore was removed.')}) from exc
+    try:
+        verified = read_bytes(path) == previous
+        problem = 'the note does not hold the restored bytes'
+    except (OSError, ValueError) as exc:
+        verified, problem = False, str(exc)
+    if not verified:
+        raise RestoreError({'status': 'restore_unverified', 'note_unchanged': False, 'record': str(reversal_path),
+            'restored_from': str(record_path), 'human_authentication_verified': False, 'error':
+            f'The note was replaced but readback failed: {problem}. Inspect the note; the record of this '
+            'restore holds the bytes it displaced.'})
+    return {'status': 'plain_file_restored', 'sha256': digest(previous), 'previous_sha256': digest(current),
+            'record': str(reversal_path), 'restored_from': str(record_path),
             'human_authentication_verified': False}
+
+
+def discard(record_path):
+    """Remove a record that describes nothing; return its path if it remains."""
+    try:
+        record_path.unlink(missing_ok=True)
+    except OSError:
+        pass
+    return str(record_path) if os.path.lexists(record_path) else None
 
 
 def main():
@@ -340,7 +411,7 @@ def main():
                 result = save(settings, packet)
         print(json.dumps(result))
         return 0
-    except BatchSaveError as exc:
+    except (BatchSaveError, RestoreError) as exc:
         print(json.dumps(exc.result), file=sys.stderr)
         return 2
     except (OSError, ValueError, TypeError, KeyError, AttributeError, RecursionError) as exc:

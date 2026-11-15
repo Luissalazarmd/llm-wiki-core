@@ -93,7 +93,8 @@ python3 scripts/note_write.py --config /private.json save --packet /seed.json
 See [owner-authored seeds](plain-saving.md#owner-authored-seeds); the flag is the
 agent's assertion, never proof of authorship or approval.
 
-Save uses save instead of check; recovery uses restore --record. A capture, with
+Save uses save instead of check; recovery uses restore --record, which reports its own
+[record](plain-saving.md) so the restore can be reversed the same way. A capture, with
 optional PDF, image, EPUB or audio attachments, goes through `capture_write.py`
 prepare → review → save, which rechecks, creates independent copies without overwrite
 and verifies them; it is not an approval engine. `capture_write.py retire` is the
