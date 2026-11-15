@@ -41,12 +41,10 @@ def contained(root: Path, relative: str) -> Path:
 PROPOSAL_STATUSES = ('pending', 'accepted', 'rejected', 'withdrawn')
 PARKED_LABELS = {
     'es': {'title': '# Propuesta en custodia', 'history': '## Historial', 'text': '## Texto propuesto',
-           'notice': '> Custodia, no aceptación: texto literal recibido de su origen, sin revisar ni aprobar. '
-                     'Guardarlo en su destino exige la revisión humana completa.',
+           'notice': '> Custodia, no aceptación: texto literal recibido de su origen, sin revisar ni aprobar.',
            'received': 'pendiente · recibida de'},
     'en': {'title': '# Parked proposal', 'history': '## History', 'text': '## Proposed text',
-           'notice': '> Custody, not acceptance: literal text received from its origin, neither reviewed nor '
-                     'approved. Saving it at its destination requires the complete human review.',
+           'notice': '> Custody, not acceptance: literal text received from its origin, neither reviewed nor approved.',
            'received': 'pending · received from'},
 }
 
