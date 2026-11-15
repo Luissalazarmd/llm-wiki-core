@@ -17,7 +17,12 @@ Ask: “Start read-only; help me understand this question. Reuse existing explan
 Before saving, show the complete proposed content or exact diff and readable result.”
 
 [Adopt](skills/progressive-adoption/SKILL.md) · [Workflow](docs/knowledge-workflow.md) · [Onboarding](docs/onboarding.md) ·
-[Tools](docs/first-cut-tools.md) · [Starter library](docs/starter-library.md) · [Obsidian example](examples/obsidian/README.md)
+[Tools](docs/first-cut-tools.md) · [Starter library](docs/starter-library.md) · [Any host](docs/hosts.md) · [Obsidian example](examples/obsidian/README.md)
+
+A library can declare in its own rules that it follows Core, at which commit, so any agent
+with access (Claude Code, Codex, Cursor, Hermes or a cloud agent with only a Git clone)
+finds the same method and writers, or works proposal-only when they are missing:
+`python3 scripts/doctor.py --library /path/to/library`. See [any agent, any host](docs/hosts.md).
 
 Obsidian can provide the reading workspace: Bases shows inventories, Canvas shows
 the architecture, and optional [K-Plex](https://github.com/zsviczian/kplex) provides contextual knowledge navigation.

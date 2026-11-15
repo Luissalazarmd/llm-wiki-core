@@ -7,6 +7,9 @@ author: Luis Fernando Salazar Hortua, Hermes Agent
 
 # Review and save
 
+Copied into a host? The links below resolve from `skills/review-save/` in the Core install that the
+library rules locate ([hosts](../../docs/hosts.md)); read them there.
+
 ## When to Use
 
 Retain a useful correction/proposal or recover an authorized edit.

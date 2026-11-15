@@ -7,7 +7,8 @@ An existing library is never replaced by it; follow
 [progressive adoption](../skills/progressive-adoption/SKILL.md) there instead.
 
 It holds `Home.md`, `Raw/Sources/`, `Review/Inbox/`, `Wiki/Notes/`, `Wiki/Maps/` with one
-empty starting map, the library rules, [source templates](#source-templates) in
+empty starting map, the library rules with their two [host bridges](#any-agent-and-git), a
+`.gitignore`, [source templates](#source-templates) in
 `_templates/` and an optional Obsidian `Biblioteca.base` whose folders are relative to
 the copied root. Folders follow the three
 [roles](ontology.md): sources, notes and maps. Wiki prose is Spanish by default.
@@ -27,8 +28,27 @@ correspondence, the language, the review needed before any Wiki save, and that
 literal proposals may be parked in `Review/Inbox` without the owner present. They
 also state that only the owner may except create-only custody to
 [retire a capture](raw-admission.md#retiring-a-capture-an-owner-exception). A library
-copied earlier keeps its rules and needs no change: the helper reads no rules text, and
+copied earlier keeps its rules and needs no change: the writers read no rules text, and
 the owner may add that sentence by hand.
+
+## Any agent and Git
+
+The rules open with `## LLM Wiki Core`: the library follows Core, at which commit, and
+how an agent finds the owner's install and private settings without a private path in
+the library. [Any agent, any host](hosts.md) explains the lookup, `doctor.py` and the two
+modes. `CLAUDE.md` (`@AGENTS.md`) and `GEMINI.md` (`@./AGENTS.md`) are one-line bridges
+for hosts that read those names; they are rules files, so the owner owns them, an agent
+never edits them and the writers refuse to write them. An earlier copy gains all this
+when its owner adds the section and the two files by hand.
+
+After copying, the owner chooses a `Library id` of their own, replaces `unpinned` with
+the Core commit before the library is shared or put in Git, and registers the two
+private paths in their [user configuration](hosts.md#where-core-and-the-settings-are-found).
+Until then the copy works with `--config`, as below, and the doctor reports the pin as
+missing. For Git, the library folder itself is the repository:
+[a library kept in Git](hosts.md#a-library-kept-in-git) covers what stays outside and what
+two clones can and cannot do. The starter `.gitignore` only keeps a misplaced settings or
+recovery file from being staged.
 
 ## One authorization
 
@@ -53,7 +73,7 @@ python3 "$CORE/scripts/knowledge.py" --root "$PRIVATE/library"
 ```
 
 `mkdir` stops when the folder exists, so nothing is overlaid. `cp -R` of the folder
-carries the hidden `.obsidian/templates.json` too. `chmod` matters when
+carries the hidden `.obsidian/templates.json` and `.gitignore` too. `chmod` matters when
 Core is a read-only checkout, whose file modes a copy inherits. The settings resolve
 `library` and `recovery` against the JSON's own folder; the JSON and the recovery
 records stay outside both the library and Core. The checks pass when `map` reports

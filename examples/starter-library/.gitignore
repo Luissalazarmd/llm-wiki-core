@@ -1,0 +1,13 @@
+# Private settings and recovery copies live outside this folder.
+# These lines only keep a misplaced file from being published; they are not a place for it.
+/recovery/
+/library.json
+*.local.json
+.env
+.env.*
+
+# Local Obsidian session files and trash
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.trash/
+.DS_Store

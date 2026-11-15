@@ -9,6 +9,9 @@ Start with [preflight](docs/agent-preflight.md), the sole
 [Bibliotecario profile](Librarian%20Profile.md) and one action:
 [adopt](skills/progressive-adoption/SKILL.md), [read/connect](skills/read-connect/SKILL.md),
 [capture](skills/capture-source/SKILL.md), [review/save](skills/review-save/SKILL.md).
+A library whose rules carry a `## LLM Wiki Core` section names this checkout's commit and
+how to find its private settings: run `scripts/doctor.py --library <root>` first and work
+in the mode it reports ([any agent, any host](docs/hosts.md)).
 
 ## Model
 

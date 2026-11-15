@@ -121,7 +121,10 @@ stale/diff refusal, managed/source/instruction protection, no-clobber creation,
 proposal custody confined to its declared layer, owner-authored seeds, the copied
 starter library and its source templates, whole-or-nothing capture with attachments,
 owner-exception retirement and wrapper-only revision, template creation and hash-bound change,
-injected failures and recovery preserving later edits. Fixtures preserve originals.
+injected failures and recovery preserving later edits, and the [portable entry](hosts.md):
+the Core declaration, the private lookup order, `write` against `proposal_only`, the host
+bridges and a library in Git with two clones. Fixtures preserve originals. Whether a given
+host loads the rules, a bridge or a skill is observed per host, not proven by these tests.
 
 `python3 tests/demo_existing_library.py --output-parent /tmp` independently
 maps/reads/proposes without applying. Check JSON/Canvas, local links/headings,

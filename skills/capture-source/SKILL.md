@@ -7,6 +7,9 @@ author: Luis Fernando Salazar Hortua, Hermes Agent
 
 # Capture a source
 
+Copied into a host? The links below resolve from `skills/capture-source/` in the Core install that the
+library rules locate ([hosts](../../docs/hosts.md)); read them there.
+
 ## When to Use
 
 Retain a supplied original, with optional attachments, through the capture writer or

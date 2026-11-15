@@ -8,6 +8,13 @@ question, only if its answer would change the outcome. Observe capabilities as
 available/unavailable/unverified/not required. Load one [action](../AGENTS.md).
 Missing writers block dependent writes, not independent reading/proposals.
 
+Where the library rules declare Core, `python3 scripts/doctor.py --library <root>` answers
+most of this without changing anything: the declared commit against this install, the
+private settings found or missing, the write policy and the mode, `write` or
+`proposal_only`. Follow [any agent, any host](hosts.md); in `proposal_only`, or with only
+a clone of the library, never hand-edit Raw, Review, Wiki, templates or views. Its report
+names private paths and grants no consent.
+
 ## Requirements
 
 Solve these with whatever the host provides; report only what you cannot meet.

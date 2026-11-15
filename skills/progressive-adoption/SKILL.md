@@ -7,6 +7,9 @@ author: Luis Fernando Salazar Hortua, Hermes Agent
 
 # Progressive adoption
 
+Copied into a host? The links below resolve from `skills/progressive-adoption/` in the Core install that the
+library rules locate ([hosts](../../docs/hosts.md)); read them there.
+
 ## When to Use
 
 Adapt a small authorized sample when requested; no migration runtime.

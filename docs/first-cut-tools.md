@@ -50,6 +50,7 @@ none); `recovery_directory` must be outside both the library and the Core checko
 In mixed folders, select exact source files for that layer.
 
 ```sh
+python3 scripts/doctor.py --library /library
 python3 scripts/knowledge.py --root /library --mode existing --scope Reading
 python3 scripts/library.py --config /private.json map --scope Reading
 python3 scripts/library.py --config /private.json proposal --create --target Notes/new.md --evidence Sources/a.md < /draft.md
@@ -63,6 +64,10 @@ python3 scripts/view_write.py --config /private.json prepare --target Mapa.canva
 python3 scripts/view_write.py --config /private.json save --packet /view.json
 python3 scripts/note_write.py --config /private.json check --packet /proposal.json
 ```
+
+`doctor.py` is the read-only [entry check](hosts.md#the-doctor): it finds the private
+settings through `--config`, `LLM_WIKI_SETTINGS` or the per-user file named by the library's
+id, and reports `write` or `proposal_only`.
 
 For the first save, prepare the packet and present exact content/diff plus the
 readable result; obtain the actual person’s approval under the [review contract](review-contract.md).

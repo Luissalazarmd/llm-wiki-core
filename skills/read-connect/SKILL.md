@@ -7,6 +7,9 @@ author: Luis Fernando Salazar Hortua, Hermes Agent
 
 # Read and connect
 
+Copied into a host? The links below resolve from `skills/read-connect/` in the Core install that the
+library rules locate ([hosts](../../docs/hosts.md)); read them there.
+
 ## When to Use
 
 Understand, compare or navigate selected material.
