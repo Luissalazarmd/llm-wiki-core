@@ -189,7 +189,7 @@ INGEST_LABELS = {
 }
 
 
-INGEST_EMBED = re.compile(r'!\[|<\s*/?[A-Za-z][\w-]*(?:\s|/?>)')
+INGEST_EMBED = re.compile(r'!\[|<\s*/?[A-Za-z][\w-]*[\s/>]')
 
 
 def one_line(name: str, value, limit: int = 512) -> str:
@@ -414,8 +414,7 @@ def ingest_transition(text: str, status: str, date: str, progress: str | None = 
     if not entries:
         raise ValueError('The item history has no entries to append to; prepare a reviewed update')
     last = entries[-1]
-    while last + 1 < end and plain[last + 1][:1] in (' ', '\t') and plain[last + 1].strip():
-        last += 1
+    last = max(i for i in range(last, end) if plain[i].strip())  # after the owner's text under the last entry
     if not body[last].endswith('\n'):
         body[last] += eol
     entry = ' · '.join([f'- {date}', labels['states'][status],

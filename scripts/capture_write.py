@@ -301,7 +301,7 @@ def prepare_batch(settings, entries, batch_id=None):
     packet = {'format': BATCH, 'status': 'prepared_not_approved', 'batch_id': batch_id or uuid.uuid4().hex,
               'captures': captures, 'approval_available': False}
     packet = {**packet, 'packet_sha256': canonical(packet)}
-    if len(json.dumps(packet, ensure_ascii=False, indent=2).encode('utf-8')) > 2097152:
+    if len(json.dumps(packet, ensure_ascii=False, indent=2).encode('utf-8')) + 1 > 2097152:  # print adds a newline
         raise ValueError('The batch packet would exceed 2 MiB, more than check and save read: split the batch')
     return packet
 

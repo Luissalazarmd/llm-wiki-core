@@ -357,10 +357,18 @@ class IngestItemTests(IngestaCase):
                                 input=note, text=True, capture_output=True, timeout=20,
                                 env=dict(os.environ, PYTHONDONTWRITEBYTECODE='1'))
         self.refused(direct, 'preparatory analysis is not evidence')
+        original = self.item.read_text()
+        for broken in (original.replace('created:', 'created: "x"\ncreated:'),
+                       original.replace('origin: "agente: lector"', 'origin: *nope'),
+                       original.replace('ingest_status:', 'Ingest_status:')):
+            self.item.write_text(broken)
+            self.refused(self.call('library.py', 'proposal', '--create', '--target', 'Wiki/Notes/sintesis.md',
+                                   '--evidence', TARGET, stdin=note), 'preparatory analysis is not evidence')
 
     def test_any_html_element_is_refused_in_an_item(self):
         for markup in ('<div style="background:url(https://example.invalid/x)">x</div>',
-                       '<picture><source srcset="https://example.invalid/x"></picture>'):
+                       '<picture><source srcset="https://example.invalid/x"></picture>',
+                       '<img/src="https://example.invalid/x">'):
             self.refused(self.prepare(body=ANALYSIS.replace('alcance: adultos.', markup)), 'no HTML element')
         self.assertEqual(self.prepare(body=ANALYSIS.replace('alcance: adultos.', 'p<0.05 y <https://example.invalid>')).returncode, 0)
 
@@ -400,12 +408,12 @@ class IngestStatusTests(IngestaCase):
         self.item.write_text(commented)
         self.refused(self.status('--status', 'reading'), 'cannot be updated mechanically')
         self.assertEqual(self.item.read_text(), commented)
-        continued = ITEM + '  comentario mío sobre la preparación\n'
+        continued = ITEM + '  comentario mío sobre la preparación\n\n  y un segundo párrafo mío\n'
         self.item.write_text(continued)
         self.record('--status', 'reading', '--date', '2026-11-16')
         self.assertTrue(self.item.read_text().endswith(
             '- 2026-11-15 · pendiente · preparada por agente: lector\n  comentario mío sobre la preparación\n'
-            '- 2026-11-16 · en lectura\n'))
+            '\n  y un segundo párrafo mío\n- 2026-11-16 · en lectura\n'))
 
     def test_history_is_the_one_its_title_names(self):
         mixed = ITEM.replace('Nuevo: sin notas previas', 'Nuevo:\n\n## History\n\nsin notas previas')

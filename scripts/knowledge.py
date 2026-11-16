@@ -600,10 +600,8 @@ def new_target_path(root: Path, target: str) -> Path:
 
 def is_ingest_item(text: str) -> bool:
     """An Ingesta item is known by its ingest_status, whatever else was edited in it."""
-    try:
-        return 'ingest_status' in metadata_from(text)
-    except (ValueError, RecursionError):
-        return False
+    front = re.match(r'\A---\r?\n(.*?)(?:\r?\n)---(?:\r?\n|\Z)', text, re.S)
+    return bool(front and re.search(r'^\s*["\']?ingest_status["\']?\s*:', front[1], re.I | re.M))
 
 
 def prepare_proposal(root: Path, target: str, draft: str, evidence: list[str], create: bool = False,
