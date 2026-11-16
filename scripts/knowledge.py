@@ -600,6 +600,11 @@ def new_target_path(root: Path, target: str) -> Path:
 
 def is_ingest_item(text: str) -> bool:
     """An Ingesta item is known by its ingest_status, whatever else was edited in it."""
+    try:
+        if any(str(key).casefold() == 'ingest_status' for key in metadata_from(text)):
+            return True
+    except (ValueError, RecursionError, TypeError):
+        pass  # An unparsable frontmatter is still an item when a line names the key.
     front = re.match(r'\A---\r?\n(.*?)(?:\r?\n)---(?:\r?\n|\Z)', text, re.S)
     return bool(front and re.search(r'^\s*["\']?ingest_status["\']?\s*:', front[1], re.I | re.M))
 

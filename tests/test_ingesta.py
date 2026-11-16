@@ -360,7 +360,11 @@ class IngestItemTests(IngestaCase):
         original = self.item.read_text()
         for broken in (original.replace('created:', 'created: "x"\ncreated:'),
                        original.replace('origin: "agente: lector"', 'origin: *nope'),
-                       original.replace('ingest_status:', 'Ingest_status:')):
+                       original.replace('ingest_status:', 'Ingest_status:'),
+                       original.replace('ingest_status: pending', '"ingest\\u005fstatus": pending'),
+                       original.replace('---\ningest_status: pending\nsource: "Raw/Sources/guia.md"\norigin: "agente: lector"\n'
+                                        'conversation: "hilo-ficticio-3"\ncreated: "2026-11-15"\n---',
+                                        '---\n{ingest_status: pending}\n---')):
             self.item.write_text(broken)
             self.refused(self.call('library.py', 'proposal', '--create', '--target', 'Wiki/Notes/sintesis.md',
                                    '--evidence', TARGET, stdin=note), 'preparatory analysis is not evidence')
