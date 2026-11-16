@@ -598,6 +598,14 @@ def new_target_path(root: Path, target: str) -> Path:
     return path
 
 
+def is_ingest_item(text: str) -> bool:
+    """An Ingesta item is known by its ingest_status, whatever else was edited in it."""
+    try:
+        return 'ingest_status' in metadata_from(text)
+    except (ValueError, RecursionError):
+        return False
+
+
 def prepare_proposal(root: Path, target: str, draft: str, evidence: list[str], create: bool = False,
                      custody: bool = False, owner_authored: bool = False, ingest: bool = False) -> dict:
     """Bind an existing base or absent destination and evidence; never write.
@@ -642,6 +650,11 @@ def prepare_proposal(root: Path, target: str, draft: str, evidence: list[str], c
         detail = ', '.join(f'{p} ({skipped[p]})' for p in missing if p in skipped)
         raise ValueError('Proposal target and evidence must be existing Markdown files'
                          + (': ' + detail if detail else ''))
+    for path in evidence:
+        with (root.resolve(strict=True) / path).open('rb') as stream:
+            if is_ingest_item(stream.read(262145).decode('utf-8', 'replace')):
+                raise ValueError(f'{path} is an Ingesta item: an agent\'s preparatory analysis is not evidence. '
+                                 'Bind the captured source it points to, with the passage read there')
     original_bytes = b''
     if not create:
         with (root.resolve(strict=True) / target).open('rb') as stream:

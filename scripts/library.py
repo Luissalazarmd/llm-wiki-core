@@ -189,7 +189,7 @@ INGEST_LABELS = {
 }
 
 
-INGEST_EMBED = re.compile(r'!\[|<\s*(?:img|iframe|script|object|embed|video|audio|link|style|svg|meta|base)\b', re.I)
+INGEST_EMBED = re.compile(r'!\[|<\s*/?[A-Za-z][\w-]*(?:\s|/?>)')
 
 
 def one_line(name: str, value, limit: int = 512) -> str:
@@ -197,6 +197,12 @@ def one_line(name: str, value, limit: int = 512) -> str:
             or any(ord(char) < 32 or ord(char) == 127 for char in value)):
         raise ValueError(f'{name} must be one nonempty line of at most {limit} characters')
     return value
+
+
+def plain_value(line: str, key: str, value) -> bool:
+    """The line holds only its key and value, so rewriting it loses nothing the owner wrote."""
+    rest = line.rstrip('\r\n')
+    return isinstance(value, str) and rest in (f'{key}: {value}', f'{key}: ' + json.dumps(value, ensure_ascii=False))
 
 
 def ingest_enabled(settings: dict) -> None:
@@ -216,8 +222,10 @@ def ingest_parts(text: str):
     if 'ingest_status' not in metadata:
         return None
     lines = text.replace('\r\n', '\n').split('\n')
+    body = knowledge.visible_body(text)
+    title = next((line for line in body if line.startswith('# ')), '')
     for labels in INGEST_LABELS.values():
-        if lines.count(labels['history']) == 1:
+        if title.startswith(labels['title']) and lines.count(labels['history']) == 1:
             return metadata, labels, lines
     return None
 
@@ -385,7 +393,8 @@ def ingest_transition(text: str, status: str, date: str, progress: str | None = 
     lines = front[1].splitlines(keepends=True)
     found = [i for i, line in enumerate(lines) if line.startswith('ingest_status:')]
     placed = [i for i, line in enumerate(lines) if line.startswith('progress:')]
-    if len(found) != 1 or len(placed) > 1:
+    if len(found) != 1 or len(placed) > 1 or not plain_value(lines[found[0]], 'ingest_status', current) or (
+            placed and not plain_value(lines[placed[0]], 'progress', metadata.get('progress'))):
         raise ValueError('The item frontmatter cannot be updated mechanically; prepare a reviewed update')
     eol = '\r\n' if lines[found[0]].endswith('\r\n') else '\n'
     lines[found[0]] = f'ingest_status: {status}{eol}'
@@ -405,6 +414,8 @@ def ingest_transition(text: str, status: str, date: str, progress: str | None = 
     if not entries:
         raise ValueError('The item history has no entries to append to; prepare a reviewed update')
     last = entries[-1]
+    while last + 1 < end and plain[last + 1][:1] in (' ', '\t') and plain[last + 1].strip():
+        last += 1
     if not body[last].endswith('\n'):
         body[last] += eol
     entry = ' · '.join([f'- {date}', labels['states'][status],
@@ -485,7 +496,7 @@ def refuse_ingest_evidence(root: Path, paths: list[str]) -> None:
                 text = stream.read(262145).decode('utf-8')
         except (OSError, UnicodeDecodeError):
             continue  # The ordinary evidence checks report an unreadable file.
-        if ingest_parts(text) is not None:
+        if knowledge.is_ingest_item(text):
             raise ValueError(f'{relative} is an Ingesta item: an agent\'s preparatory analysis is not evidence. '
                              'Bind the captured source it points to, with the passage read there')
 

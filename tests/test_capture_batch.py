@@ -213,7 +213,15 @@ class CaptureBatchTests(unittest.TestCase):
         inside = self.root / 'Wiki/Notes/borrador.md'
         inside.write_text(wrapper('guia'))
         entries[0]['draft_path'] = str(inside)
-        self.refused(self.prepare(entries), 'written outside the library')
+        self.refused(self.prepare(entries), 'must be a file outside the library')
+
+    def test_a_batch_too_large_to_read_back_is_refused_when_prepared(self):
+        names = [f'doc{i}' for i in range(9)]
+        for name in names:
+            (self.downloads / f'{name}.pdf').write_bytes(pdf(name))
+        entries = [self.entry(n, draft=wrapper(n, extra=f'note: "{"x" * 240000}"\n')) for n in names]
+        self.refused(self.prepare(entries), 'exceed 2 MiB')
+        self.unchanged()
 
     def test_changed_input_or_edited_packet_means_review_again(self):
         path = self.packet()

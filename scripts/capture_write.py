@@ -289,7 +289,7 @@ def prepare_batch(settings, entries, batch_id=None):
         if 'draft_path' in entry:
             source = Path(os.path.abspath(entry['draft_path']))
             if source.resolve().is_relative_to(Path(settings['library_root'])):
-                raise ValueError('A wrapper draft is written outside the library: ' + entry['draft_path'])
+                raise ValueError('A wrapper draft must be a file outside the library: ' + entry['draft_path'])
             draft = note_write.read_bytes(source, capture_check.LIMIT)
         else:
             draft = entry['draft'].encode('utf-8')
@@ -300,7 +300,10 @@ def prepare_batch(settings, entries, batch_id=None):
     batch_conflicts(captures)
     packet = {'format': BATCH, 'status': 'prepared_not_approved', 'batch_id': batch_id or uuid.uuid4().hex,
               'captures': captures, 'approval_available': False}
-    return {**packet, 'packet_sha256': canonical(packet)}
+    packet = {**packet, 'packet_sha256': canonical(packet)}
+    if len(json.dumps(packet, ensure_ascii=False, indent=2).encode('utf-8')) > 2097152:
+        raise ValueError('The batch packet would exceed 2 MiB, more than check and save read: split the batch')
+    return packet
 
 
 def batch_conflicts(captures):

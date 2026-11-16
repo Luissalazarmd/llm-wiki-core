@@ -346,6 +346,24 @@ class IngestItemTests(IngestaCase):
         self.assertEqual(self.write(packet).returncode, 0)
 
 
+    def test_an_edited_item_is_still_never_evidence_by_either_entry_point(self):
+        self.create()
+        self.item.write_text(self.item.read_text().replace('## Historial', '## Bitácora'))
+        note = '---\nrole: note\nmaturity: synthesis\n---\n# Síntesis\n\nAfirmación tomada del análisis.\n'
+        self.refused(self.call('library.py', 'proposal', '--create', '--target', 'Wiki/Notes/sintesis.md',
+                               '--evidence', TARGET, stdin=note), 'preparatory analysis is not evidence')
+        direct = subprocess.run([sys.executable, str(BASE / 'scripts/knowledge.py'), '--root', str(self.root),
+                                 '--proposal-target', 'Wiki/Notes/sintesis.md', '--create', '--evidence', TARGET],
+                                input=note, text=True, capture_output=True, timeout=20,
+                                env=dict(os.environ, PYTHONDONTWRITEBYTECODE='1'))
+        self.refused(direct, 'preparatory analysis is not evidence')
+
+    def test_any_html_element_is_refused_in_an_item(self):
+        for markup in ('<div style="background:url(https://example.invalid/x)">x</div>',
+                       '<picture><source srcset="https://example.invalid/x"></picture>'):
+            self.refused(self.prepare(body=ANALYSIS.replace('alcance: adultos.', markup)), 'no HTML element')
+        self.assertEqual(self.prepare(body=ANALYSIS.replace('alcance: adultos.', 'p<0.05 y <https://example.invalid>')).returncode, 0)
+
 class IngestStatusTests(IngestaCase):
     def setUp(self):
         super().setUp()
@@ -376,6 +394,27 @@ class IngestStatusTests(IngestaCase):
         restored = self.call('note_write.py', 'restore', '--record', closed['record'])
         self.assertEqual(restored.returncode, 0, restored.stderr)
         self.assertIn('ingest_status: reading\nprogress: "p. 40"', self.item.read_text())
+
+    def test_owner_text_on_a_status_line_or_under_a_history_entry_is_never_lost(self):
+        commented = ITEM.replace('ingest_status: pending', 'ingest_status: pending # mía')
+        self.item.write_text(commented)
+        self.refused(self.status('--status', 'reading'), 'cannot be updated mechanically')
+        self.assertEqual(self.item.read_text(), commented)
+        continued = ITEM + '  comentario mío sobre la preparación\n'
+        self.item.write_text(continued)
+        self.record('--status', 'reading', '--date', '2026-11-16')
+        self.assertTrue(self.item.read_text().endswith(
+            '- 2026-11-15 · pendiente · preparada por agente: lector\n  comentario mío sobre la preparación\n'
+            '- 2026-11-16 · en lectura\n'))
+
+    def test_history_is_the_one_its_title_names(self):
+        mixed = ITEM.replace('Nuevo: sin notas previas', 'Nuevo:\n\n## History\n\nsin notas previas')
+        self.item.write_text(mixed)
+        self.record('--status', 'reading', '--date', '2026-11-16')
+        self.assertTrue(self.item.read_text().endswith('- 2026-11-16 · en lectura\n'))
+        english = ITEM.replace('# Ingesta: ', '# Ingest: ')
+        self.item.write_text(english)
+        self.refused(self.status('--status', 'reading'), 'Not an Ingesta item')
 
     def test_an_item_can_be_withdrawn_and_a_closed_item_takes_no_further_record(self):
         self.record('--status', 'withdrawn', '--note', 'el propietario la descartó', '--date', '2026-11-16')
