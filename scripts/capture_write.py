@@ -26,7 +26,7 @@ BATCH = 'capture-batch-v1'
 MAX_BATCH = 20
 REVISION = 'capture-revision-v1'
 MAX_ATTACHMENTS = 8
-MAX_ATTACHMENT_BYTES = 134217728
+MAX_ATTACHMENT_BYTES = 536870912  # 512 MiB: a scanned textbook fits
 # Admitted binary types: extension plus leading signature. A sanity bound, never content validation.
 TYPES = {
     '.pdf': lambda head: b'%PDF-' in head,

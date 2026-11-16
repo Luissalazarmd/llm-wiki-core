@@ -84,7 +84,8 @@ Ingesta is permitted here, and it is the default whenever the owner hands over d
 to keep, unless the owner says otherwise in that conversation.
 
 - Capture keeps its rule: the owner decides once on the whole batch, after seeing every
-  wrapper and every attachment name, size and sha256.
+  wrapper and every attachment name and size; wrappers that hold only fields may be shown
+  as one table carrying every value.
 - For each captured document an agent may then, without a further decision, create one
   new file in `Review/Inbox/` holding its own first analysis: what the document is, a
   reading map by sections and pages, a first contrast with this library, and exactly what
@@ -93,7 +94,8 @@ to keep, unless the owner says otherwise in that conversation.
 - That file is the agent's unreviewed reading aid: never knowledge, never evidence and
   never the owner's decision. Creating it never overwrites and never touches `Raw/` or `Wiki/`.
 - An agent changes its status, progress and history only to record what the owner said
-  in the current conversation: reading started, the point reached, finished or discarded.
+  in the current conversation: reading started, the point reached, finished, discarded or
+  reopened.
   The file is closed in place and never deleted. Any other change to it needs the owner's
   decision on the exact text.
 - What the owner keeps from a reading enters `Wiki/` as the owner's own notes, under

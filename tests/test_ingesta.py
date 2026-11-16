@@ -428,14 +428,22 @@ class IngestStatusTests(IngestaCase):
         self.item.write_text(english)
         self.refused(self.status('--status', 'reading'), 'Not an Ingesta item')
 
-    def test_an_item_can_be_withdrawn_and_a_closed_item_takes_no_further_record(self):
+    def test_an_item_can_be_withdrawn_and_reopened_in_reading_with_one_record(self):
         self.record('--status', 'withdrawn', '--note', 'el propietario la descartó', '--date', '2026-11-16')
         text = self.item.read_text()
         self.assertTrue(text.endswith('- 2026-11-16 · retirada · el propietario la descartó\n'))
         self.assertTrue(self.item.exists())
-        for status in ('reading', 'reviewed', 'withdrawn'):
-            self.refused(self.status('--status', status), 'reopening a closed item is a reviewed update')
+        for status in ('reviewed', 'withdrawn'):
+            self.refused(self.status('--status', status), 'or reopens a closed item in reading')
         self.assertEqual(self.item.read_text(), text)
+        self.record('--status', 'reading', '--progress', 'cap. 3', '--date', '2026-11-20')
+        self.assertTrue(self.item.read_text().endswith('- 2026-11-20 · en lectura · hasta cap. 3\n'))
+        self.assertIn('ingest_status: reading', self.item.read_text())
+        self.record('--status', 'reviewed', '--date', '2026-11-21')
+        # A closed item is not reopened while another one for the same document waits.
+        saved = self.write(self.packet(target='Review/Inbox/ingesta-otra.md'))
+        self.assertEqual(saved.returncode, 0, saved.stderr)
+        self.refused(self.status('--status', 'reading'), 'one open Ingesta item per document')
 
     def test_record_is_bound_to_the_version_the_agent_read(self):
         self.refused(self.status('--status', 'reading', expected='0' * 64), 'read it again')
@@ -454,6 +462,11 @@ class IngestStatusTests(IngestaCase):
                      'note links and never embeds')
         # A comparison sign in clinical prose is not an element.
         self.assertEqual(self.status('--status', 'reading', '--progress', 'p. 12, tabla con p < 0.05').returncode, 0)
+        # Nor is the owner's "<P95": it is kept as said and written as inert text in the history.
+        self.record('--status', 'reading', '--progress', 'p. 9, valores <P95 en niños', '--note', '<b de grado')
+        text = self.item.read_text()
+        self.assertIn('progress: "p. 9, valores <P95 en niños"', text)
+        self.assertTrue(text.endswith('hasta p. 9, valores &lt;P95 en niños · &lt;b de grado\n'))
         self.record('--status', 'reading', '--progress', 'p. 12')
         self.refused(self.status('--status', 'reading', '--progress', 'p. 12'), 'Nothing to record')
         self.refused(self.status('--status', 'reading'), 'Nothing to record')
@@ -575,6 +588,7 @@ class IngestQueueAndReadingTests(IngestaCase):
                          [(TARGET, 'reading', 'p. 12', SOURCE, True),
                           ('Review/Inbox/ingesta-libro.md', 'pending', None, 'Raw/Sources/libro.md', True)])
         self.assertEqual(queue['items'][0]['sha256'], sha(self.item.read_bytes()))
+        self.assertEqual([i['title'] for i in queue['items']], ['Guía inventada', 'Libro inventado'])
         self.assertEqual([(entry['path'], entry['reason'][:7]) for entry in queue['not_checked']],
                          [('Review/Inbox/enorme.md', 'exceeds'), ('Review/Inbox/roto.md', "'utf-8'")])
         self.assertEqual((queue['mode'], queue['library_changed']), ('ingest_queue_read_only', False))

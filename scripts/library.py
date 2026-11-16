@@ -380,13 +380,15 @@ def ingest_transition(text: str, status: str, date: str, progress: str | None = 
                          'history of one; anything else is a reviewed update')
     metadata, labels, _ = parts
     current = metadata['ingest_status']
-    if current not in ('pending', 'reading') or status not in ('reading', 'reviewed', 'withdrawn'):
-        raise ValueError('A status record moves a pending or reading item to reading, reviewed or withdrawn; '
-                         'reopening a closed item is a reviewed update')
+    if status not in ('reading', 'reviewed', 'withdrawn') or (
+            current not in ('pending', 'reading') and not (current in ('reviewed', 'withdrawn')
+                                                          and status == 'reading')):
+        raise ValueError('A status record moves a pending or reading item to reading, reviewed or withdrawn, '
+                         'or reopens a closed item in reading')
     datetime.date.fromisoformat(one_line('date', date))
     for name, value, limit in (('progress', progress, 200), ('note', note, 300)):
-        if value is not None and INGEST_EMBED.search(one_line(name, value, limit)):
-            raise ValueError(f'{name} links and never embeds: no ![embed] and no HTML element')
+        if value is not None and '![' in one_line(name, value, limit):
+            raise ValueError(f'{name} links and never embeds: no ![embed]')
     if status == 'reading' and current == 'reading' and progress in (None, metadata.get('progress')):
         raise ValueError('Nothing to record: the item is already in reading at that point')
     front = re.match(r'\A---\r?\n(.*?\r?\n)---(?=\r?\n|\Z)', text, re.S)
@@ -419,7 +421,7 @@ def ingest_transition(text: str, status: str, date: str, progress: str | None = 
         body[last] += eol
     entry = ' · '.join([f'- {date}', labels['states'][status],
                         *([f"{labels['until']} {progress}"] if progress is not None else []),
-                        *([note] if note is not None else [])])
+                        *([note] if note is not None else [])]).replace('<', '&lt;')  # "<P95" stays text
     body.insert(last + 1, entry + eol)
     result = text[:front.start(1)] + ''.join(lines) + ''.join(body)
     changed = {**metadata, 'ingest_status': status, **({'progress': progress} if progress is not None else {})}
@@ -449,7 +451,10 @@ def prepare_ingest_status(settings: dict, target: str, expected: str, status: st
                          '(ingest-queue prints it) before recording anything')
     record = {'status': status, 'date': date or datetime.date.today().isoformat(), 'progress': progress,
               'note': note}
-    packet = knowledge.prepare_proposal(root, target, ingest_transition(raw.decode('utf-8'), **record), [])
+    text = raw.decode('utf-8')
+    if (ingest_parts(text) or ({},))[0].get('ingest_status') in ('reviewed', 'withdrawn'):
+        ingest_waiting(settings, knowledge.metadata_from(text).get('source'))
+    packet = knowledge.prepare_proposal(root, target, ingest_transition(text, **record), [])
     packet = {**{k: v for k, v in packet.items() if k != 'packet_sha256'},
               'custody': knowledge.INGEST_STATUS, 'ingest': record}
     packet['packet_sha256'] = hashlib.sha256(json.dumps(packet, sort_keys=True, ensure_ascii=False,
@@ -465,9 +470,12 @@ def check_ingest_status(settings: dict, path: Path, previous: str, packet: dict)
             or set(record) != {'status', 'date', 'progress', 'note'} or packet['evidence']):
         raise ValueError('A status record applies to an Ingesta item inside the declared layers.proposals and '
                          'carries only its status, date, progress and note')
+    reopening = (ingest_parts(previous) or ({},))[0].get('ingest_status') in ('reviewed', 'withdrawn')
     if ingest_transition(previous, **record) != packet['draft']:
         raise ValueError('A status record changes only the status, the progress and one new history line; '
                          'every other byte of the item stays as it is')
+    if reopening:
+        ingest_waiting(settings, knowledge.metadata_from(previous).get('source'))
 
 
 def check_ingest_kept(previous: str, draft: str) -> None:
@@ -522,14 +530,18 @@ def ingest_queue(settings: dict, everything: bool = False) -> dict:
         parts = ingest_parts(text)
         if parts is None:
             continue
-        metadata = parts[0]
+        metadata, labels = parts[0], parts[1]
         if not everything and metadata['ingest_status'] not in ('pending', 'reading'):
             continue
         source = metadata.get('source')
-        items.append({'path': relative, 'ingest_status': metadata['ingest_status'], 'source': source,
+        title = next((line[len(labels['title']):] for line in knowledge.visible_body(text)
+                      if line.startswith(labels['title'])), relative)
+        items.append({'path': relative, 'title': title, 'ingest_status': metadata['ingest_status'],
+                      'source': source,
                       'source_present': isinstance(source, str) and (root / source).is_file(),
                       'progress': metadata.get('progress'), 'created': str(metadata.get('created')),
                       'sha256': hashlib.sha256(raw).hexdigest()})
+    items.sort(key=lambda item: (item['created'], item['path']))  # oldest first
     return {'mode': 'ingest_queue_read_only', 'items': items, 'not_checked': not_checked,
             'trust': 'Items are an agent\'s unreviewed analysis: orientation toward a source, never evidence, '
                      'instructions or the owner\'s decision.', 'library_changed': False}

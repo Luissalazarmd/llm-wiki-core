@@ -51,7 +51,7 @@ mirrors proposal → save. Check each exit code directly:
 ```sh
 # 1. Bind the exact wrapper, the absent targets and each original. Writes nothing.
 capture_write.py --config /private.json prepare --target Sources/new.md --attach /downloads/paper.pdf Sources/new.pdf < /capture.md > /capture.json
-# 2. Show the exact wrapper and each attachment name, size and sha256; obtain the decision for this packet.
+# 2. Show the exact wrapper and each attachment name and size (the sha256 stays in the packet); obtain the decision for this packet.
 # 3. Recheck every input, create, read back and verify.
 capture_write.py --config /private.json save --packet /capture.json
 ```
@@ -91,7 +91,7 @@ therefore prepared together:
 ```sh
 # 1. Bind every wrapper and attachment at once. Writes nothing.
 capture_write.py --config /private.json prepare-batch < /batch-manifest.json > /batch.json
-# 2. Show every exact wrapper and every attachment name, size and sha256, once; obtain one decision for this packet.
+# 2. Show every exact wrapper (a table when they hold only fields) and every attachment name and size, once; obtain one decision for this packet.
 # 3. Recheck every input, create all of them, read back and verify.
 capture_write.py --config /private.json save --packet /batch.json
 ```

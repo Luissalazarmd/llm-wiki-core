@@ -26,7 +26,7 @@ the library rules permit it, documents handed over to keep continue into
    from the stated purpose; a simple reference needs no strategy discussion. Where the
    library has source templates, fill one: shape, not approval.
 4. Bind it with `capture_write.py prepare`. Show the exact wrapper and each attachment
-   name, size and sha256; follow [review](../../docs/review-contract.md) and library
+   name and size (the sha256 stays in the packet); follow [review](../../docs/review-contract.md) and library
    custody. The decision is for this packet only. Several sources handed over together
    are one packet: `prepare-batch`, every wrapper and attachment shown once, one decision.
 5. `capture_write.py save` rechecks inputs, creates without overwrite as independent

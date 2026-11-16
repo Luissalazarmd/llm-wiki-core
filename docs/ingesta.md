@@ -15,8 +15,11 @@ write nothing more.
 
 1. **Capture the batch.** Draft every wrapper as usual, with an empty summary, and
    prepare them [together](raw-admission.md#several-captures-one-decision). Show every
-   wrapper and every attachment name, size and sha256 once; one decision covers that
-   packet. The wrapper receives no orientation, summary or analysis.
+   wrapper and every attachment name and size once (the sha256 stays in the packet and
+   the record); one decision covers that packet. A batch may be shown as one table when every wrapper holds only fields: the table
+   carries every field value, and a wrapper with any prose is shown in full. The wrapper
+   receives no orientation, summary or analysis. A wrapper without DOI or URL takes
+   the ISBN or a short citation as `Reference`; it is never empty.
 2. **First analysis.** For each saved capture, read the document as far as the session
    allows and create its item. No further decision is asked: that is what the rules
    permit. Tell the owner what now waits and how much of each document was read.
@@ -75,7 +78,10 @@ one. Then:
    The item only points; what is said about a section comes from reading that section
    of the original now, with its pages, keeping quotation, paraphrase and inference apart.
 2. When the owner starts, record `reading`. When they stop, record where they are, in
-   their words: `--progress "p. 45"`.
+   their words: `--progress "p. 45"`. Each record is two steps: `library.py ingest-status
+   --target <item> --status <status> [--progress …] [--note …] --expected-sha256 <sha256>`
+   prepares it, `note_write.py save --packet` writes it. "Volvamos a X" reopens a closed
+   item the same way, with `--status reading`.
 3. Go section by section along the map. Each thing the owner states and wants to keep
    becomes an [owner-authored seed](plain-saving.md#owner-authored-seeds): their words,
    a link to the source and the pages it arose from, shown in full, decided, saved in

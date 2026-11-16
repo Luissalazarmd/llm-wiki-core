@@ -166,12 +166,15 @@ python3 scripts/note_write.py --config /private.json save --packet /status.json
 only on the version just read, and builds the same file with a new `ingest_status`,
 an optional `progress`, and one more history line (`--note` adds one line to it, such
 as the notes the owner kept). It moves `pending` or `reading` to `reading`, `reviewed`
-or `withdrawn`. The writer recomputes that transition from the current bytes and
+or `withdrawn`, and reopens a `reviewed` or `withdrawn` item in `reading` while no other
+item for the same source is open. `<` in progress or note is written as `&lt;` in the
+history line, so the owner's "<P95" stays text. The writer recomputes that transition from the current bytes and
 refuses any packet that differs from it by one byte, so a status record cannot carry
 a change to the analysis, the source, the origin or earlier history; it reports
 `ingest_status_recorded` and keeps the previous bytes in a private record like any
-update. A frontmatter the helper cannot change line by line, a missing history and a
-closed item are refused: those are reviewed updates.
+update. A frontmatter the helper cannot change line by line, and a missing history
+are refused: those are reviewed updates. The queue lists the oldest first, with each
+item's title.
 
 An ordinary `proposal` update of an item, shown and decided like any other, may change
 its analysis or status; the writer refuses one that drops the format, changes
