@@ -71,8 +71,8 @@ fuller analysis replaces the item's text only as a reviewed update the owner see
 
 ## The reading session
 
-One document at a time. The owner names it, or the agent offers the oldest pending
-one. Then:
+One document at a time. The owner names it, or the agent offers the first open item
+in `ingest-queue`. The queue lists both pending and in-progress readings, oldest first.
 
 1. Read the current item (`ingest-queue` gives its `sha256`) and open the original.
    The item only points; what is said about a section comes from reading that section
@@ -81,7 +81,8 @@ one. Then:
    their words: `--progress "p. 45"`. Each record is two steps: `library.py ingest-status
    --target <item> --status <status> [--progress …] [--note …] --expected-sha256 <sha256>`
    prepares it, `note_write.py save --packet` writes it. "Volvamos a X" reopens a closed
-   item the same way, with `--status reading`.
+   item the same way. Get its current hash from `ingest-queue --all`, then use
+   `--status reading`. The status writer checks that no other item for the source is open.
 3. Go section by section along the map. Each thing the owner states and wants to keep
    becomes an [owner-authored seed](plain-saving.md#owner-authored-seeds): their words,
    a link to the source and the pages it arose from, shown in full, decided, saved in
@@ -95,7 +96,8 @@ one. Then:
 Status and progress only record what the owner said in the conversation. The agent
 does not advance them from its own reading, does not close an item because it looks
 finished, and does not withdraw its own analysis: if the analysis proves wrong, or the
-capture was retired (`source_present: false` in the queue), it tells the owner.
+queue cannot find the original at its authorized source path (`source_present: false`),
+it tells the owner.
 
 ## Afterwards
 
@@ -107,10 +109,10 @@ offered as a reading, not cited.
 
 ## The queue as a view
 
-The [starter library](starter-library.md) carries an example: `Biblioteca.base` sorts
-files of the proposals folder that declare `ingest_status` into "Ingesta", its
-"Pendientes" view lists those `pending` or `reading` with their progress and source,
-"Lecturas" lists all of them by status, and `Home.md` embeds the queue. An existing
+The [starter library](starter-library.md) includes an example in `Biblioteca.base`.
+Its "Pendientes" view lists open items by declared creation date, then path, with
+their progress and source. "Lecturas" groups all items by status. `Home.md` embeds
+the open queue. An existing
 library adopts it as any [view](views.md): the exact content shown, decided and saved
 with `view_write.py`. The filter is `ingest_status == "pending"` or `"reading"` on
 files inside the proposals folder.

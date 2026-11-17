@@ -93,7 +93,9 @@ views:
       - formula.avance
       - formula.fuente
     sort:
-      - property: file.ctime
+      - property: formula.fecha
+        direction: ASC
+      - property: file.path
         direction: ASC
   - type: table
     name: Lecturas

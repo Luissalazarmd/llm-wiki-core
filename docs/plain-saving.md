@@ -111,9 +111,9 @@ made outside the helper remain possible, as for every plain file.
 ## Ingesta items
 
 [Ingest custody](review-contract.md#ingest-custody) needs the library rules to permit
-it, `"ingest_custody": true` in the private settings and the same explicit
-`layers.proposals` that parking needs; without the setting every command below
-refuses, whatever parking is allowed. `library.py ingest --target ... --source ...
+it, `"ingest_custody": true` in the private settings and an explicit
+`layers.proposals` to create items and record status. Reading the queue needs only
+the declared proposals layer and read access. `library.py ingest --target ... --source ...
 --origin ...` wraps the analysis on stdin; `note_write.py save` publishes it with the
 same no-clobber creation and private record, and reports `ingest_item_created`,
 `custody_only: true`, `reviewed_by_owner: false`.
@@ -156,16 +156,17 @@ the file.
 
 ```sh
 python3 scripts/library.py --config /private.json ingest-queue
-python3 scripts/library.py --config /private.json ingest-status --target Review/Inbox/ingesta-guia.md --status reading --progress "p. 45" --expected-sha256 <sha256> > /status.json
+# Set item_sha256 from the selected row above. Use ingest-queue --all for a closed item.
+python3 scripts/library.py --config /private.json ingest-status --target Review/Inbox/ingesta-guia.md --status reading --progress "p. 45" --expected-sha256 "$item_sha256" > /status.json
 python3 scripts/note_write.py --config /private.json save --packet /status.json
 ```
 
 `ingest-queue` is read-only and works under `read_only`: it lists the `pending` and
-`reading` items (`--all` adds the closed ones) with their source, progress and the
+`reading` items (`--all` adds the closed ones) with their title, source, progress and the
 `sha256` of the current file. `ingest-status` takes that hash, so a record is prepared
 only on the version just read, and builds the same file with a new `ingest_status`,
-an optional `progress`, and one more history line (`--note` adds one line to it, such
-as the notes the owner kept). It moves `pending` or `reading` to `reading`, `reviewed`
+an optional `progress`, and one more history line (`--note` appends text to that line, such
+as links to the notes the owner kept). It moves `pending` or `reading` to `reading`, `reviewed`
 or `withdrawn`, and reopens a `reviewed` or `withdrawn` item in `reading` while no other
 item for the same source is open. `<` in progress or note is written as `&lt;` in the
 history line, so the owner's "<P95" stays text. The writer recomputes that transition from the current bytes and
@@ -173,8 +174,11 @@ refuses any packet that differs from it by one byte, so a status record cannot c
 a change to the analysis, the source, the origin or earlier history; it reports
 `ingest_status_recorded` and keeps the previous bytes in a private record like any
 update. A frontmatter the helper cannot change line by line, and a missing history
-are refused: those are reviewed updates. The queue lists the oldest first, with each
-item's title.
+are refused: those are reviewed updates.
+
+The queue sorts by creation date, then path. Items with missing or invalid dates follow
+the dated ones. `source_present` checks for a regular Markdown file
+in the declared source layer, within the authorized paths.
 
 An ordinary `proposal` update of an item, shown and decided like any other, may change
 its analysis or status; the writer refuses one that drops the format, changes

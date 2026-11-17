@@ -62,7 +62,7 @@ not the download's name: they then sort, link and retire together.
 `prepare` runs the checker on the wrapper and prints a packet with a fresh
 `capture_id`. It refuses an existing target, an unfilled `{{title}}`, `{{date}}` or
 `{{time}}` placeholder, and an attachment that is a symlink, lies inside the library,
-changes extension, exceeds 128 MiB or is not an admitted type: `.pdf`, `.png`, `.jpg`,
+changes extension, exceeds 512 MiB or is not an admitted type: `.pdf`, `.png`, `.jpg`,
 `.jpeg`, `.gif`, `.webp`, `.epub`, `.mp3`, `.m4a`, `.ogg`, `.opus`, `.wav`, `.flac`,
 each with its leading signature. That is a sanity bound, not content validation or a
 malware scan. Video, SVG and larger files stay outside; reference them. Attachment
@@ -114,7 +114,7 @@ captures save once. One decision covers exactly the wrappers and attachments sho
 adding, dropping or changing a capture is a new packet and a new decision.
 
 The writer authenticates no consent. The [review contract](review-contract.md) still
-requires showing the exact wrapper, with the attachment names and hashes, and the
+requires showing the exact wrapper with each attachment name and size, and obtaining the
 owner's decision for this capture. An approval of an earlier capture of the same
 source, since retired or deleted, does not carry over: prepare again, show it again.
 A packet saves once; reusing it after a retirement is refused. Never rewrite what was

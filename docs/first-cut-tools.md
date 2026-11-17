@@ -97,7 +97,9 @@ agent's first analysis, and later records of what the owner did with it:
 ```sh
 python3 scripts/library.py --config /private.json ingest --target Review/Inbox/ingesta-new.md --source Raw/Sources/new.md --origin "agent: reader" < /analysis.md > /item.json
 python3 scripts/note_write.py --config /private.json save --packet /item.json
-python3 scripts/library.py --config /private.json ingest-status --target Review/Inbox/ingesta-new.md --status reading --progress "p. 45" --expected-sha256 <sha256> > /status.json
+# Set item_sha256 from the selected item in this listing.
+python3 scripts/library.py --config /private.json ingest-queue --all
+python3 scripts/library.py --config /private.json ingest-status --target Review/Inbox/ingesta-new.md --status reading --progress "p. 45" --expected-sha256 "$item_sha256" > /status.json
 python3 scripts/note_write.py --config /private.json save --packet /status.json
 ```
 

@@ -253,6 +253,7 @@ class CaptureWriteTests(CaptureWriteCase):
         many = [(str(self.original), f'Raw/Sources/n{i}.pdf') for i in range(9)]
         self.refused(self.prepare(attach=many), 'at most 8 attachments')
         module, settings = self.module()
+        self.assertEqual(module.MAX_ATTACHMENT_BYTES, 512 * 1024 * 1024)
         with patch.object(module, 'MAX_ATTACHMENT_BYTES', len(PDF) - 1):
             with self.assertRaisesRegex(ValueError, 'exceeds byte limit'):
                 module.prepare(settings, 'Raw/Sources/informe.md', WRAPPER.encode(),
