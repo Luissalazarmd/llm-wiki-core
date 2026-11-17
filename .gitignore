@@ -5,6 +5,7 @@
 /private/
 /config/local.json
 /config/*.local.json
+/*.local.md
 .env
 .env.*
 !.env.example
@@ -16,6 +17,8 @@
 # Disposable local artifacts; never store required durable state here.
 /.local/
 /.cache/
+/.atl/
+/.ruff_cache/
 /tmp/
 /backups/
 *.tmp
