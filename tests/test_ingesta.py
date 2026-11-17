@@ -445,6 +445,18 @@ class IngestStatusTests(IngestaCase):
         self.assertEqual(saved.returncode, 0, saved.stderr)
         self.refused(self.status('--status', 'reading'), 'one open Ingesta item per document')
 
+    def test_save_rechecks_the_queue_before_reopening(self):
+        self.record('--status', 'reviewed')
+        reopen = self.status('--status', 'reading')
+        self.assertEqual(reopen.returncode, 0, reopen.stderr)
+        saved = self.write(self.packet(target='Review/Inbox/ingesta-otra.md'))
+        self.assertEqual(saved.returncode, 0, saved.stderr)
+        before = self.tree('Review')
+        records = set(self.recovery.iterdir())
+        self.refused(self.write(json.loads(reopen.stdout)), 'one open Ingesta item per document')
+        self.assertEqual(self.tree('Review'), before)
+        self.assertEqual(set(self.recovery.iterdir()), records)
+
     def test_record_is_bound_to_the_version_the_agent_read(self):
         self.refused(self.status('--status', 'reading', expected='0' * 64), 'read it again')
         prepared = json.loads(self.status('--status', 'reading').stdout)
@@ -609,6 +621,30 @@ class IngestQueueAndReadingTests(IngestaCase):
         self.config.write_text(json.dumps(settings))
         self.refused(self.call('library.py', 'ingest-queue'), 'none is declared')
 
+    def test_queue_orders_by_calendar_date_then_path_without_rewriting_created(self):
+        # Dates oppose filename order. Basic ISO dates are accepted by Python 3.11 and later.
+        early = '20261114' if sys.version_info >= (3, 11) else '2026-11-14'
+        dates = {'a': '0000-invalid', 'b': '2026-11-16', 'c': '2026-11-14', 'd': early}
+        for name, date in dates.items():
+            (self.item.parent / f'{name}.md').write_text(ITEM.replace('2026-11-15', date))
+        self.configure(ingest_custody=None, write_policy='read_only', recovery_directory=None)
+        result = self.call('library.py', 'ingest-queue')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        items = json.loads(result.stdout)['items']
+        self.assertEqual([(Path(item['path']).stem, item['created']) for item in items],
+                         [(name, dates[name]) for name in ('c', 'd', 'b', 'a')])
+
+    def test_queue_checks_presence_only_for_declared_source_files(self):
+        (self.root / 'Raw/Sources/alias.md').symlink_to(self.root / SOURCE)
+        for source in (SOURCE, 'Wiki/Notes/sombra.md', 'Raw/Sources/alias.md',
+                       'Raw/Sources/absent.md', str(self.root / SOURCE)):
+            with self.subTest(source=source):
+                self.item.write_text(ITEM.replace(SOURCE, source))
+                result = self.call('library.py', 'ingest-queue')
+                self.assertEqual(result.returncode, 0, result.stderr)
+                item, = json.loads(result.stdout)['items']
+                self.assertEqual(item['source_present'], source == SOURCE)
+
     def test_what_the_owner_keeps_is_an_owner_seed_with_its_pages_in_wiki_only(self):
         self.create()
         seed = self.call('library.py', 'proposal', '--create', '--owner-authored', '--target',
@@ -649,6 +685,8 @@ class IngestaContractTests(unittest.TestCase):
         self.assertIs(json.loads((BASE / 'examples/starter-library.config.example.json').read_text())['ingest_custody'], True)
         base = yaml.safe_load((STARTER / 'Biblioteca.base').read_text())
         pending = next(view for view in base['views'] if view['name'] == 'Pendientes')
+        self.assertEqual(pending['sort'], [{'property': 'formula.fecha', 'direction': 'ASC'},
+                                           {'property': 'file.path', 'direction': 'ASC'}])
         self.assertEqual(pending['filters'], {'and': ['formula.categoria == "Ingesta"',
                                                       {'or': ['ingest_status == "pending"', 'ingest_status == "reading"']}]})
         self.assertIn('if(ingest_status, "Ingesta", "Propuestas")', base['formulas']['categoria'])

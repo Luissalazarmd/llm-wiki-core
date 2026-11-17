@@ -1,5 +1,28 @@
 # Acceptance
 
+## Ingesta follow-up and public checkout — 2026-11-17
+
+All 466 synthetic tests passed at `aeb907f` on Linux x86_64 with Python 3.14.8
+and PyYAML 6.0.3. The November 15 checkpoint below records the initial delivery.
+Subsequent fixes through `4565958` preserve owner edits when appending history,
+escape `<` in progress and notes, recognize edited Ingesta items as ineligible
+evidence and reject batch packets that exceed the reader's size limit. Capture
+review shows each attachment's name and size. SHA-256 stays in the packet and
+recovery record. The limit is 512 MiB per attachment.
+
+The queue reports titles and sorts by creation date, then path. The starter Base
+now uses the declared date for “Pendientes”. Regression tests cover the CLI order,
+the Base sort settings, source presence within the declared capture layer, and a
+reopen refused at save when another item for that source has since opened. The
+attachment tests check the configured ceiling and exercise both sides of a small
+test limit.
+
+The [Ingesta skill](../skills/ingesta/SKILL.md) commands also ran in a disposable
+starter library. A pending item was closed, found with `ingest-queue --all`, and
+reopened in `reading` using its current hash. The existing-library demo passed with
+its input library unchanged. Native Obsidian rendering, real owner sessions,
+other platforms and full-size attachments remain unverified in this run.
+
 ## Ingesta: reading queue, ingest custody and batch capture — 2026-11-15
 
 This update passed 458 synthetic tests on Linux with Python 3.14.8 and PyYAML 6.0.3,

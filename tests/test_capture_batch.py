@@ -113,7 +113,7 @@ class CaptureBatchTests(unittest.TestCase):
         self.assertEqual((batch['format'], batch['status'], batch['approval_available'], len(batch['captures'])),
                          ('capture-batch-v1', 'prepared_not_approved', False, 2))
         for name, child in zip(NAMES, batch['captures']):
-            # Everything the owner must see once: the exact wrapper and each attachment name, size and sha256.
+            # Review shows the wrapper, attachment names and sizes. The packet also binds the original bytes.
             self.assertEqual(child['draft'], wrapper(name))
             self.assertEqual(child['attachments'], [{
                 'source': str((self.downloads / f'{name}.pdf').resolve()), 'target': f'Raw/Sources/{name}.pdf',

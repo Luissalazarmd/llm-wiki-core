@@ -34,7 +34,7 @@ constraints remain unresolved, keep affected changes as proposals.
 Use [optional numbering commands](first-cut-tools.md#optional-living-synthesis-numbering)
 inside the existing reader/proposal/check/save/recovery path, using the local
 canonical writer where required. One deterministic module derives reservations
-from scoped files; there is no separate counter, fifth skill, writer, service or
+from scoped files; there is no separate counter, numbering skill, writer, service or
 chat-ingestion channel. Its opt-in representation is an adapter, not a mandatory
 schema or an automatic migration of existing IDs.
 

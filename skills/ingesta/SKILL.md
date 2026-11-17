@@ -20,32 +20,49 @@ says otherwise. Without that permission use [capture](../capture-source/SKILL.md
 ## Procedure
 
 1. Read [AGENTS](../../AGENTS.md), the actual library rules and [Ingesta](../../docs/ingesta.md).
+   Run the helpers from the Core checkout. Set `config` to the library's private settings path.
 2. Capture the documents as one batch: draft each wrapper as [capture](../capture-source/SKILL.md)
-   says, with nothing added to it, then `capture_write.py prepare-batch`. Show every
-   wrapper (one table when they hold only fields) and each attachment name and size
-   once; one decision; `save`. `Reference` is never empty: without DOI or URL use the
-   ISBN or a short citation. A file over 512 MiB is refused with the whole batch: leave
-   it out, save the rest, and tell the owner which one.
+   says, then use `prepare-batch` to bind the [batch packet](../../docs/raw-admission.md#several-captures-one-decision).
+   Show every wrapper (one table when they hold only fields) and each attachment name and size
+   once before saving. One decision covers that packet. Without a DOI or URL, use the
+   ISBN or a short citation as `Reference`. An attachment over 512 MiB blocks the batch.
+   Identify the affected capture and prepare the remaining captures for a fresh decision.
 3. For each saved capture, read as much of the document as the session allows, in
    chunks, in the background or a sub-agent if the host has one, and search the
    authorized scope read-only. Write the four sections: orientation, reading map with
    page ranges and relevance, contrast with the library with source locators, and
-   coverage. `library.py ingest --target Review/Inbox/ingesta-<stem>.md --source
-   <wrapper> --origin "agent: <name>" < analysis.md > item.json` (the analysis starts at
-   the first section heading; the helper adds title, link, notice and history), then
-   `note_write.py save --packet item.json` creates the pending item; no decision is asked.
-   Write "menor que" rather than "<" in the analysis: an HTML-like tag is refused. Report what waits and what was not read.
+   coverage. Set `item` to the new item's library-relative path, `wrapper` to the
+   captured source path and `origin` to `agent: <name>`. Set `scratch` to a private
+   directory outside the library and the Core checkout. Prepare and save the item with these commands.
+
+   ```sh
+   python3 scripts/library.py --config "$config" ingest --target "$item" --source "$wrapper" --origin "$origin" < "$scratch/analysis.md" > "$scratch/item.json"
+   python3 scripts/note_write.py --config "$config" save --packet "$scratch/item.json"
+   ```
+
+   The analysis begins at the first section heading. The helper adds the title,
+   source link, notice and history. Ingest custody covers the creation; no decision is asked.
+   An HTML-like tag in the analysis is refused when the item is saved: write `&lt;` or
+   "menor que" for a literal less-than sign.
+   In status records, pass the owner’s words literally. The writer escapes `<` in the
+   history line. Report what waits and what was not read.
 4. Reading session, one document at a time (offer the first of `ingest-queue`, the
-   oldest): read the item and the original, record `reading` with `ingest-status`, go section by section from the original, and save
+   oldest open item): read the item and the original, record `reading` with
+   `ingest-status`, go section by section from the original, and save
    what the owner states as owner seeds (`--create --owner-authored`, their words, the
    source link and pages) through [review/save](../review-save/SKILL.md). Record
    progress in the owner's words when they stop.
 5. Close in place when the owner says so: `ingest-status --status reviewed --note`
-   naming the notes kept, or `withdrawn`. Reopen with `--status reading` when they return.
+   naming the notes kept, or `withdrawn`. Reopen with `--status reading` when they return. Use
+   `ingest-queue --all` for the closed item’s current hash.
 
-Every status record is two steps: `library.py ingest-status --target <item> --status
-<status> [--progress "…"] [--note "…"] --expected-sha256 <sha256 from ingest-queue> >
-status.json`, then `note_write.py save --packet status.json`.
+Set `status` to the state the owner requested and `item_sha256` to the current hash
+from the selected queue row. Prepare and save the record. Include `--progress` or `--note` when the owner supplied them.
+
+```sh
+python3 scripts/library.py --config "$config" ingest-status --target "$item" --status "$status" --expected-sha256 "$item_sha256" > "$scratch/status.json"
+python3 scripts/note_write.py --config "$config" save --packet "$scratch/status.json"
+```
 
 ## Pitfalls
 
