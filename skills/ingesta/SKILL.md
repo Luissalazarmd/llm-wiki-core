@@ -32,7 +32,7 @@ says otherwise. Without that permission use [capture](../capture-source/SKILL.md
    authorized scope read-only. Write the four sections: orientation, reading map with
    page ranges and relevance, contrast with the library with source locators, and
    coverage. Set `item` to the new item's library-relative path, `wrapper` to the
-   captured source path and `origin` to the agent's name. Set `scratch` to a private
+   captured source path and `origin` to `agent: <name>`. Set `scratch` to a private
    directory outside the library and the Core checkout. Prepare and save the item with these commands.
 
    ```sh
@@ -41,8 +41,9 @@ says otherwise. Without that permission use [capture](../capture-source/SKILL.md
    ```
 
    The analysis begins at the first section heading. The helper adds the title,
-   source link, notice and history. Ingest custody covers the creation.
-   Use `&lt;` for a literal less-than sign that resembles an HTML tag in analysis text.
+   source link, notice and history. Ingest custody covers the creation; no decision is asked.
+   An HTML-like tag in the analysis is refused when the item is saved: write `&lt;` or
+   "menor que" for a literal less-than sign.
    In status records, pass the owner’s words literally. The writer escapes `<` in the
    history line. Report what waits and what was not read.
 4. Reading session, one document at a time (offer the first of `ingest-queue`, the

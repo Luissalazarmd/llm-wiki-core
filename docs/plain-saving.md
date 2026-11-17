@@ -178,7 +178,8 @@ are refused: those are reviewed updates.
 
 The queue sorts by creation date, then path. Items with missing or invalid dates follow
 the dated ones. `source_present` checks for a regular Markdown file
-in the declared source layer, within the authorized paths.
+in the declared source layer, within the authorized paths; `false` therefore also means
+"outside the authorized scope", not only "retired".
 
 An ordinary `proposal` update of an item, shown and decided like any other, may change
 its analysis or status; the writer refuses one that drops the format, changes

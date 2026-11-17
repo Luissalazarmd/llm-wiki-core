@@ -97,7 +97,8 @@ Status and progress only record what the owner said in the conversation. The age
 does not advance them from its own reading, does not close an item because it looks
 finished, and does not withdraw its own analysis: if the analysis proves wrong, or the
 queue cannot find the original at its authorized source path (`source_present: false`),
-it tells the owner.
+it tells the owner. `false` also appears when the source lies outside `authorized_paths`
+or `layers.sources`: say it could not be checked, not that the capture was retired.
 
 ## Afterwards
 
