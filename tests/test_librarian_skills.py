@@ -27,6 +27,35 @@ class LibrarianSkillTests(unittest.TestCase):
         for relative in ('Librarian Profile.md', 'skills/read-connect/SKILL.md'):
             self.assertIn('knowledge-workflow.md#guided-loop', (BASE / relative).read_text(), relative)
 
+    def links(self, relative):
+        path = BASE / relative
+        return [((path.parent / target).resolve(), anchor) for target, _, anchor in
+                (link.partition('#') for link in re.findall(r'\]\(([^)]+)\)', path.read_text()) if '://' not in link)]
+
+    def test_current_evidence_has_one_owner_reached_from_work_entries(self):
+        owner = BASE / 'docs/knowledge-workflow.md'
+        workflow = owner.read_text()
+        self.assertEqual(workflow.count('## Check current evidence'), 1)
+        section = ' '.join(workflow.split('## Check current evidence', 1)[1].split('\n## ', 1)[0].split())
+        for rule in ('cite the original passage you could check', 'continue with what you can support',
+                     'within the scope selected and authorized for this question',
+                     'A later proposal, prediction or repetition does not establish a change',
+                     'cite both and give the dates', 'leave it open',
+                     'Assess scientific disagreements on their evidence', 'Keep negations'):
+            self.assertIn(rule, section)
+        for relative in ('Librarian Profile.md', 'skills/read-connect/SKILL.md', 'skills/review-save/SKILL.md'):
+            self.assertIn((owner.resolve(), 'check-current-evidence'), self.links(relative), relative)
+
+    def test_unchecked_citation_never_supports_a_saved_claim(self):
+        policy = (BASE / 'docs/knowledge-workflow.md').read_text().split('## Citations and lean metadata', 1)[1]
+        policy = ' '.join(policy.split('\n## ', 1)[0].split())
+        for rule in ('verify the citation or cite another checked source',
+                     'remove the claim or present it as an open question', 'label it unverified',
+                     'direct link to its source', 'add no block identifier to an original'):
+            self.assertIn(rule, policy)
+        self.assertNotIn('decides to keep the passage', policy)
+        self.assertIn('Flag every unchecked citation', (BASE / 'skills/review-save/SKILL.md').read_text())
+
     def test_reader_first_writing_has_one_owner_reached_from_work_entries(self):
         workflow = (BASE / 'docs/knowledge-workflow.md').read_text()
         self.assertEqual(workflow.count('## Write for the reader'), 1)

@@ -1,5 +1,23 @@
 # Acceptance
 
+## Current evidence and unchecked citations — 2026-11-23
+
+This text-only update passed 468 synthetic tests on Linux with Python 3 and PyYAML, run
+from the branch checkout. The two new tests check that the rules have one owner, that
+the work entries link to it and that their key sentences remain; they cannot show that
+an agent follows them.
+
+One fictional library was also read in three fresh sessions of one model with the same
+question and an expected answer fixed beforehand. The decisive record lay outside the
+supplied excerpt, the synthesis was outdated, two boards disagreed, a later summary
+repeated the older one and a later minute only proposed a change. The three answers
+recovered the record, kept the negation and the block in force, separated the proposal
+and the repetition from a change, and cited the originals. The library was unchanged.
+
+Not run: the same question without the new text, so the trial shows no improvement over
+the previous version; other models, hosts or real libraries; saving a note with an
+unchecked citation; Obsidian opening a citation link or a collapsed embed.
+
 ## Ingesta follow-up and public checkout — 2026-11-17
 
 All 466 synthetic tests passed at `aeb907f` on Linux x86_64 with Python 3.14.8

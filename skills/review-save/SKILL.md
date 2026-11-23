@@ -19,6 +19,8 @@ Retain a useful correction/proposal or recover an authorized edit.
 1. Prepare complete content/evidence, reusing existing explanations. Apply the
    [citations and lean metadata policy](../../docs/knowledge-workflow.md#citations-and-lean-metadata);
    include the note's complete citations and actual consulted scope in the human preview.
+   Flag every unchecked citation there, and [check current evidence](../../docs/knowledge-workflow.md#check-current-evidence)
+   for states and for facts taken from a synthesis.
 2. For [idea emergence](../../docs/knowledge-workflow.md#idea-emergence), explain current
    and proposed maturity; when new evidence undermines an argument, propose correction.
    An idea the owner states in conversation, with no original to cite, is an

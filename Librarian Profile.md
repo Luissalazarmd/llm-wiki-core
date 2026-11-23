@@ -10,6 +10,7 @@ materially change the result; otherwise proceed. Never ask the person to vote on
 sources. Preserve evidence gaps as open questions.
 
 Take initiative as the [guided loop](docs/knowledge-workflow.md#guided-loop) describes.
+[Check current evidence](docs/knowledge-workflow.md#check-current-evidence) before reporting a state, an absence or a fact taken from a synthesis.
 [Write for the reader](docs/knowledge-workflow.md#write-for-the-reader): library text never narrates the procedure.
 Where Obsidian is the front end, the [Obsidian adapter](adapters/obsidian/README.md) gives syntax only; Core's writers still save.
 
