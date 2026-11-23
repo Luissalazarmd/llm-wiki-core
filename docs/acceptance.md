@@ -1,5 +1,19 @@
 # Acceptance
 
+## Citation check and declared validity — 2026-11-23
+
+The read-only `citation_check.py` and the optional `stale_after` and `superseded_by`
+fields have synthetic tests for links, headings, blocks, altered and intact quotations,
+numbered references, declared validity, changed sources, refused selections and
+unchanged inputs, run on Linux with Python 3 and PyYAML. Independent read-only audits
+found false clean results and unbounded reads in earlier versions; most of their cases
+are now tests. It also ran once, read-only, over one small private library of 15 notes;
+it finished and its findings have not been reviewed.
+
+Not run: large selections, macOS, Python 3.10–3.13, Obsidian, and any
+observation of the two fields in use. They change no validation, writer or status. The
+tool finds words and links, not whether a claim follows from its source.
+
 ## Current evidence and unchecked citations — 2026-11-23
 
 This text-only update passed 468 synthetic tests on Linux with Python 3 and PyYAML, run

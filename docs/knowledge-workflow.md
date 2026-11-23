@@ -74,9 +74,23 @@ Keep complete Vancouver references and verified, clickable DOI links when availa
 
 Give each citation a direct link to its source, at the cited heading when there is one, so the reader opens the original in one step. During review, let the reader inspect the evidence through the direct link. Preserve quotations requested by the reader or needed for the argument, including any quotation already in the exact draft or diff. Do not paste an additional excerpt beside the citation. In Obsidian, a collapsed embed of the cited section may open the original in place, because it shows the source itself rather than a copy; add no block identifier to an original for this.
 
+The optional read-only [citation check](citation-check.md) reports unresolved links and unmatched quotations.
+
 Flag each unchecked citation beside the affected passage in the review. Before saving a factual claim that rests on one, verify the citation or cite another checked source that supports the claim. Otherwise remove the claim or present it as an open question. If the unchecked reference is retained as a lead, label it unverified. Keep independently supported content.
 
 Keep only metadata required by the permitted writer, numbering profile, local views and useful provenance. Preserve stable identity, recognized maturity, primary association, reservations and existing evidence identifiers/version/locators in their supported structures. Do not invent a new citation registry or flatten a schema ad hoc. Omit unknown-author placeholders and generator-model fields by default in new notes; preserve real authorship and never remove protected legacy fields through a bypass. Do not generate a manually maintained updated field unless an explicit editorial-date purpose requires it; retain dates consumed by local views. Avoid a second fixed declaration of mutable address/primary association in prose; use ordinary navigation links instead. Existing notes change only through their library's exact-review/save boundary, never bulk conversion.
+
+## Declared validity
+
+Two optional frontmatter fields are the explicit editorial exception for a synthesis,
+evergreen note or map that describes changing states. `stale_after: YYYY-MM-DD` is the
+date after which its records should be read again; `superseded_by: "[[explicit/path]]"`
+names the note that replaces it. Absence means nothing and no note needs them. They are
+declarations: a past date does not make a claim false, nothing expires, moves or is
+retired by itself, and a replacement still needs its own evidence and review. Report a
+past date or a replacement to the reader before relying on the note, and read the
+records that its claims cite. Adding, changing or removing either field is a reviewed
+change shown to the owner. Seeds, sources and views do not declare them.
 
 ## Idea emergence
 
