@@ -3,9 +3,10 @@
 ## Current evidence and unchecked citations — 2026-11-23
 
 This text-only update passed 468 synthetic tests on Linux with Python 3 and PyYAML, run
-from the branch checkout. The two new tests check that the rules have one owner, that
-the work entries link to it and that their key sentences remain; they cannot show that
-an agent follows them.
+from the branch checkout. The two new tests check selected wording in the evidence and
+citation rules, one occurrence of the current-evidence heading in the workflow document,
+and links to that heading from the librarian profile, read-connect and review-save. They
+do not detect copies of the rules elsewhere or test whether an agent follows them.
 
 One fictional library was also read in three fresh sessions of one model with the same
 question and an expected answer fixed beforehand. The decisive record lay outside the
@@ -14,8 +15,8 @@ repeated the older one and a later minute only proposed a change. The three answ
 recovered the record, kept the negation and the block in force, separated the proposal
 and the repetition from a change, and cited the originals. The library was unchanged.
 
-Not run: the same question without the new text, so the trial shows no improvement over
-the previous version; other models, hosts or real libraries; saving a note with an
+Not run: the same question without the new text; without a baseline run, the trial
+cannot establish whether the new text improved the answers; other models, hosts or real libraries; saving a note with an
 unchecked citation; Obsidian opening a citation link or a collapsed embed.
 
 ## Ingesta follow-up and public checkout — 2026-11-17
