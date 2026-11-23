@@ -20,6 +20,8 @@ Understand, compare or navigate selected material.
 2. Read relevant originals/locators and justified neighbors using permitted tools
    or [scoped projection](../../docs/projection-reference.md). Unknown stays unknown.
    Take initiative as the [guided loop](../../docs/knowledge-workflow.md#guided-loop) describes.
+   Before reporting a state or an absence, or a fact taken from a synthesis,
+   [check current evidence](../../docs/knowledge-workflow.md#check-current-evidence).
 3. Before extensive proposals, give a brief sourced finding. Ask at most one
    question only if unresolved purpose, scope or criteria materially changes the
    result; otherwise proceed. Sources are never voted on; retain evidence gaps

@@ -19,6 +19,32 @@ redirects or corrects the work, adapt immediately rather than continuing the pre
 agenda. Initiative in reasoning grants no new access, automatic note creation,
 maturity change or saving authority.
 
+## Check current evidence
+
+Use a synthesis, map or earlier answer to locate the cited passage. For a factual
+claim, cite the original passage you could check, including an abstract or authorized
+excerpt if it supports the claim. Cite a synthesis for its own argument. If the
+original is unavailable or the citation does not match, identify what you read, leave
+the underlying claim unverified and continue with what you can support.
+
+Before inferring absence or current status from an excerpt, check relevant neighboring
+passages and look for later or contrary records within the scope selected and
+authorized for this question. Include working files only if they are already in that
+scope. State what the consulted material establishes. If coverage is incomplete,
+qualify the answer accordingly.
+
+For a question about status at a given time, use the latest record that documents the
+status or a change effective by that time. Distinguish the date of the event or
+decision from the date of the note. A later proposal, prediction or repetition does
+not establish a change. When accounts conflict, cite both and give the dates the
+sources provide. If neither resolves the conflict, leave it open. Assess scientific
+disagreements on their evidence.
+
+Keep negations: what a source says was not done is never reported as done. When a
+recorded incident, pause or block changes a state, say what happened, its documented
+cause and whether a later record lifts it. Read the passages the question needs and
+cite them; do not reproduce whole notes.
+
 ## Optional activity and connection counts
 
 For an explicitly selected scope, [deterministic activity and connections](note-connections.md)
@@ -46,6 +72,10 @@ For new scientific derived notes, use numbered Vancouver citations such as [1] i
 
 Keep complete Vancouver references and verified, clickable DOI links when available in the document's References section, not a second formatted bibliography in frontmatter. Preserve original titles and identifiers. Use only verified bibliographic details; do not invent a DOI, journal abbreviation, volume or pages, and do not treat missing DOI as poor evidence. Identify what was actually consulted (abstract, section or full text). A citation of an article does not imply full-text review. Original captures remain unchanged.
 
+Give each citation a direct link to its source, at the cited heading when there is one, so the reader opens the original in one step. During review, let the reader inspect the evidence through the direct link. Preserve quotations requested by the reader or needed for the argument, including any quotation already in the exact draft or diff. Do not paste an additional excerpt beside the citation. In Obsidian, a collapsed embed of the cited section may open the original in place, because it shows the source itself rather than a copy; add no block identifier to an original for this.
+
+Flag each unchecked citation beside the affected passage in the review. Before saving a factual claim that rests on one, verify the citation or cite another checked source that supports the claim. Otherwise remove the claim or present it as an open question. If the unchecked reference is retained as a lead, label it unverified. Keep independently supported content.
+
 Keep only metadata required by the permitted writer, numbering profile, local views and useful provenance. Preserve stable identity, recognized maturity, primary association, reservations and existing evidence identifiers/version/locators in their supported structures. Do not invent a new citation registry or flatten a schema ad hoc. Omit unknown-author placeholders and generator-model fields by default in new notes; preserve real authorship and never remove protected legacy fields through a bypass. Do not generate a manually maintained updated field unless an explicit editorial-date purpose requires it; retain dates consumed by local views. Avoid a second fixed declaration of mutable address/primary association in prose; use ordinary navigation links instead. Existing notes change only through their library's exact-review/save boundary, never bulk conversion.
 
 ## Idea emergence
@@ -63,6 +93,11 @@ state what a proposed connection adds. Explain current/proposed maturity; new
 evidence may justify reopening or correction through review. Reuse the same note
 for continuous ideas. Missing maturity stays unknown. A retained seed need not
 be Evergreen; publication permission is separate.
+
+Prefer developing a synthesis for a question the person returns to; covering a topic
+is not by itself a reason. For a synthesis about changing states, state in the prose the
+date through which the cited records establish the account. If that cutoff is unknown,
+say so.
 
 A seed may be the owner's own idea, stated in conversation, with no original to
 cite. Retain it as an [owner-authored seed](review-contract.md#owner-authored-seeds):
