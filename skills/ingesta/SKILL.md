@@ -28,7 +28,8 @@ says otherwise. Without that permission use [capture](../capture-source/SKILL.md
    ISBN or a short citation as `Reference`. An attachment over 512 MiB blocks the batch.
    Identify the affected capture and prepare the remaining captures for a fresh decision.
 3. For each saved capture, read as much of the document as the session allows, in
-   chunks, in the background or a sub-agent if the host has one, and search the
+   chunks, in the background or a sub-agent if the host has one; read a longer one as
+   a [chain of fresh readers](../../docs/ingesta.md#a-long-document). Search the
    authorized scope read-only. Write the four sections: orientation, reading map with
    page ranges and relevance, contrast with the library with source locators, and
    coverage. Set `item` to the new item's library-relative path, `wrapper` to the
