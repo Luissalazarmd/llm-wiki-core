@@ -24,7 +24,9 @@ the library rules permit it, documents handed over to keep continue into
    them in fields or private records, not as prose in the wrapper.
 3. Prepare preserved content/reference and its persistent useful connection, drafted
    from the stated purpose; a simple reference needs no strategy discussion. Where the
-   library has source templates, fill one: shape, not approval.
+   library has source templates, fill one: shape, not approval. Where the rules name a
+   citation style, take `Citation` only from [`citation_format.py`](../../docs/raw-admission.md#a-citation-from-the-document)
+   and ask the owner to check it against the document.
 4. Bind it with `capture_write.py prepare`. Show the exact wrapper and each attachment
    name and size (the sha256 stays in the packet); follow [review](../../docs/review-contract.md) and library
    custody. The decision is for this packet only. Several sources handed over together

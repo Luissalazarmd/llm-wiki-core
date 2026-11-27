@@ -708,6 +708,15 @@ class CaptureRevisionTest(CaptureWriteCase):
         self.refused(self.revise(None, '--expected-sha256', sha(WRAPPER.encode())), 'not the sha256 of the current file')
         self.assertIn('Nota del dueño.', self.wrapper.read_text())
 
+    def test_a_revision_may_add_a_citation_and_keeps_the_identity(self):
+        cited = self.LEAN.replace('Reference: synthetic:informe-inventado\n',
+                                  'Reference: synthetic:informe-inventado\nCitation: "Paz A. Informe inventado. 2031. doi: 10.1234/prueba"\n')
+        path, packet = self.revision(cited)
+        self.assertEqual(packet['identity']['reference'], 'synthetic:informe-inventado')
+        saved = self.call('save', '--packet', str(path))
+        self.assertEqual(saved.returncode, 0, saved.stderr)
+        self.assertIn('Citation: "Paz A. Informe inventado. 2031. doi: 10.1234/prueba"', self.wrapper.read_text())
+
     def test_identity_and_attachments_cannot_change_in_a_revision(self):
         self.refused(self.revise(self.LEAN.replace('synthetic:informe-inventado', 'synthetic:otro')),
                      'keeps the source identity')

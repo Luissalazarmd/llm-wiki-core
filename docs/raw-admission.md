@@ -37,6 +37,46 @@ agent reports a limited duplicate scope.
 An existing source with an ambiguous Reference or Version stops the check until it
 is reconciled.
 
+### A citation from the document
+
+Where the library rules name a citation style, the wrapper may carry an optional
+`Citation` field. The agent never writes it by hand. It passes two things to
+`citation_format.py`: the bibliographic fields as the document prints them, with every
+author's family and given name in the printed order, and the text of the first pages,
+kept in scratch outside the library. The script keeps a field only where it is printed
+as follows:
+
+- the authors as one complete byline, in order, before the abstract or introduction,
+  with no more names on the lines around it;
+- the title as whole lines just above them;
+- the journal, preprint server or arXiv identifier anywhere before the reference list;
+- the year beside one of those, with volume, issue and pages in the same locator
+  (`2031;12(3):40-48`, `Vol. 12`, `No. 3`, `pp. 40-48`); with none of them, the year
+  anywhere before the abstract or introduction;
+- the DOI whole, beside that locator.
+
+Anything after the reference list is ignored. Line breaks, hyphenation, ligatures,
+degrees and affiliation digits or marks after a name are tolerated; a lower-case
+affiliation letter glued to a name is not. Names in a script without spaces are kept
+whole. If authors, title or year are not found, there is no citation and the field
+stays out; a group author is not supported yet. Vancouver (ICMJE: six authors, then
+et al.) is the only style so far.
+
+The script proves that nothing in the citation is invented: every field is printed in
+the first pages. It does not prove that each field belongs to this work. Flat text has
+no layout, so a field of a work commented on or cited near the top, the arXiv
+identifier of a cited preprint, a journal named by a common word (Heart, Pain) in the
+text, one line of a title broken over two, or a number such as a postal code read as
+the year can still pass. The citation is shown to the owner in the exact wrapper at
+capture, to check against the document; it is not verified against a reference
+manager or the DOI record. In the frontmatter, write its value in quotes: a DOI's
+`doi: ` breaks unquoted YAML, and an unquoted ` #` cuts the title. `Citation` is reading text, not identity: duplicates and revisions
+still go by `id`, Reference and Version.
+
+```sh
+python3 scripts/citation_format.py --style vancouver --fields "$scratch/fields.json" --text "$scratch/first-pages.txt"
+```
+
 `note_write.py` refuses sources by design. A capture is created by `capture_write.py`
 or, where plain-file writing is not permitted, by the host's own create-only tool
 [with the checker alone](#without-the-writer).
