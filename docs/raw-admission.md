@@ -40,13 +40,25 @@ is reconciled.
 ### A verified citation
 
 Where the library rules name a citation style, the wrapper may carry an optional
-`Citation` field. The agent never writes it by hand: it passes the bibliographic
-fields as the document prints them, and the text of the first pages kept in scratch
-outside the library, to `citation_format.py`. The script keeps only the fields found
-there verbatim, allowing for line breaks, hyphenation and affiliation marks after a
-name, and formats the rest. If authors, title or year are not found, it gives no
-citation and the field stays out. `Citation` is reading text, not identity: duplicates
-and revisions still go by `id`, Reference and Version. Vancouver is the only style so far.
+`Citation` field. The agent never writes it by hand. It passes two things to
+`citation_format.py`: the bibliographic fields as the document prints them, with every
+author's family and given name in the printed order, and the text of the first pages,
+kept in scratch outside the library. The script keeps a field only where it is printed
+as the work's own:
+
+- the authors as one complete byline, in order, before the abstract or introduction;
+- the title just above them;
+- the year beside the journal or the preprint identifier;
+- volume, issue and pages beside the year;
+- the DOI whole.
+
+Anything after the reference list is ignored. Line breaks, hyphenation, ligatures and
+affiliation digits or marks after a name are tolerated. If authors, title or year are
+not found, there is no citation and the field stays out; a group author is not
+supported yet. The script checks print, not meaning: a field printed as above passes
+even if it is wrong in the document. `Citation` is reading text, not identity:
+duplicates and revisions still go by `id`, Reference and Version. Vancouver (ICMJE: six
+authors, then et al.) is the only style so far.
 
 ```sh
 python3 scripts/citation_format.py --style vancouver --fields "$scratch/fields.json" --text "$scratch/first-pages.txt"
