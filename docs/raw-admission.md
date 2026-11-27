@@ -37,14 +37,14 @@ agent reports a limited duplicate scope.
 An existing source with an ambiguous Reference or Version stops the check until it
 is reconciled.
 
-### A verified citation
+### A citation from the document
 
 Where the library rules name a citation style, the wrapper may carry an optional
 `Citation` field. The agent never writes it by hand. It passes two things to
 `citation_format.py`: the bibliographic fields as the document prints them, with every
 author's family and given name in the printed order, and the text of the first pages,
 kept in scratch outside the library. The script keeps a field only where it is printed
-as the work's own:
+where a work's own fields usually are:
 
 - the authors as one complete byline, in order, before the abstract or introduction,
   with no more names on the lines around it;
@@ -56,12 +56,18 @@ as the work's own:
 Anything after the reference list is ignored. Line breaks, hyphenation, ligatures,
 degrees and affiliation digits or marks after a name are tolerated; a lower-case
 affiliation letter glued to a name is not. Names in a script without spaces are kept
-whole. If authors, title or year are
-not found, there is no citation and the field stays out; a group author is not
-supported yet. The script checks print, not meaning: a field printed as above passes
-even if it is wrong in the document. `Citation` is reading text, not identity:
-duplicates and revisions still go by `id`, Reference and Version. Vancouver (ICMJE: six
-authors, then et al.) is the only style so far.
+whole. If authors, title or year are not found, there is no citation and the field
+stays out; a group author is not supported yet. Vancouver (ICMJE: six authors, then
+et al.) is the only style so far.
+
+The script proves that nothing in the citation is invented: every field is printed in
+the first pages. It does not prove that each field belongs to this work. Flat text has
+no layout, so a field of a work commented on or cited near the top, one line of a
+title broken over two, or a number such as a postal code read as the year can still
+pass. The owner confirms `Citation` against the document when the exact wrapper is
+shown for the capture; until a reference manager or the DOI record checks it, it is
+not more than that. `Citation` is reading text, not identity: duplicates and revisions
+still go by `id`, Reference and Version.
 
 ```sh
 python3 scripts/citation_format.py --style vancouver --fields "$scratch/fields.json" --text "$scratch/first-pages.txt"

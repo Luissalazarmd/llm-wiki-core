@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""Format a citation from bibliographic fields found verbatim in a document's first pages. Writes nothing."""
+"""Format a citation from bibliographic fields found verbatim in a document's first pages. Writes nothing.
+
+Finding a field printed there shows it is not invented, not that it belongs to this work: the owner confirms it."""
 from __future__ import annotations
 
 import argparse
@@ -13,7 +15,7 @@ import unicodedata
 
 sys.dont_write_bytecode = True
 
-VERSION = 3
+VERSION = 4
 LIMIT = 1024 * 1024
 CAPS = {'title': 512, 'journal': 256, 'server': 64, 'year': 4, 'volume': 32, 'issue': 32, 'pages': 32,
         'doi': 256, 'arxiv': 64, 'family': 128, 'given': 128}
@@ -278,7 +280,7 @@ def format_citation(style: str, given: dict, first_pages: str) -> dict:
     missing = [field for field in REQUIRED if not kept.get(field)]
     unused = ['arxiv', 'server'] if kept.get('journal') else []
     return {'version': VERSION, 'style': style, 'citation': None if missing else STYLES[style](kept),
-            'verified': sorted(kept), 'dropped': dropped, 'missing': missing,
+            'found': sorted(kept), 'dropped': dropped, 'missing': missing,
             'unused': [f for f in unused if f in kept]}
 
 

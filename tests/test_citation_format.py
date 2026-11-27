@@ -36,6 +36,7 @@ class CitationFormatTests(unittest.TestCase):
         report = cite()
         self.assertEqual(report['citation'], CITED)
         self.assertEqual((report['dropped'], report['missing']), ([], []))
+        self.assertEqual(report['found'], ['authors', 'doi', 'issue', 'journal', 'pages', 'title', 'volume', 'year'])
 
     def test_line_breaks_hyphenation_tabs_ligatures_and_decomposed_accents(self):
         text = (ARTICLE.replace('Mediciones de\nprueba', 'Medi-\nciones\tde\nprueba').replace('40–48', '40 -\n48')
