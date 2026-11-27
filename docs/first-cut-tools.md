@@ -59,6 +59,7 @@ python3 scripts/capture_check.py --config /private.json --target Sources/new.md 
 python3 scripts/capture_write.py --config /private.json prepare --target Sources/new.md --attach /downloads/paper.pdf Sources/new.pdf < /capture.md > /capture.json
 python3 scripts/capture_write.py --config /private.json save --packet /capture.json
 python3 scripts/capture_write.py --config /private.json prepare-batch < /batch-manifest.json > /batch.json
+python3 scripts/citation_format.py --style vancouver --fields /fields.json --text /first-pages.txt
 python3 scripts/library.py --config /private.json ingest --target Review/Inbox/ingesta-new.md --source Sources/new.md --origin "agent: reader" < /analysis.md > /item.json
 python3 scripts/library.py --config /private.json ingest-queue
 python3 scripts/template_write.py --config /private.json prepare --name Fuente-podcast.md < /template.md > /template.json

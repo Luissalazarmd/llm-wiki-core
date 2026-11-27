@@ -37,6 +37,21 @@ agent reports a limited duplicate scope.
 An existing source with an ambiguous Reference or Version stops the check until it
 is reconciled.
 
+### A verified citation
+
+Where the library rules name a citation style, the wrapper may carry an optional
+`Citation` field. The agent never writes it by hand: it passes the bibliographic
+fields as the document prints them, and the text of the first pages kept in scratch
+outside the library, to `citation_format.py`. The script keeps only the fields found
+there verbatim, allowing for line breaks, hyphenation and affiliation marks after a
+name, and formats the rest. If authors, title or year are not found, it gives no
+citation and the field stays out. `Citation` is reading text, not identity: duplicates
+and revisions still go by `id`, Reference and Version. Vancouver is the only style so far.
+
+```sh
+python3 scripts/citation_format.py --style vancouver --fields "$scratch/fields.json" --text "$scratch/first-pages.txt"
+```
+
 `note_write.py` refuses sources by design. A capture is created by `capture_write.py`
 or, where plain-file writing is not permitted, by the host's own create-only tool
 [with the checker alone](#without-the-writer).
