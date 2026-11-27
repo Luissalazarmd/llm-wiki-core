@@ -1,4 +1,4 @@
-"""Citation formatting from fictional first pages. A citation comes only from fields printed as the work's own."""
+"""Citation formatting from fictional first pages. A citation comes only from fields printed where a work's own fields usually are."""
 import json
 import os
 from pathlib import Path
