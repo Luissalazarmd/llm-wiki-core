@@ -67,7 +67,7 @@ class CitationFormatTests(unittest.TestCase):
         text = '某期刊. 2031;5:1-9.\n测试研究标题\n王小明1, 李华2\nAbstract\n'
         report = cite(dict(authors=[dict(family='王', given='小明'), dict(family='李', given='华')],
                            title='测试研究标题', journal='某期刊', year='2031'), text)
-        self.assertTrue(report['citation'].startswith('王 小, 李 华. 测试研究标题.'), report)
+        self.assertTrue(report['citation'].startswith('王小明, 李华. 测试研究标题.'), report)
 
     def test_names_outside_the_byline_or_an_incomplete_list_give_no_citation(self):
         cases = {'acknowledgements only': [dict(family='Mora', given='Luz')],
@@ -89,9 +89,39 @@ class CitationFormatTests(unittest.TestCase):
         self.assertIn('title', cite(dict(FIELDS, title='A'))['dropped'])
         report = cite(dict(FIELDS, year='2019'))
         self.assertEqual((report['citation'], report['missing']), (None, ['year']))
-        report = cite(dict(FIELDS, volume='7'))
-        self.assertEqual(report['dropped'], ['volume'])
-        self.assertIn('Revista Inventada. 2031:40–48.', report['citation'])
+        report = cite(dict(FIELDS, volume='7'))  # a wrong volume breaks the whole locator
+        self.assertEqual(report['dropped'], ['volume', 'issue', 'pages'])
+        self.assertIn('Revista Inventada. 2031. doi:', report['citation'])
+
+    def test_a_byline_must_not_continue_on_a_neighbouring_line(self):
+        text = ('Revista Inventada. 2031;12(3):40–48.\nMediciones de prueba\n'
+                'Ana Paz1, Luis Gil2,\nMaria Ruiz1, Pedro Sol3*\n1 Instituto Ficticio.\nAbstract\n')
+        everyone = [dict(family='Paz', given='Ana'), dict(family='Gil', given='Luis'),
+                    dict(family='Ruiz', given='Maria'), dict(family='Sol', given='Pedro')]
+        base = dict(title='Mediciones de prueba', journal='Revista Inventada', year='2031')
+        self.assertTrue(cite(dict(base, authors=everyone), text)['citation'].startswith('Paz A, Gil L, Ruiz M, Sol P.'))
+        for part in (everyone[:2], everyone[2:]):
+            with self.subTest(part=part):
+                self.assertIsNone(cite(dict(base, authors=part), text)['citation'])
+        one_per_line = text.replace('Ana Paz1, Luis Gil2,\nMaria Ruiz1, Pedro Sol3*', 'Ana Paz1\nLuis Gil2')
+        self.assertIsNone(cite(dict(base, authors=[everyone[1]]), one_per_line)['citation'])
+        degrees = text.replace('Ana Paz1, Luis Gil2,\nMaria Ruiz1, Pedro Sol3*', 'Ana Paz, MD, PhD; Luis Gil, MSc')
+        self.assertTrue(cite(dict(base, authors=everyone[:2]), degrees)['citation'])
+
+    def test_a_title_is_a_whole_block_of_lines(self):
+        text = ARTICLE.replace('Mediciones de\nprueba', 'Melanoma')
+        self.assertTrue(cite(dict(FIELDS, title='Melanoma'), text)['citation'].startswith('Del Río AM, Li B, Paz ES. Melanoma.'))
+        self.assertEqual(cite(dict(FIELDS, title='de prueba'))['missing'], ['title'])
+        noted = ARTICLE.replace('Mediciones de\nprueba', 'No effect of aspirin on mortality')
+        self.assertEqual(cite(dict(FIELDS, title='effect of aspirin on mortality'), noted)['missing'], ['title'])
+
+    def test_a_doi_split_across_lines_or_beside_another_work_is_dropped(self):
+        split = ARTICLE.replace('10.1234/prueba', '10.1016/S0140-\n6736(20)30183-5')
+        self.assertEqual(cite(dict(FIELDS, doi='10.1016/S0140-'), split)['dropped'], ['doi'])
+        comment = ARTICLE.replace('Abstract', 'See Comment doi: 10.5555/comentario\n' + 'x ' * 200 + '\nAbstract')
+        self.assertEqual(cite(dict(FIELDS, doi='10.5555/comentario'), comment)['dropped'], ['doi'])
+        continued = ARTICLE.replace('References\n', 'REFERENCES (continued)\n')
+        self.assertEqual(cite(dict(FIELDS, doi='10.9999/ajena'), continued)['dropped'], ['doi'])
 
     def test_a_doi_must_be_printed_whole_and_outside_the_references(self):
         printed = ARTICLE.replace('10.1234/prueba', '10.1016/S0140-6736(20)30183-5')
@@ -128,8 +158,11 @@ class CitationFormatTests(unittest.TestCase):
             bad.write_bytes(b'{\xff')
             os.mkfifo(pipe)
             link.symlink_to(text)
+            linked_dir = Path(temp) / 'linked'
+            linked_dir.symlink_to(temp)
             for source, given, message in ((big, fields, 'exceeds 1 MiB'), (text, bad, ''),
-                                           (pipe, fields, 'not a regular file'), (link, fields, '')):
+                                           (pipe, fields, 'not a regular file'), (link, fields, ''),
+                                           (linked_dir / 'first-pages.txt', fields, 'through a link')):
                 with self.subTest(source=source.name, given=given.name):
                     refused = run(source=source, given=given)
                     self.assertEqual(refused.returncode, 2)

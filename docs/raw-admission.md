@@ -46,14 +46,17 @@ author's family and given name in the printed order, and the text of the first p
 kept in scratch outside the library. The script keeps a field only where it is printed
 as the work's own:
 
-- the authors as one complete byline, in order, before the abstract or introduction;
-- the title just above them;
-- the year beside the journal or the preprint identifier;
-- volume, issue and pages beside the year;
-- the DOI whole.
+- the authors as one complete byline, in order, before the abstract or introduction,
+  with no more names on the lines around it;
+- the title as whole lines just above them;
+- the year beside the journal or the preprint identifier, with volume, issue and pages
+  in the same locator (`2031;12(3):40-48`, `Vol. 12`, `No. 3`, `pp. 40-48`);
+- the DOI whole, beside that locator.
 
-Anything after the reference list is ignored. Line breaks, hyphenation, ligatures and
-affiliation digits or marks after a name are tolerated. If authors, title or year are
+Anything after the reference list is ignored. Line breaks, hyphenation, ligatures,
+degrees and affiliation digits or marks after a name are tolerated; a lower-case
+affiliation letter glued to a name is not. Names in a script without spaces are kept
+whole. If authors, title or year are
 not found, there is no citation and the field stays out; a group author is not
 supported yet. The script checks print, not meaning: a field printed as above passes
 even if it is wrong in the document. `Citation` is reading text, not identity:
