@@ -68,7 +68,7 @@ seed and the closing were also run by hand in a disposable copy of the starter l
 The earlier guard runs and path variants were not repeated.
 
 Not run for this update: an actual host running Ingesta with its owner, by default or
-in the background; a first analysis of a real long document, or any check that a
+in the background; a first analysis of a real long document, a chain of fresh readers, or any check that a
 coverage statement matches what was read; a reading session with the owner stating
 notes; Obsidian rendering the "Pendientes" view or rewriting an item's properties; a
 sub-agent returning an analysis; a filesystem without hard links; a process killed
