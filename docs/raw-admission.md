@@ -44,13 +44,15 @@ Where the library rules name a citation style, the wrapper may carry an optional
 `citation_format.py`: the bibliographic fields as the document prints them, with every
 author's family and given name in the printed order, and the text of the first pages,
 kept in scratch outside the library. The script keeps a field only where it is printed
-where a work's own fields usually are:
+as follows:
 
 - the authors as one complete byline, in order, before the abstract or introduction,
   with no more names on the lines around it;
 - the title as whole lines just above them;
-- the year beside the journal or the preprint identifier, with volume, issue and pages
-  in the same locator (`2031;12(3):40-48`, `Vol. 12`, `No. 3`, `pp. 40-48`);
+- the journal, preprint server or arXiv identifier anywhere before the reference list;
+- the year beside one of those, with volume, issue and pages in the same locator
+  (`2031;12(3):40-48`, `Vol. 12`, `No. 3`, `pp. 40-48`); with none of them, the year
+  anywhere before the abstract or introduction;
 - the DOI whole, beside that locator.
 
 Anything after the reference list is ignored. Line breaks, hyphenation, ligatures,
@@ -62,11 +64,13 @@ et al.) is the only style so far.
 
 The script proves that nothing in the citation is invented: every field is printed in
 the first pages. It does not prove that each field belongs to this work. Flat text has
-no layout, so a field of a work commented on or cited near the top, one line of a
-title broken over two, or a number such as a postal code read as the year can still
-pass. The owner confirms `Citation` against the document when the exact wrapper is
-shown for the capture; until a reference manager or the DOI record checks it, it is
-not more than that. `Citation` is reading text, not identity: duplicates and revisions
+no layout, so a field of a work commented on or cited near the top, the arXiv
+identifier of a cited preprint, a journal named by a common word (Heart, Pain) in the
+text, one line of a title broken over two, or a number such as a postal code read as
+the year can still pass. The citation is shown to the owner in the exact wrapper at
+capture, to check against the document; it is not verified against a reference
+manager or the DOI record. In the frontmatter, write its value in quotes: a DOI's
+`doi: ` breaks unquoted YAML, and an unquoted ` #` cuts the title. `Citation` is reading text, not identity: duplicates and revisions
 still go by `id`, Reference and Version.
 
 ```sh

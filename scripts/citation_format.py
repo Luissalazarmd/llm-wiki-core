@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Format a citation from bibliographic fields found verbatim in a document's first pages. Writes nothing.
+"""Format a citation from bibliographic fields printed in a document's first pages. Writes nothing.
 
 Finding a field printed there shows it is not invented, not that it belongs to this work: the owner confirms it."""
 from __future__ import annotations

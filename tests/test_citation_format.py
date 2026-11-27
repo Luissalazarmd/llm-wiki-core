@@ -1,4 +1,4 @@
-"""Citation formatting from fictional first pages. A citation comes only from fields printed where a work's own fields usually are."""
+"""Citation formatting from fictional first pages. A citation comes only from fields printed in the places the docs name."""
 import json
 import os
 from pathlib import Path
@@ -84,7 +84,7 @@ class CitationFormatTests(unittest.TestCase):
                 self.assertIsNone(report['citation'])
                 self.assertEqual(report['missing'][:1], ['authors'])
 
-    def test_title_year_and_numbers_must_belong_to_the_work_itself(self):
+    def test_title_year_and_numbers_are_dropped_when_not_printed_in_place(self):
         report = cite(dict(FIELDS, title='Otro trabajo distinto'))
         self.assertEqual((report['citation'], report['missing']), (None, ['title']))
         self.assertIn('title', cite(dict(FIELDS, title='A'))['dropped'])
